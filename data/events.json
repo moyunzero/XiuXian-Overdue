@@ -1,0 +1,40 @@
+[
+  {
+    "id": "collection_sms_1",
+    "title": "催收短信",
+    "type": "collection",
+    "trigger": { "delinquency": 1 },
+    "body": "【天庭金融】尊敬的张羽同学，您的借款已逾期1天，请尽快还款以免影响信用。客服电话：400-xxx-xxxx",
+    "tone": "info",
+    "options": [
+      {
+        "id": "ignore",
+        "label": "忽略",
+        "effect": { "stress": 5 },
+        "description": "暂时不理会"
+      }
+    ]
+  },
+  {
+    "id": "collection_call_1",
+    "title": "催收电话",
+    "type": "collection",
+    "trigger": { "delinquency": 4 },
+    "body": "电话响了。你看到屏幕上显示的陌生号码，犹豫了一下还是接通了。\n\n'喂？请问是张羽同学吗？我是天庭金融的客服。您的借款已经逾期4天了，本金加利息目前是...'",
+    "tone": "warn",
+    "options": [
+      {
+        "id": "promise",
+        "label": "承诺明天还款",
+        "effect": { "delinquency_grace": 3, "stress": 10 },
+        "description": "获得3天宽限期"
+      },
+      {
+        "id": "hang_up",
+        "label": "挂断电话",
+        "effect": { "collection_level": 1, "stress": 15 },
+        "description": "催收会升级"
+      }
+    ]
+  }
+]

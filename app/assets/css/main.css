@@ -1,0 +1,502 @@
+:root{
+  /* Background Colors */
+  --bg0:#07080c;
+  --bg1:#0b0f16;
+  --card:#0f1420;
+  --card2:#0b101a;
+  
+  /* Text Colors */
+  --text:#e8ecf6;
+  --muted:#9aa6c6;
+  
+  /* Accent Colors */
+  --aqua:#38f8d0;
+  --acid:#e7ff4a;
+  --ember:#ff4f7a;
+  --violet:#7c5cff;
+
+  /* Semantic Colors */
+  --danger:#ff3b3b;
+  --ok:#44ff9a;
+  --warn:#ffd24a;
+  
+  /* Functional Colors */
+  --line:rgba(255,255,255,.10);
+  --overlay:rgba(0,0,0,.62);
+  --glass:rgba(255,255,255,.04);
+  --border:rgba(255,255,255,.10);
+
+  /* Font Families */
+  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --serif: "ZCOOL XiaoWei", ui-serif, Georgia, "Times New Roman", serif;
+  --sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  
+  /* Font Sizes */
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-base: 14px;
+  --text-lg: 16px;
+  --text-xl: 18px;
+  --text-2xl: 24px;
+  --text-3xl: 28px;
+  
+  /* Font Weights */
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  
+  /* Line Heights */
+  --leading-tight: 1.15;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.75;
+  
+  /* Spacing Scale */
+  --space-0: 0px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  
+  /* Semantic Spacing */
+  --card-padding: 16px;
+  --section-gap: 14px;
+  --button-gap: 10px;
+  --input-padding: 10px 12px;
+}
+
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  color:var(--text);
+  background:
+    radial-gradient(1200px 800px at 20% 10%, rgba(56,248,208,.14), transparent 60%),
+    radial-gradient(900px 700px at 85% 25%, rgba(124,92,255,.14), transparent 55%),
+    radial-gradient(800px 900px at 40% 85%, rgba(255,79,122,.10), transparent 55%),
+    linear-gradient(180deg, var(--bg0), var(--bg1));
+  font-family: var(--mono);
+  letter-spacing: .2px;
+}
+
+a{ color:inherit; }
+button,input,select{ font:inherit; color:inherit; }
+
+.AppShell{
+  min-height:100%;
+  display:flex;
+  width:100%;
+  position:relative;
+  isolation:isolate;
+}
+.AppShell::before{
+  content:"";
+  position:fixed;
+  inset:-20%;
+  pointer-events:none;
+  z-index:-1;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      rgba(255,255,255,.03) 0px,
+      rgba(255,255,255,.03) 1px,
+      transparent 2px,
+      transparent 6px
+    );
+  opacity:.12;
+  will-change: transform;
+  animation: scan 10s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .AppShell::before {
+    animation: none;
+  }
+}
+.AppShell::after{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:-1;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='.25'/%3E%3C/svg%3E");
+  opacity:.06;
+  mix-blend-mode: overlay;
+}
+
+@keyframes scan{
+  0%{ transform: translate3d(0, 0, 0); }
+  100%{ transform: translate3d(0, 120px, 0); }
+}
+
+.Container{
+  width:min(1100px, calc(100% - 32px));
+  margin:0 auto;
+  padding:22px 0 44px;
+}
+
+.Title{
+  font-family: var(--serif);
+  letter-spacing: .6px;
+  font-size: 28px;
+  line-height: 1.15;
+  margin:0;
+}
+
+.Sub{
+  margin:8px 0 0;
+  color:var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.Card{
+  border:1px solid var(--line);
+  background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  overflow:hidden;
+}
+.CardInner{ padding:16px; }
+
+.Grid2{
+  display:grid;
+  grid-template-columns: 1.1fr .9fr;
+  gap: var(--section-gap);
+}
+.Grid3{
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+}
+.Grid4{
+  display:grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-3);
+}
+
+/* Tablet Breakpoint (768-920px) */
+@media (max-width: 920px) and (min-width: 768px){
+  .Grid2{ grid-template-columns: 1fr; }
+  .Grid3{ grid-template-columns: repeat(2, 1fr); }
+  .Grid4{ grid-template-columns: repeat(2, 1fr); }
+  
+  /* Tablet-specific adjustments */
+  .Container{
+    width: calc(100% - 28px);
+  }
+}
+
+/* Mobile Breakpoint (<768px) */
+@media (max-width: 767px){
+  /* Layout adjustments */
+  .Container{
+    width: calc(100% - 24px);
+    padding: 16px 0 32px;
+  }
+  
+  .Grid2{ grid-template-columns: 1fr; }
+  .Grid3{ grid-template-columns: 1fr; }
+  .Grid4{ grid-template-columns: 1fr; }
+  
+  /* Font size adjustments */
+  .Title{
+    font-size: 24px;
+  }
+  
+  body{
+    font-size: 13px;
+  }
+  
+  .MonoSmall{
+    font-size: 11px;
+  }
+  
+  /* Button size adjustments - minimum 44x44px for touch */
+  .Btn{
+    min-height: 44px;
+    min-width: 44px;
+    padding: 12px 14px;
+  }
+  
+  /* Increase button spacing for touch targets */
+  .Row{
+    gap: 12px;
+  }
+  
+  /* Touch-friendly interactions */
+  button, .Btn, .LogItem, .Field, select{
+    touch-action: manipulation;
+  }
+  
+  /* Disable complex animations on mobile for performance */
+  .AppShell::before{
+    animation: none;
+    opacity: 0.06;
+  }
+  
+  /* Reduce backdrop-filter effects for performance */
+  .Card{
+    backdrop-filter: blur(4px);
+  }
+  
+  .ModalBackdrop{
+    backdrop-filter: blur(3px);
+  }
+  
+  /* Adjust modal for mobile */
+  .Modal{
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  
+  /* Adjust card padding for mobile */
+  .CardInner{
+    padding: 14px;
+  }
+  
+  /* Adjust stat display for mobile */
+  .Stat{
+    padding: 10px;
+  }
+  
+  .StatVal{
+    font-size: 16px;
+  }
+  
+  /* Adjust log panel for mobile */
+  .LogList{
+    max-height: 200px;
+  }
+  
+  .LogTitle{
+    font-size: 11px;
+  }
+  
+  .LogMeta{
+    font-size: 10px;
+  }
+}
+
+/* Legacy media query for backwards compatibility */
+@media (max-width: 920px){
+  .Grid2{ grid-template-columns: 1fr; }
+  .Grid3{ grid-template-columns: 1fr; }
+}
+
+.Row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+.Spacer{ flex:1; }
+
+.Btn{
+  border:1px solid var(--line);
+  background: rgba(255,255,255,.03);
+  padding:10px 12px;
+  border-radius: 12px;
+  cursor:pointer;
+  transition: transform .08s ease, border-color .15s ease, background .15s ease;
+}
+.Btn:hover{ border-color: rgba(56,248,208,.35); background: rgba(56,248,208,.06); }
+.Btn:active{ transform: translateY(1px); }
+.BtnPrimary{
+  border-color: rgba(56,248,208,.35);
+  background: linear-gradient(180deg, rgba(56,248,208,.18), rgba(56,248,208,.08));
+}
+.BtnDanger{
+  border-color: rgba(255,59,59,.35);
+  background: linear-gradient(180deg, rgba(255,59,59,.16), rgba(255,59,59,.06));
+}
+.BtnGhost{
+  background: transparent;
+}
+.Btn:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+}
+
+.Label{
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: .3px;
+}
+.Field{
+  width:100%;
+  border:1px solid var(--line);
+  background: rgba(0,0,0,.25);
+  border-radius: 12px;
+  padding:10px 12px;
+  outline:none;
+}
+.Field:focus{
+  border-color: rgba(124,92,255,.45);
+  box-shadow: 0 0 0 3px rgba(124,92,255,.15);
+}
+
+.Stat{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  padding:12px;
+  border-radius: 14px;
+  border:1px solid var(--line);
+  background: rgba(0,0,0,.18);
+}
+.StatTop{ display:flex; align-items:baseline; gap:10px; }
+.StatName{ color: var(--muted); font-size:12px; }
+.StatVal{ font-size: 18px; font-weight: 600; }
+.Bar{
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.06);
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.06);
+}
+.BarFill{
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, rgba(56,248,208,.92), rgba(124,92,255,.92));
+}
+
+.Kbd{
+  display:inline-flex;
+  padding:2px 6px;
+  border-radius: 8px;
+  border:1px solid rgba(255,255,255,.14);
+  background: rgba(0,0,0,.25);
+  color: rgba(232,236,246,.9);
+  font-size: 12px;
+}
+
+.Pill{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 10px;
+  border-radius: 999px;
+  border:1px solid var(--line);
+  color: var(--muted);
+  background: rgba(0,0,0,.18);
+  font-size:12px;
+}
+
+.ModalBackdrop{
+  position:fixed;
+  inset:0;
+  background: rgba(0,0,0,.62);
+  backdrop-filter: blur(6px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+  z-index:50;
+}
+.Modal{
+  width:min(720px, 100%);
+  border-radius: 18px;
+  border:1px solid rgba(255,255,255,.14);
+  background: linear-gradient(180deg, rgba(15,20,32,.94), rgba(11,16,26,.92));
+  box-shadow: 0 18px 70px rgba(0,0,0,.55);
+  overflow:hidden;
+}
+.ModalHead{
+  padding:14px 16px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.ModalTitle{
+  font-family: var(--serif);
+  letter-spacing:.5px;
+}
+.ModalBody{ padding:16px; }
+.MonoSmall{ font-size:12px; color:var(--muted); line-height:1.55; }
+
+.LogShell{
+  margin-top: 10px;
+  display:flex;
+  gap:10px;
+}
+.LogList{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  max-height: 340px;
+  overflow-y:auto;
+  padding-right:4px;
+  flex: 0 0 56%;
+}
+.LogList::-webkit-scrollbar{
+  width:6px;
+}
+.LogList::-webkit-scrollbar-track{
+  background: transparent;
+}
+.LogList::-webkit-scrollbar-thumb{
+  background: rgba(255,255,255,.16);
+  border-radius:999px;
+}
+.LogItem{
+  border-radius: 999px;
+  border:1px solid rgba(255,255,255,.06);
+  background: rgba(0,0,0,.18);
+  padding:6px 10px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  cursor:pointer;
+  transition: background .12s ease, border-color .12s ease, transform .06s ease;
+}
+.LogItem--active{
+  border-color: rgba(56,248,208,.5);
+  background: linear-gradient(90deg, rgba(56,248,208,.16), rgba(124,92,255,.10));
+}
+.LogItem:hover{
+  border-color: rgba(124,92,255,.42);
+}
+.LogDot{
+  width:8px;
+  height:8px;
+  border-radius:999px;
+  background: rgba(154,166,198,.9);
+  flex-shrink:0;
+}
+.LogDot--ok{ background: var(--ok); }
+.LogDot--warn{ background: var(--warn); }
+.LogDot--danger{ background: var(--danger); }
+.LogMeta{
+  font-size:11px;
+  color: var(--muted);
+}
+.LogTitle{
+  font-size:12px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.LogDetail{
+  flex: 1 1 0;
+  border-radius: 16px;
+  border:1px solid rgba(255,255,255,.10);
+  background: radial-gradient(circle at 0 0, rgba(56,248,208,.08), transparent 55%), rgba(0,0,0,.35);
+  padding: 10px 12px;
+  min-height: 80px;
+}
+
+@media (max-width: 920px){
+  .LogShell{
+    flex-direction:column;
+  }
+  .LogList{
+    max-height: 220px;
+    flex-basis:auto;
+  }
+}
+
+
