@@ -24,7 +24,6 @@ logs
 !.env.example
 
 # Development documentation (internal use only)
-docs/
 events-data.md
 *SUMMARY*.md
 *REPORT*.md

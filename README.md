@@ -191,8 +191,8 @@ xiuxian-sim/
 ---
 
 ## 📚 文档
-## 📚 文档
 
+- [事件创作指南](./docs/事件创作指南.md) - 面向非开发者的事件 JSON 编写说明
 - [部署指南](./DEPLOY.md) - 如何将项目上传到 GitHub
 - [UI/UX 设计规范](./.kiro/specs/ui-ux-game-optimization/) - 完整的 UI/UX 设计系统文档
 

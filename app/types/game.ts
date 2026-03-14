@@ -13,6 +13,8 @@ export type ActionId =
 
 export type SlotId = 'morning' | 'afternoon' | 'night'
 
+export type BodyPartId = 'LeftPalm' | 'RightPalm' | 'LeftArm' | 'RightArm' | 'LeftLeg' | 'RightLeg'
+
 export interface StartConfig {
   playerName: string
   background: Background
@@ -69,7 +71,108 @@ export interface LogEntry {
   tone?: 'info' | 'warn' | 'danger' | 'ok'
 }
 
+export interface BodyPartConfig {
+  id: BodyPartId
+  label: string
+  repaymentValue: number
+  modelNodeName: string
+}
+
+export type EventTone = 'info' | 'warn' | 'danger' | 'ok'
+
+export type EventPhase = 'afterAction' | 'endOfDay'
+
+export interface EventTrigger {
+  minDay?: number
+  maxDay?: number
+  minDebt?: number
+  maxDebt?: number
+  minCash?: number
+  maxCash?: number
+  minDelinquency?: number
+  maxDelinquency?: number
+  classTierIn?: SchoolState['classTier'][]
+  contractActive?: boolean
+}
+
+export type EventEffectKind = 'stat' | 'econ' | 'debt' | 'contract' | 'school' | 'log'
+
+export interface BaseEventEffect {
+  kind: EventEffectKind
+}
+
+export interface StatEventEffect extends BaseEventEffect {
+  kind: 'stat'
+  target: keyof PlayerStats
+  delta: number
+}
+
+export interface EconEventEffect extends BaseEventEffect {
+  kind: 'econ'
+  target: keyof EconomyState
+  delta: number
+}
+
+export interface DebtEventEffect extends BaseEventEffect {
+  kind: 'debt'
+  mode: 'addPrincipal' | 'addInterest'
+  amount: number
+}
+
+export interface ContractEventEffect extends BaseEventEffect {
+  kind: 'contract'
+  target: 'active' | 'progress' | 'vigilance'
+  // 对 active 使用 value，其余使用 delta
+  value?: boolean
+  delta?: number
+}
+
+export interface SchoolEventEffect extends BaseEventEffect {
+  kind: 'school'
+  target: 'classTier'
+  value: SchoolState['classTier']
+}
+
+export interface LogEventEffect extends BaseEventEffect {
+  kind: 'log'
+  title: string
+  detail: string
+  tone?: LogEntry['tone']
+}
+
+export type EventEffect =
+  | StatEventEffect
+  | EconEventEffect
+  | DebtEventEffect
+  | ContractEventEffect
+  | SchoolEventEffect
+  | LogEventEffect
+
+export interface EventOptionDefinition {
+  id: string
+  label: string
+  tone?: 'normal' | 'danger' | 'primary'
+  description?: string
+  effects: EventEffect[]
+}
+
+export interface EventDefinition {
+  id: string
+  title: string
+  body: string
+  type: string
+  tone?: EventTone
+  phase?: EventPhase
+  weight?: number
+  cooldownDays?: number
+  maxTimes?: number
+  trigger?: EventTrigger
+  options: EventOptionDefinition[]
+}
+
 export interface PendingEvent {
+  /** 对应数据事件的 ID（代码生成的临时事件可为空） */
+  eventId?: string
   title: string
   body: string
   options: Array<{
@@ -77,6 +180,7 @@ export interface PendingEvent {
     label: string
     tone?: 'normal' | 'danger' | 'primary'
   }>
+  mandatory?: boolean
 }
 
 export interface GameState {
@@ -88,6 +192,54 @@ export interface GameState {
   school: SchoolState
   contract: ContractState
   logs: LogEntry[]
+  /** 事件触发历史，用于冷却与次数限制 */
+  eventHistory?: Record<
+    string,
+    {
+      lastDay: number
+      times: number
+    }
+  >
   pendingEvent?: PendingEvent
+  bodyPartRepayment?: Record<string, boolean>
+  /** 最近一次身体偿还的天数，用于冷却 */
+  lastBodyPartRepaymentDay?: number
+
+  /**
+   * 身体完整度（0.0~1.0）
+   * 每次偿还身体部位后乘以 0.8，影响所有行动增益与疲劳消耗。
+   * 绝不在 UI 中以数值形式展示。
+   */
+  bodyIntegrity?: number
+
+  /**
+   * 社会评价
+   * 'clean'：未被标记（默认）
+   * 'marked'：已被标记（永久不可逆）
+   * 影响借贷利率（×1.2）和补给价格（×1.15）。
+   * 绝不在 UI 中以任何形式展示。
+   */
+  bodyReputation?: 'clean' | 'marked'
+
+  /**
+   * 补剂劣化度（非负数）
+   * 每次成功购买补给 +1，每天衰减 0.2。
+   * 影响动态估值（Debasement_Penalty = buyDebasement × 0.05）。
+   * 绝不在 UI 中展示。
+   */
+  buyDebasement?: number
+
+  /**
+   * 最近一次身体部位偿还的游戏天数
+   * 用于叙事延迟（偿还后第3天触发模糊日志）。
+   */
+  lastBodyPartDay?: number
+
+  /**
+   * 待触发的叙事延迟队列
+   * 每次偿还身体部位时推入 {day, partId}，
+   * endDay() 检查 day+3 时触发对应部位的模糊感受日志。
+   */
+  pendingNarratives?: Array<{ day: number; partId: string }>
 }
 

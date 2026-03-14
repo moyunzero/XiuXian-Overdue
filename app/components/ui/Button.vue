@@ -83,17 +83,20 @@ const handleClick = () => {
 
 /* Sizes */
 .Button--sm {
-  padding: 8px 12px;
+  height: 32px;
+  padding: 0 12px;
   font-size: var(--text-sm);
 }
 
 .Button--md {
-  padding: 10px 14px;
+  height: 40px;
+  padding: 0 14px;
   font-size: var(--text-base);
 }
 
 .Button--lg {
-  padding: 12px 18px;
+  height: 48px;
+  padding: 0 18px;
   font-size: var(--text-lg);
 }
 
@@ -173,17 +176,20 @@ const handleClick = () => {
   }
   
   .Button--sm {
-    padding: 10px 14px;
+    height: 44px;
+    padding: 0 14px;
     font-size: 13px;
   }
   
   .Button--md {
-    padding: 12px 16px;
+    height: 44px;
+    padding: 0 16px;
     font-size: 13px;
   }
   
   .Button--lg {
-    padding: 14px 20px;
+    height: 48px;
+    padding: 0 20px;
     font-size: var(--text-base);
   }
 }

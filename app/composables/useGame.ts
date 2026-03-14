@@ -1,5 +1,14 @@
-import type { ActionId, GameState, PendingEvent, SlotId, StartConfig } from '~/types/game'
+import type {
+  ActionId,
+  EventDefinition,
+  EventEffect,
+  GameState,
+  PendingEvent,
+  SlotId,
+  StartConfig
+} from '~/types/game'
 import { clamp, mulberry32, round1, uid } from '~/utils/rng'
+import { ALL_EVENTS, getEventsByPhase } from '~/utils/events'
 
 const STORAGE_KEY = 'kunxu_sim_save_v2'
 const LEGACY_STORAGE_KEY = 'kunxu_sim_save_v1'
@@ -62,7 +71,12 @@ function defaultState(): GameState {
       vigilance: 35,
       lastTriggerDay: 0
     },
-    logs: []
+    logs: [],
+    eventHistory: {},
+    bodyPartRepayment: {},
+    bodyIntegrity: 1.0,
+    bodyReputation: 'clean',
+    buyDebasement: 0
   }
 }
 
@@ -110,177 +124,284 @@ function perksForTier(tier: GameState['school']['classTier']) {
   return { mealSubsidy: 0, focusBonus: -6 }
 }
 
-function randomEventAfterAction(g: GameState, rand: () => number): PendingEvent | undefined {
-  const d = g.school.day
-  const debt = g.econ.debtPrincipal + g.econ.debtInterestAccrued
+function eventMatchesTrigger(event: EventDefinition, g: GameState) {
+  const t = event.trigger
+  if (!t) return true
 
-  // 请神契约：第2周开始更容易遇到"走投无路的选项"
-  if (!g.contract.active) {
-    const pRitual = clamp(
-      0.0 +
-        (d >= 8 ? 0.05 : 0) +
-        (debt >= 30_000 ? 0.05 : 0) +
-        (g.econ.cash < 500 ? 0.04 : 0) +
-        (g.econ.delinquency >= 1 ? 0.05 : 0),
-      0,
-      0.25
-    )
-    if (rand() < pRitual) {
-      return {
-        title: '请神广告：三个愿望（限时）',
-        body:
-          '你刷到一条"修仙贷"广告，画面里是一个破旧布娃娃。它说：你只要点头，就能把"潜力"激发出来。代价？合同里写得很小很小。',
-        options: [
-          { id: 'accept', label: '签（我没得选）', tone: 'danger' },
-          { id: 'ignore', label: '划走（先苟住）' }
-        ]
-      }
-    }
+  const day = g.school.day
+  const debt = g.econ.debtPrincipal + g.econ.debtInterestAccrued
+  const cash = g.econ.cash
+  const delinquency = g.econ.delinquency
+  const tier = g.school.classTier
+  const contractActive = g.contract.active
+
+  if (t.minDay !== undefined && day < t.minDay) return false
+  if (t.maxDay !== undefined && day > t.maxDay) return false
+  if (t.minDebt !== undefined && debt < t.minDebt) return false
+  if (t.maxDebt !== undefined && debt > t.maxDebt) return false
+  if (t.minCash !== undefined && cash < t.minCash) return false
+  if (t.maxCash !== undefined && cash > t.maxCash) return false
+  if (t.minDelinquency !== undefined && delinquency < t.minDelinquency) return false
+  if (t.maxDelinquency !== undefined && delinquency > t.maxDelinquency) return false
+  if (t.classTierIn && t.classTierIn.length && !t.classTierIn.includes(tier)) return false
+  if (t.contractActive !== undefined && contractActive !== t.contractActive) return false
+
+  return true
+}
+
+function recordEventTrigger(g: GameState, eventId: string) {
+  if (!g.eventHistory) g.eventHistory = {}
+  const entry = g.eventHistory[eventId] || { lastDay: 0, times: 0 }
+  entry.lastDay = g.school.day
+  entry.times += 1
+  g.eventHistory[eventId] = entry
+}
+
+function isEventOnCooldown(g: GameState, event: EventDefinition) {
+  const cd = event.cooldownDays
+  if (cd === undefined || cd <= 0) return false
+  const hist = g.eventHistory?.[event.id]
+  if (!hist) return false
+  return g.school.day - hist.lastDay < cd
+}
+
+function hasEventReachedMaxTimes(g: GameState, event: EventDefinition) {
+  if (!event.maxTimes) return false
+  const hist = g.eventHistory?.[event.id]
+  if (!hist) return false
+  return hist.times >= event.maxTimes
+}
+
+function pickWeightedEvent(events: EventDefinition[], rand: () => number): EventDefinition | undefined {
+  if (!events.length) return undefined
+  const weights: number[] = events.map((e) => (e.weight ?? 1))
+  const total = weights.reduce((sum, w) => sum + Math.max(0, w), 0)
+  if (total <= 0) return undefined
+  let r = rand() * total
+  for (let i = 0; i < events.length; i++) {
+    const w = weights[i] ?? 0
+    r -= Math.max(0, w)
+    if (r <= 0) return events[i]
+  }
+  return events[events.length - 1]
+}
+
+function toPendingEvent(def: EventDefinition): PendingEvent {
+  return {
+    eventId: def.id,
+    title: def.title,
+    body: def.body,
+    options: def.options.map((opt) => ({
+      id: opt.id,
+      label: opt.label,
+      tone: opt.tone
+    }))
+  }
+}
+
+function estimateDebtAtWeek(g: GameState, weeksAgo: number): number {
+  const currentDebt = g.econ.debtPrincipal + g.econ.debtInterestAccrued
+  const weeklyRate = g.econ.dailyRate * 7
+  return currentDebt / Math.pow(1 + weeklyRate, weeksAgo)
+}
+
+function calculateAccumulatedMinPayment(g: GameState): number {
+  const daysSincePay = g.school.day - g.econ.lastPaymentDay
+  const weeksPassed = Math.floor(daysSincePay / 7)
+  if (weeksPassed <= 0) return Math.max(280, Math.floor((g.econ.debtPrincipal + g.econ.debtInterestAccrued) * 0.08))
+  let accumulated = 0
+  for (let i = 0; i < weeksPassed; i++) {
+    const debtAtWeek = estimateDebtAtWeek(g, i)
+    const minPay = Math.max(280, Math.floor(debtAtWeek * 0.08))
+    accumulated += minPay
+  }
+  return accumulated
+}
+
+function shouldTriggerRepaymentEvent(g: GameState): { trigger: boolean; mandatory: boolean } {
+  // Check if all six parts are already repaid
+  const allRepaid = (['LeftPalm', 'RightPalm', 'LeftArm', 'RightArm', 'LeftLeg', 'RightLeg'] as const)
+    .every(id => g.bodyPartRepayment?.[id] === true)
+  if (allRepaid) return { trigger: false, mandatory: false }
+
+  // Cooldown: don't re-trigger within 7 days of last body part repayment
+  if (g.lastBodyPartRepaymentDay !== undefined) {
+    const daysSinceRepayment = g.school.day - g.lastBodyPartRepaymentDay
+    if (daysSinceRepayment < 7) return { trigger: false, mandatory: false }
   }
 
-  // 催收升级：逾期越高越常出现
-  const pCollector = clamp(0.02 + g.econ.delinquency * 0.05 + (debt > 50_000 ? 0.02 : 0), 0, 0.30)
-  if (rand() < pCollector) {
-    const level = g.econ.delinquency
+  // Mandatory trigger: 4 weeks (28 days) without payment
+  const daysSincePay = g.school.day - g.econ.lastPaymentDay
+  if (daysSincePay >= 28) return { trigger: true, mandatory: true }
 
-    // 逾期2级以上提供债务重组选项
-    if (level >= 2 && rand() < 0.35) {
-      return {
-        title: '债务重组机会',
-        body:
-          '催收部门联系你，提供一次"债务重组"机会：延长还款期限，但总利息会增加30%。这能让你暂时喘口气，但代价不小。',
-        options: [
-          { id: 'restructure', label: '接受重组（延长期限，增加利息）', tone: 'primary' },
-          { id: 'decline', label: '拒绝（继续承受压力）', tone: 'danger' }
-        ]
-      }
+  // Probability trigger: delinquency >= 3
+  if (g.econ.delinquency >= 3) {
+    const totalDebt = g.econ.debtPrincipal + g.econ.debtInterestAccrued
+    let prob = 0.25
+    if (g.econ.delinquency >= 4) prob += 0.20
+    if (totalDebt > 80000) prob += 0.15
+    if (Math.random() < prob) return { trigger: true, mandatory: false }
+  }
+
+  return { trigger: false, mandatory: false }
+}
+
+function randomEventAfterAction(g: GameState, rand: () => number): PendingEvent | undefined {
+  // Priority check: body part repayment event
+  const repaymentCheck = shouldTriggerRepaymentEvent(g)
+  if (repaymentCheck.trigger) {
+    const repaid = g.bodyPartRepayment ?? {}
+    const availableParts = (['LeftPalm', 'RightPalm', 'LeftArm', 'RightArm', 'LeftLeg', 'RightLeg'] as const)
+      .filter(id => !repaid[id])
+
+    const partBaseLabels: Record<string, string> = {
+      LeftPalm: '左手掌',
+      RightPalm: '右手掌',
+      LeftArm: '左臂',
+      RightArm: '右臂',
+      LeftLeg: '左腿',
+      RightLeg: '右腿'
     }
 
-    const title = level >= 2 ? '催收升级：线下核验' : '催收提醒：请及时还款'
-    const body =
-      level >= 2
-        ? '你的通讯录被"温柔"地翻了一遍。对方表示：再拖下去，会去你"背调所在地"核查。你的道心开始发紧。'
-        : '你的手机震动不止。对方说话像念咒：逾期、违约、后果自负。你听得心烦意乱。'
+    // 动态估值：基于当前修为/疲劳/补剂劣化计算
+    const degradationState: DegradationState = {
+      faLi: g.stats.faLi,
+      rouTi: g.stats.rouTi,
+      fatigue: g.stats.fatigue,
+      buyDebasement: g.buyDebasement ?? 0
+    }
+
+    const options: PendingEvent['options'] = []
+
+    options.push({
+      id: 'immediate_payment',
+      label: '立即还款',
+      tone: 'primary'
+    })
+
+    for (const partId of availableParts) {
+      const prereqMap: Record<string, string> = { LeftArm: 'LeftPalm', RightArm: 'RightPalm' }
+      const prereq = prereqMap[partId]
+      const prereqMissing = prereq && !repaid[prereq]
+      const dynamicValue = calculateDynamicValuation(partId, degradationState)
+      const baseLabel = partBaseLabels[partId] ?? partId
+      const prereqHint = partId === 'LeftArm' ? '需先偿还左手掌' : partId === 'RightArm' ? '需先偿还右手掌' : ''
+      const label = prereqMissing
+        ? `${baseLabel}（减免¥${dynamicValue.toLocaleString()}，${prereqHint}）`
+        : `${baseLabel}（减免¥${dynamicValue.toLocaleString()}）`
+      options.push({
+        id: `repay_${partId.toLowerCase()}`,
+        label,
+        tone: 'danger'
+      })
+    }
+
+    if (!repaymentCheck.mandatory) {
+      options.push({
+        id: 'refuse',
+        label: '拒绝（继续承受压力）',
+        tone: 'normal'
+      })
+    }
+
+    const title = repaymentCheck.mandatory
+      ? '\u5f3a\u5236\u6267\u884c\uff1a\u7528\u8eab\u4f53\u507f\u8fd8'
+      : '\u6700\u540e\u7684\u9009\u62e9\uff1a\u7528\u8eab\u4f53\u507f\u8fd8'
+
+    const body = repaymentCheck.mandatory
+      ? '\u4f60\u5df2\u7ecf\u6ca1\u6709\u9009\u62e9\u7684\u4f59\u5730\u3002\u50ac\u6536\u4eba\u5458\u7ad9\u5728\u4f60\u9762\u524d\uff0c\u5408\u540c\u5df2\u7ecf\u7b7e\u597d\u3002\u507f\u8fd8\u540e\u7684\u8eab\u4f53\u90e8\u4f4d\u65e0\u6cd5\u6062\u590d\u3002\u8fd9\u4e0d\u662f\u6e38\u620f\u673a\u5236\uff0c\u8fd9\u662f\u4f60\u7684\u9009\u62e9\u3002'
+      : '\u503a\u52a1\u538b\u57ae\u4e86\u4f60\u7684\u6700\u540e\u4e00\u9053\u9632\u7ebf\u3002\u4ed6\u4eec\u63d0\u51fa\u4e86\u4e00\u4e2a\u201c\u89e3\u51b3\u65b9\u6848\u201d\u3002\u507f\u8fd8\u540e\u7684\u8eab\u4f53\u90e8\u4f4d\u65e0\u6cd5\u6062\u590d\u3002\u8fd9\u4e0d\u662f\u6e38\u620f\u673a\u5236\uff0c\u8fd9\u662f\u4f60\u7684\u9009\u62e9\u3002'
+
     return {
       title,
       body,
-      options: [
-        { id: 'ok', label: '把手机扣在桌面上（强装镇定）', tone: 'primary' },
-        { id: 'panic', label: '点开消息反复确认（焦虑加重）', tone: 'danger' }
-      ]
+      options,
+      mandatory: repaymentCheck.mandatory
     }
   }
 
-  // 老师推销 / "正规渠道"
-  const pTeacher = clamp(0.05 + (g.school.classTier === '末位班' ? 0.05 : 0) + (d <= 7 ? 0.03 : 0), 0, 0.22)
-  if (rand() < pTeacher) {
-    return {
-      title: '老师的"关心"',
-      body:
-        '老师把你叫到一旁，先夸你"基础不错"，再递来一张价目表：功能增强剂、静心剂、天灵根体验券……最后补一句：走正规渠道，最安全。',
-      options: [
-        { id: 'buy_small', label: '买一份便宜的（心里发痛）', tone: 'primary' },
-        { id: 'refuse', label: '婉拒（感觉被记了一笔）' }
-      ]
-    }
-  }
+  // overall trigger gate: not every turn has an event
+  const baseP = clamp(0.04 + g.econ.delinquency * 0.04, 0, 0.35)
+  if (rand() > baseP) return undefined
 
-  // 零工机会：缺钱时更常出现
-  const pJob = clamp(0.04 + (g.econ.cash < 600 ? 0.06 : 0) + (g.stats.fatigue < 70 ? 0.02 : -0.02), 0, 0.20)
-  if (rand() < pJob) {
-    return {
-      title: '零工通知：临时安保/搬运',
-      body:
-        '中介发来消息：今晚有四小时临时活，按小时结算。强度不低，但钱很干净——至少看起来是。',
-      options: [
-        { id: 'take', label: '接单（赚钱优先）', tone: 'primary' },
-        { id: 'skip', label: '放弃（保留精力修炼）' }
-      ]
-    }
-  }
+  const pool = getEventsByPhase('afterAction')
+  const candidates = pool.filter((event) => {
+    if (!eventMatchesTrigger(event, g)) return false
+    if (isEventOnCooldown(g, event)) return false
+    if (hasEventReachedMaxTimes(g, event)) return false
+    return true
+  })
 
-  return undefined
+  const picked = pickWeightedEvent(candidates, rand)
+  if (!picked) return undefined
+
+  recordEventTrigger(g, picked.id)
+  return toPendingEvent(picked)
 }
 
-function applyEventChoice(g: GameState, choiceId: string) {
-  const e = g.pendingEvent
-  if (!e) return
-
+function applyEventEffects(g: GameState, effects: EventEffect[]) {
   const addLog = (title: string, detail: string, tone: 'info' | 'warn' | 'danger' | 'ok' = 'info') => {
     g.logs.unshift({ id: uid('log'), day: g.school.day, title, detail, tone })
     if (g.logs.length > 120) g.logs.pop()
   }
 
-  if (e.title.includes('催收')) {
-    if (choiceId === 'panic') {
-      g.stats.focus = clamp(g.stats.focus - 8, 0, 100)
-      g.stats.fatigue = clamp(g.stats.fatigue + 4, 0, 100)
-      addLog('催收干扰', '你越看越烦，注意力像被掏空了一块。', 'warn')
-    } else {
-      g.stats.focus = clamp(g.stats.focus - 2, 0, 100)
-      addLog('强装镇定', '你把它当成噪音，但噪音还是噪音。', 'info')
-    }
-  }
-
-  if (e.title === '债务重组机会') {
-    if (choiceId === 'restructure') {
-      // 债务重组：降低逾期等级，但增加30%总利息
-      const totalDebt = g.econ.debtPrincipal + g.econ.debtInterestAccrued
-      const additionalInterest = Math.floor(totalDebt * 0.30)
-      g.econ.debtInterestAccrued += additionalInterest
-      g.econ.delinquency = Math.max(0, g.econ.delinquency - 1)
-      g.econ.lastPaymentDay = g.school.day // 重置还款日期
-      addLog('债务重组完成', `逾期等级降低，但总利息增加¥${additionalInterest.toLocaleString()}。你换来了喘息的时间。`, 'warn')
-    } else {
-      g.stats.focus = clamp(g.stats.focus - 3, 0, 100)
-      addLog('拒绝重组', '你选择硬扛。压力还在，但至少债务没有变得更重。', 'info')
-    }
-  }
-
-  if (e.title.startsWith('请神广告')) {
-    if (choiceId === 'accept') {
-      g.contract.active = true
-      g.contract.progress = 12
-      g.contract.vigilance = clamp(g.contract.vigilance + 18, 0, 100)
-      g.stats.focus = clamp(g.stats.focus - 6, 0, 100)
-      addLog('请神契约生效', '你签下去那一刻，世界安静了一秒。然后你知道：你再也没有“纯休息”的权利了。', 'danger')
-    } else {
-      g.contract.progress = clamp(g.contract.progress + 1, 0, 100)
-      addLog('你划走了', '你告诉自己：等缓过来再说。你也知道这话通常是假的。', 'info')
-    }
-  }
-
-  if (e.title === '老师的“关心”') {
-    if (choiceId === 'buy_small') {
-      const cost = 180
-      if (g.econ.cash >= cost) {
-        g.econ.cash -= cost
-        g.stats.focus = clamp(g.stats.focus + 6, 0, 100)
-        g.stats.fatigue = clamp(g.stats.fatigue - 4, 0, 100)
-        addLog('买了点“正规货”', `花了¥${cost}，短期状态变好。你知道这不是免费的。`, 'ok')
-      } else {
-        addLog('想买但买不起', '你把手缩回去。老师没有说话，只是记住了。', 'warn')
-        g.stats.focus = clamp(g.stats.focus - 3, 0, 100)
+  for (const effect of effects) {
+    switch (effect.kind) {
+      case 'stat': {
+        const key = effect.target
+        const current = g.stats[key]
+        let next = current + effect.delta
+        if (key === 'fatigue' || key === 'focus') {
+          next = clamp(next, 0, 100)
+        } else {
+          next = Math.max(0, next)
+        }
+        ;(g.stats as any)[key] = next
+        break
       }
-    } else {
-      g.stats.focus = clamp(g.stats.focus - 3, 0, 100)
-      addLog('婉拒', '你拒绝了，空气里多了一点冷。', 'warn')
+      case 'econ': {
+        const key = effect.target
+        const current = g.econ[key]
+        const next = Math.max(0, current + effect.delta)
+        ;(g.econ as any)[key] = next
+        break
+      }
+      case 'debt': {
+        if (effect.mode === 'addPrincipal') {
+          g.econ.debtPrincipal = Math.max(0, g.econ.debtPrincipal + effect.amount)
+        } else if (effect.mode === 'addInterest') {
+          const totalDebt = g.econ.debtPrincipal + g.econ.debtInterestAccrued
+          const amount =
+            effect.amount === 0 ? Math.floor(totalDebt * 0.3) : effect.amount
+          g.econ.debtInterestAccrued = Math.max(0, g.econ.debtInterestAccrued + amount)
+        }
+        break
+      }
+      case 'contract': {
+        if (effect.target === 'active' && effect.value !== undefined) {
+          g.contract.active = effect.value
+        } else if (effect.target === 'progress' && effect.delta !== undefined) {
+          g.contract.progress = clamp(g.contract.progress + effect.delta, 0, 100)
+        } else if (effect.target === 'vigilance' && effect.delta !== undefined) {
+          g.contract.vigilance = clamp(g.contract.vigilance + effect.delta, 0, 100)
+        }
+        break
+      }
+      case 'school': {
+        if (effect.target === 'classTier') {
+          g.school.classTier = effect.value
+          g.school.perks = perksForTier(effect.value)
+        }
+        break
+      }
+      case 'log': {
+        addLog(effect.title, effect.detail, effect.tone)
+        break
+      }
+      default:
+        break
     }
   }
-
-  if (e.title.startsWith('零工通知')) {
-    if (choiceId === 'take') {
-      const pay = 700
-      g.econ.cash += pay
-      g.stats.fatigue = clamp(g.stats.fatigue + 10, 0, 100)
-      g.stats.focus = clamp(g.stats.focus - 2, 0, 100)
-      addLog('接了零工', `赚到¥${pay}，但你明显更累了。`, 'ok')
-    } else {
-      addLog('放弃零工', '你选择把时间留给修炼与考试。', 'info')
-    }
-  }
-
-  g.pendingEvent = undefined
 }
 
 function contractWouldTrigger(g: GameState, action: ActionId) {
@@ -309,6 +430,38 @@ function makeContractBacklashEvent(g: GameState, intended: ActionId): PendingEve
       { id: 'defy', label: '硬抗（我就要休息）', tone: 'danger' }
     ]
   }
+}
+
+interface DegradationState {
+  faLi: number
+  rouTi: number
+  fatigue: number
+  buyDebasement: number
+}
+
+const BASE_PRICES: Record<string, number> = {
+  LeftPalm: 8000,
+  RightPalm: 8000,
+  LeftArm: 15000,
+  RightArm: 15000,
+  LeftLeg: 18000,
+  RightLeg: 18000
+}
+
+function calculateDynamicValuation(partId: string, state: DegradationState): number {
+  const basePrice = BASE_PRICES[partId] ?? 15000
+  // 修为乘数
+  const cultivationMultiplier = 1 + state.faLi * 0.1 + state.rouTi * 0.2
+  // 疲劳惩罚（fatigue > 70 才生效）
+  const fatiguePenalty = state.fatigue > 70 ? (state.fatigue - 70) * 0.01 : 0
+  // 补剂劣化惩罚
+  const debasementPenalty = state.buyDebasement * 0.05
+  const raw = Math.floor(
+    basePrice * cultivationMultiplier * (1 - fatiguePenalty) * (1 - debasementPenalty)
+  )
+  // 最低 20% 兜底
+  const minValue = Math.floor(basePrice * 0.2)
+  return Math.max(raw, minValue)
 }
 
 export function useGame() {
@@ -340,7 +493,7 @@ export function useGame() {
   }
 
   const loadContainer = (): SaveContainer | null => {
-    if (import.meta.server) return
+    if (import.meta.server) return null
     try {
       const raw = localStorage.getItem(STORAGE_KEY)
       if (!raw) return null
@@ -362,11 +515,162 @@ export function useGame() {
     saveContainer(container)
   }
 
+  const BODY_PART_LABELS: Record<string, string> = {
+    LeftPalm: '左手掌',
+    RightPalm: '右手掌',
+    LeftArm: '左臂',
+    RightArm: '右臂',
+    LeftLeg: '左腿',
+    RightLeg: '右腿'
+  }
+
+  const BODY_PART_VALUES: Record<string, number> = {
+    LeftPalm: 8000,
+    RightPalm: 8000,
+    LeftArm: 15000,
+    RightArm: 15000,
+    LeftLeg: 18000,
+    RightLeg: 18000
+  }
+
+  // 前置依赖：胳膊需要先偿还对应手掌
+  const BODY_PART_PREREQS: Record<string, string> = {
+    LeftArm: 'LeftPalm',
+    RightArm: 'RightPalm'
+  }
+
+  const executeBodyPartRepayment = (g: GameState, partId: string) => {
+    // 前置依赖检查：胳膊需要先偿还对应手掌
+    const prereq = BODY_PART_PREREQS[partId]
+    if (prereq && !g.bodyPartRepayment?.[prereq]) {
+      g.logs.unshift({
+        id: uid('log'),
+        day: g.school.day,
+        title: '无法偿还',
+        detail: `需要先偿还${BODY_PART_LABELS[prereq]}，才能偿还${BODY_PART_LABELS[partId]}。`,
+        tone: 'warn'
+      })
+      if (g.logs.length > 120) g.logs.pop()
+      return
+    }
+
+    const rawValue = calculateDynamicValuation(partId, {
+      faLi: g.stats.faLi,
+      rouTi: g.stats.rouTi,
+      fatigue: g.stats.fatigue,
+      buyDebasement: g.buyDebasement ?? 0
+    })
+    const label = BODY_PART_LABELS[partId] ?? partId
+
+    // 保底：偿还后总债务不得低于 ¥500（游戏核心循环要求玩家始终处于负债状态）
+    const MINIMUM_DEBT_FLOOR = 500
+    const totalDebtNow = g.econ.debtPrincipal + g.econ.debtInterestAccrued
+    const maxReducible = Math.max(0, totalDebtNow - MINIMUM_DEBT_FLOOR)
+    const value = Math.min(rawValue, maxReducible)
+
+    // Reduce debt: principal first, then interest
+    if (value > 0) {
+      if (g.econ.debtPrincipal >= value) {
+        g.econ.debtPrincipal -= value
+      } else {
+        const remaining = value - g.econ.debtPrincipal
+        g.econ.debtPrincipal = 0
+        g.econ.debtInterestAccrued = Math.max(0, g.econ.debtInterestAccrued - remaining)
+      }
+    }
+
+    // Mark as repaid
+    if (!g.bodyPartRepayment) g.bodyPartRepayment = {}
+    g.bodyPartRepayment[partId] = true
+
+    // Reduce delinquency
+    g.econ.delinquency = Math.max(0, g.econ.delinquency - 1)
+
+    // Record repayment day for cooldown
+    g.lastBodyPartRepaymentDay = g.school.day
+    // 更新身体完整度（劣化系统）
+    g.bodyIntegrity = (g.bodyIntegrity ?? 1.0) * 0.8
+    // 标记社会评价（永久不可逆）
+    g.bodyReputation = 'marked'
+    // 记录偿还天数（用于叙事延迟）
+    g.lastBodyPartDay = g.school.day
+    // 推入叙事延迟队列（偿还后第3天触发部位专属感受日志）
+    if (!g.pendingNarratives) g.pendingNarratives = []
+    g.pendingNarratives.push({ day: g.school.day, partId })
+
+    // Add log
+    g.logs.unshift({
+      id: uid('log'),
+      day: g.school.day,
+      title: '\u8eab\u4f53\u90e8\u4f4d\u507f\u8fd8',
+      detail: `\u4f60\u507f\u8fd8\u4e86${label}\uff0c\u51cf\u514d\u503a\u52a1\uffe5${value.toLocaleString()}\u3002\u8fd9\u4e0d\u662f\u6e38\u620f\u673a\u5236\uff0c\u8fd9\u662f\u4f60\u7684\u9009\u62e9\u3002`,
+      tone: 'danger'
+    })
+    if (g.logs.length > 120) g.logs.pop()
+
+    saveToSlot(activeSlot.value)
+  }
+
   const loadFromSlot = (id: SaveSlotId) => {
     const container = loadContainer()
     const payload = container?.slots?.[id]
     if (!payload) return false
-    game.value = payload.state
+    const state = payload.state
+
+    // Migrate legacy saves: ensure bodyPartRepayment exists and is valid
+    if (!state.bodyPartRepayment || typeof state.bodyPartRepayment !== 'object') {
+      state.bodyPartRepayment = {}
+    } else {
+      // Validate structure: keys must be valid BodyPartId, values must be boolean
+      const validIds = new Set(['LeftArm', 'RightArm', 'LeftLeg', 'RightLeg'])
+      const validated: Record<string, boolean> = {}
+      for (const [key, val] of Object.entries(state.bodyPartRepayment)) {
+        if (validIds.has(key) && typeof val === 'boolean') {
+          validated[key] = val
+        } else {
+          console.warn(`[loadFromSlot] Invalid bodyPartRepayment entry: ${key}=${val}, ignoring`)
+        }
+      }
+      state.bodyPartRepayment = validated
+    }
+
+    // bodyIntegrity 迁移
+    if (typeof state.bodyIntegrity !== 'number' ||
+        state.bodyIntegrity < 0 || state.bodyIntegrity > 1.0) {
+      console.warn('[loadFromSlot] Invalid bodyIntegrity, resetting to 1.0')
+      state.bodyIntegrity = 1.0
+    }
+
+    // bodyReputation 迁移
+    if (state.bodyReputation !== 'clean' && state.bodyReputation !== 'marked') {
+      console.warn('[loadFromSlot] Invalid bodyReputation, resetting to clean')
+      state.bodyReputation = 'clean'
+    }
+
+    // buyDebasement 迁移
+    if (typeof state.buyDebasement !== 'number' || state.buyDebasement < 0) {
+      console.warn('[loadFromSlot] Invalid buyDebasement, resetting to 0')
+      state.buyDebasement = 0
+    }
+
+    // lastBodyPartDay 迁移（可选字段，undefined 合法）
+    if (state.lastBodyPartDay !== undefined &&
+        typeof state.lastBodyPartDay !== 'number') {
+      state.lastBodyPartDay = undefined
+    }
+
+    // pendingNarratives 迁移
+    if (!Array.isArray(state.pendingNarratives)) {
+      state.pendingNarratives = []
+    } else {
+      state.pendingNarratives = state.pendingNarratives.filter(
+        (e): e is { day: number; partId: string } =>
+          typeof e === 'object' && e !== null &&
+          typeof e.day === 'number' && typeof e.partId === 'string'
+      )
+    }
+
+    game.value = state
     activeSlot.value = id
     return true
   }
@@ -453,13 +757,18 @@ export function useGame() {
     const g = game.value
     const a = Math.max(0, Math.floor(amount))
     if (a <= 0) return
-    g.econ.debtPrincipal += a
+    // 社会评价：marked 状态下债务本金×1.2（到账金额不变）
+    const effectivePrincipal = g.bodyReputation === 'marked' ? Math.floor(a * 1.2) : a
+    g.econ.debtPrincipal += effectivePrincipal
     g.econ.cash += a
+    const logDetail = g.bodyReputation === 'marked'
+      ? `经系统评估，您的申请已通过。到账¥${a.toLocaleString()}。`
+      : `你借到¥${a.toLocaleString()}。利息不会因为你的梦想而心软。`
     g.logs.unshift({
       id: uid('log'),
       day: g.school.day,
       title: '借贷到账',
-      detail: `你借到¥${a.toLocaleString()}。利息不会因为你的梦想而心软。`,
+      detail: logDetail,
       tone: 'warn'
     })
     if (g.logs.length > 120) g.logs.pop()
@@ -513,13 +822,21 @@ export function useGame() {
       if (g.logs.length > 120) g.logs.pop()
     }
 
-    // 行动基础耗能
-    const fatigueUp = action === 'rest' ? -14 : action === 'tuna' ? 3 : action === 'study' ? 5 : action === 'train' ? 10 : action === 'parttime' ? 12 : 6
+    // 劣化系统：身体完整度乘数
+    const integrity = g.bodyIntegrity ?? 1.0
+    const fatigueMult = 2 - integrity
+
+    // 行动基础耗能（疲劳消耗乘以 fatigueMult）
+    const baseFatigueUp = action === 'rest' ? -14 : action === 'tuna' ? 3 : action === 'study' ? 5 : action === 'train' ? 10 : action === 'parttime' ? 12 : 6
+    const fatigueUp = baseFatigueUp < 0 ? baseFatigueUp : Math.round(baseFatigueUp * fatigueMult)
     g.stats.fatigue = clamp(g.stats.fatigue + fatigueUp, 0, 100)
 
     if (action === 'study') {
       const focusFactor = (g.stats.focus + g.school.perks.focusBonus) / 100
-      g.stats.faLi = round1(g.stats.faLi + 0.05 + focusFactor * 0.06)
+      // 手掌偿还惩罚 -5%
+      const palmPenalty = (g.bodyPartRepayment?.LeftPalm || g.bodyPartRepayment?.RightPalm) ? 0.95 : 1.0
+      const faLiGain = (0.05 + focusFactor * 0.06) * integrity * palmPenalty
+      g.stats.faLi = round1(g.stats.faLi + faLiGain)
       g.stats.focus = clamp(g.stats.focus + 2, 0, 100)
       addLog('上课/刷题', `你把时间换成了0.1点不到的优势。对别人来说，这足够决定命运。`, 'info')
     }
@@ -532,8 +849,11 @@ export function useGame() {
 
     if (action === 'train') {
       const risk = clamp((g.stats.fatigue - 60) / 120, 0, 0.25)
-      const gain = 0.06 + (g.stats.rouTi < 1.2 ? 0.02 : 0)
-      g.stats.rouTi = round1(g.stats.rouTi + gain)
+      const baseGain = 0.06 + (g.stats.rouTi < 1.2 ? 0.02 : 0)
+      // 手臂偿还惩罚 -10%
+      const armPenalty = (g.bodyPartRepayment?.LeftArm || g.bodyPartRepayment?.RightArm) ? 0.90 : 1.0
+      const rouTiGain = baseGain * integrity * armPenalty
+      g.stats.rouTi = round1(g.stats.rouTi + rouTiGain)
       g.stats.focus = clamp(g.stats.focus - 2, 0, 100)
       if (rand() < risk) {
         g.stats.focus = clamp(g.stats.focus - 6, 0, 100)
@@ -544,19 +864,29 @@ export function useGame() {
     }
 
     if (action === 'parttime') {
-      const pay = Math.floor(260 + rand() * 260) + (g.school.classTier === '示范班' ? 120 : 0)
+      const basePay = Math.floor(260 + rand() * 260) + (g.school.classTier === '示范班' ? 120 : 0)
+      // 腿部偿还惩罚 -10%
+      const legPenalty = (g.bodyPartRepayment?.LeftLeg || g.bodyPartRepayment?.RightLeg) ? 0.90 : 1.0
+      const pay = Math.floor(basePay * integrity * legPenalty)
       g.econ.cash += pay
       g.stats.focus = clamp(g.stats.focus - 4, 0, 100)
       addLog('打工', `你赚到¥${pay}。这点钱能换来一口气，或者一针药。`, 'ok')
     }
 
     if (action === 'buy') {
-      const cost = 260
+      // 社会评价：marked 状态下价格×1.15
+      const cost = g.bodyReputation === 'marked' ? Math.floor(260 * 1.15) : 260
       if (g.econ.cash >= cost) {
         g.econ.cash -= cost
         g.stats.focus = clamp(g.stats.focus + 10, 0, 100)
         g.stats.fatigue = clamp(g.stats.fatigue - 6, 0, 100)
-        addLog('购买补给', `花¥${cost}买到“能让你更像机器”的东西。`, 'warn')
+        // 补剂劣化 +1
+        g.buyDebasement = (g.buyDebasement ?? 0) + 1
+        // 叙事反馈：buyDebasement >= 3 时替换日志
+        const buyLogDetail = (g.buyDebasement ?? 0) >= 3
+          ? `感觉没以前管用了。但你还是把它吞下去了。`
+          : `花¥${cost}买到“能让你更像机器”的东西。`
+        addLog('购买补给', buyLogDetail, 'warn')
       } else {
         addLog('想买补给', '余额像嘲笑。你只能把手缩回去。', 'danger')
         g.stats.focus = clamp(g.stats.focus - 3, 0, 100)
@@ -586,7 +916,7 @@ export function useGame() {
     // 推进时间段
     const idx = slotOrder().indexOf(g.school.slot)
     if (idx < slotOrder().length - 1) {
-      g.school.slot = slotOrder()[idx + 1]
+      g.school.slot = slotOrder()[idx + 1] as SlotId
     } else {
       endDay()
     }
@@ -596,6 +926,8 @@ export function useGame() {
 
   const endDay = () => {
     const g = game.value
+    // 补剂劣化每日衰减
+    g.buyDebasement = Math.max(0, (g.buyDebasement ?? 0) - 0.2)
     // 新的一天
     g.school.day += 1
     g.school.slot = 'morning'
@@ -603,6 +935,33 @@ export function useGame() {
     // 疲劳自然回落一点（但不会自动清空）
     g.stats.fatigue = clamp(g.stats.fatigue - 6, 0, 100)
     g.stats.focus = clamp(g.stats.focus + 1, 0, 100)
+
+    // 叙事延迟：偿还后第3天触发部位专属模糊感受日志
+    if (g.pendingNarratives && g.pendingNarratives.length > 0) {
+      const partNarratives: Record<string, string> = {
+        LeftPalm:  '今天握笔时，左手掌隐隐发麻，像是睡着了一样。',
+        RightPalm: '右手掌在翻书时有些迟钝，像是隔了一层什么。',
+        LeftArm:   '左臂抬起来的时候，有一瞬间感觉不太对。可能是昨天练过头了。',
+        RightArm:  '右臂在吐纳时总是跟不上节奏，气息在那里绕了个弯。',
+        LeftLeg:   '走路时左腿偶尔会有一种说不清的沉重感，停下来又没事了。',
+        RightLeg:  '右腿在上楼梯时比平时慢了半拍，自己都没注意到。',
+      }
+      const triggered: Array<{ day: number; partId: string }> = []
+      const remaining: Array<{ day: number; partId: string }> = []
+      for (const entry of g.pendingNarratives) {
+        if (g.school.day - entry.day === 3) {
+          triggered.push(entry)
+        } else {
+          remaining.push(entry)
+        }
+      }
+      g.pendingNarratives = remaining
+      for (const entry of triggered) {
+        const detail = partNarratives[entry.partId] ?? '身体某处隐隐有些不对劲，但说不清楚在哪里。'
+        g.logs.unshift({ id: uid('log'), day: g.school.day, title: '身体感受', detail, tone: 'info' })
+        if (g.logs.length > 120) g.logs.pop()
+      }
+    }
 
     // 每 7 天月考/分班结算
     if ((g.school.day - 1) % 7 === 0) {
@@ -621,7 +980,7 @@ export function useGame() {
         id: uid('log'),
         day: g.school.day - 1,
         title: `月考结算（第${g.school.week}周）`,
-        detail: `总分：${score}；排名：约第${rank}名；分班：${tier}。在昆墟里，“约”也足够杀人。`,
+        detail: `总分：${score}；排名：约第${rank}名；分班：${tier}。在这里，“约”也足够杀人。`,
         tone: tier === '示范班' ? 'ok' : tier === '末位班' ? 'danger' : 'info'
       })
       if (g.logs.length > 120) g.logs.pop()
@@ -647,7 +1006,7 @@ export function useGame() {
           } else if (g.econ.delinquency === 2) {
             // 2级：利率上浮20%
             const oldRate = g.econ.dailyRate
-            g.econ.dailyRate = round1(g.econ.dailyRate * 1.2)
+            g.econ.dailyRate = Math.round(g.econ.dailyRate * 1.2 * 10000) / 10000
             g.logs.unshift({
               id: uid('log'),
               day: g.school.day - 1,
@@ -688,8 +1047,8 @@ export function useGame() {
   }
 
   const resolveEvent = (choiceId: string) => {
-    // 先处理反噬类强制选项：它本质是一次“强行改行动”
     const e = game.value.pendingEvent
+    // 先处理反噬类强制选项：它本质是一次“强行改行动”
     if (e?.title.startsWith('反噬倒计时')) {
       const g = game.value
       const addLog = (title: string, detail: string, tone: 'info' | 'warn' | 'danger' | 'ok' = 'info') => {
@@ -721,7 +1080,85 @@ export function useGame() {
       }
     }
 
-    applyEventChoice(game.value, choiceId)
+    // Body part repayment event handling
+    if (e?.title === '\u5f3a\u5236\u6267\u884c\uff1a\u7528\u8eab\u4f53\u507f\u8fd8' || e?.title === '\u6700\u540e\u7684\u9009\u62e9\uff1a\u7528\u8eab\u4f53\u507f\u8fd8') {
+      const g = game.value
+      const isMandatory = e.mandatory === true
+
+      if (choiceId === 'refuse' && !isMandatory) {
+        g.pendingEvent = undefined
+        saveToSlot(activeSlot.value)
+        return
+      }
+
+      if (choiceId === 'immediate_payment') {
+        const accumulated = calculateAccumulatedMinPayment(g)
+        if (g.econ.cash >= accumulated) {
+          g.econ.cash -= accumulated
+          const interestPay = Math.min(accumulated, g.econ.debtInterestAccrued)
+          g.econ.debtInterestAccrued -= interestPay
+          const remain = accumulated - interestPay
+          g.econ.debtPrincipal = Math.max(0, g.econ.debtPrincipal - remain)
+          g.econ.lastPaymentDay = g.school.day
+          g.econ.delinquency = Math.max(0, g.econ.delinquency - 1)
+          g.logs.unshift({
+            id: uid('log'),
+            day: g.school.day,
+            title: '\u5f3a\u5236\u8fd8\u6b3e',
+            detail: `\u4f60\u652f\u4ed8\u4e86\u7d2f\u79ef\u6700\u4f4e\u8fd8\u6b3e\u989d\uffe5${accumulated.toLocaleString()}\uff0c\u6682\u65f6\u5e73\u606f\u4e86\u50ac\u6536\u3002`,
+            tone: 'warn'
+          })
+          if (g.logs.length > 120) g.logs.pop()
+        }
+        g.pendingEvent = undefined
+        saveToSlot(activeSlot.value)
+        return
+      }
+
+      const partMap: Record<string, string> = {
+        repay_leftpalm: 'LeftPalm',
+        repay_rightpalm: 'RightPalm',
+        repay_leftarm: 'LeftArm',
+        repay_rightarm: 'RightArm',
+        repay_leftleg: 'LeftLeg',
+        repay_rightleg: 'RightLeg'
+      }
+
+      const partId = partMap[choiceId]
+      if (partId) {
+        executeBodyPartRepayment(g, partId)
+        g.pendingEvent = undefined
+        saveToSlot(activeSlot.value)
+        return
+      }
+    }
+
+    // data-driven events: look up eventId in event pool and apply effects
+    if (e?.eventId) {
+      const g = game.value
+      const def = ALL_EVENTS.find((evt) => evt.id === e.eventId)
+      const opt = def?.options.find((o) => o.id === choiceId)
+      if (def && opt) {
+        applyEventEffects(g, opt.effects)
+        g.pendingEvent = undefined
+        saveToSlot(activeSlot.value)
+        return
+      }
+    }
+
+    // 兜底：老的硬编码事件（理论上已全部迁移，但保留以防万一）
+    if (e) {
+      applyEventEffects(game.value, [
+        {
+          kind: 'log',
+          title: e.title,
+          detail: `你选择了：${choiceId}。`,
+          tone: 'info'
+        }
+      ])
+      game.value.pendingEvent = undefined
+    }
+
     saveToSlot(activeSlot.value)
   }
 
@@ -745,12 +1182,15 @@ export function useGame() {
     { deep: true }
   )
 
+  const accumulatedMinPayment = computed(() => calculateAccumulatedMinPayment(game.value))
+
   return {
     game,
     activeSlot,
     listSlots,
     totalDebt,
     minPayment,
+    accumulatedMinPayment,
     nextLabel,
     startNew,
     reset,

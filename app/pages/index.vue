@@ -9,10 +9,10 @@ import Pill from '~/components/ui/Pill.vue'
 
 const { game, startNew, reset, listSlots, loadFromSlot, saveToSlot, activeSlot } = useGame()
 
-const playerName = ref('张羽')
+const playerName = ref('龙傲天')
 const background = ref<Background>('贫民')
 const talent = ref<Talent>('无灵根')
-const startingCity = ref('嵩阳市')
+const startingCity = ref('xx市')
 const initialDebt = ref(20_000)
 
 const bgDesc = computed(() => {
@@ -53,13 +53,12 @@ function resume(slotId: 'autosave' | 'slot1' | 'slot2' | 'slot3') {
   <div class="Container">
     <div class="Row" style="align-items: baseline">
       <h1 class="Title">修仙欠费中</h1>
-      <Pill>模拟经营 · 每天三段行动 · 周结算</Pill>
+      <Pill>模拟修仙 · 每天三段行动 · 周结算</Pill>
       <span class="Spacer" />
       <Button variant="ghost" size="sm" @click="reset">清空存档</Button>
     </div>
     
     <p class="Sub">
-      你不是来"了解小说"的——你来体验：分数如何变成阶级，债务如何变成命运，修行如何变成工作。
       <br />
       这一版是可玩 MVP：一局建议先跑满 7 天，看第一次月考如何把你分门别类。
     </p>
@@ -116,12 +115,12 @@ function resume(slotId: 'autosave' | 'slot1' | 'slot2' | 'slot3') {
           </div>
           <input
             v-model.number="initialDebt"
-            class="Field"
+            class="DebtSlider"
             type="range"
             min="0"
             max="200000"
             step="1000"
-            style="padding: 12px"
+            :style="{ '--pct': (initialDebt / 200000 * 100) + '%' }"
           />
           <div class="Row" style="margin-top: 10px; gap: 8px">
             <Button size="sm" @click="initialDebt = 0">0</Button>
@@ -203,3 +202,66 @@ function resume(slotId: 'autosave' | 'slot1' | 'slot2' | 'slot3') {
     </div>
   </div>
 </template>
+
+<style scoped>
+/* ── Debt Slider ── */
+.DebtSlider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  margin: 14px 0;
+  cursor: pointer;
+  outline: none;
+  border: none;
+  background: linear-gradient(
+    to right,
+    #3b82f6 0%,
+    #3b82f6 var(--pct, 10%),
+    rgba(255,255,255,0.12) var(--pct, 10%),
+    rgba(255,255,255,0.12) 100%
+  );
+}
+
+/* Thumb – WebKit */
+.DebtSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #3b82f6;
+  border: 2px solid #fff;
+  box-shadow: 0 0 6px rgba(59,130,246,0.6);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.DebtSlider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 10px rgba(59,130,246,0.8);
+}
+
+/* Thumb – Firefox */
+.DebtSlider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #3b82f6;
+  border: 2px solid #fff;
+  box-shadow: 0 0 6px rgba(59,130,246,0.6);
+  cursor: pointer;
+}
+
+/* Track – Firefox */
+.DebtSlider::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.12);
+}
+.DebtSlider::-moz-range-progress {
+  height: 6px;
+  border-radius: 999px;
+  background: #3b82f6;
+}
+</style>

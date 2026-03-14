@@ -1,39 +1,350 @@
 [
   {
-    "id": "collection_sms_1",
-    "title": "催收短信",
+    "id": "collector_basic",
+    "title": "催收提醒：请及时还款",
+    "body": "你的手机震动不止。对方说话像念咒：逾期、违约、后果自负。你听得心烦意乱。",
     "type": "collection",
-    "trigger": { "delinquency": 1 },
-    "body": "【天庭金融】尊敬的张羽同学，您的借款已逾期1天，请尽快还款以免影响信用。客服电话：400-xxx-xxxx",
-    "tone": "info",
+    "tone": "warn",
+    "phase": "afterAction",
+    "weight": 5,
+    "cooldownDays": 1,
+    "trigger": {
+      "minDelinquency": 0,
+      "maxDelinquency": 1
+    },
     "options": [
       {
-        "id": "ignore",
-        "label": "忽略",
-        "effect": { "stress": 5 },
-        "description": "暂时不理会"
+        "id": "ok",
+        "label": "把手机扣在桌面上（强装镇定）",
+        "tone": "primary",
+        "effects": [
+          {
+            "kind": "stat",
+            "target": "focus",
+            "delta": -2
+          },
+          {
+            "kind": "log",
+            "title": "强装镇定",
+            "detail": "你把它当成噪音，但噪音还是噪音。",
+            "tone": "info"
+          }
+        ]
+      },
+      {
+        "id": "panic",
+        "label": "点开消息反复确认（焦虑加重）",
+        "tone": "danger",
+        "effects": [
+          {
+            "kind": "stat",
+            "target": "focus",
+            "delta": -8
+          },
+          {
+            "kind": "stat",
+            "target": "fatigue",
+            "delta": 4
+          },
+          {
+            "kind": "log",
+            "title": "催收干扰",
+            "detail": "你越看越烦，注意力像被掏空了一块。",
+            "tone": "warn"
+          }
+        ]
       }
     ]
   },
   {
-    "id": "collection_call_1",
-    "title": "催收电话",
+    "id": "collector_upgrade",
+    "title": "催收升级：线下核验",
+    "body": "你的通讯录被\"温柔\"地翻了一遍。对方表示：再拖下去，会去你\"背调所在地\"核查。你的道心开始发紧。",
     "type": "collection",
-    "trigger": { "delinquency": 4 },
-    "body": "电话响了。你看到屏幕上显示的陌生号码，犹豫了一下还是接通了。\n\n'喂？请问是张羽同学吗？我是天庭金融的客服。您的借款已经逾期4天了，本金加利息目前是...'",
-    "tone": "warn",
+    "tone": "danger",
+    "phase": "afterAction",
+    "weight": 8,
+    "cooldownDays": 1,
+    "trigger": {
+      "minDelinquency": 2
+    },
     "options": [
       {
-        "id": "promise",
-        "label": "承诺明天还款",
-        "effect": { "delinquency_grace": 3, "stress": 10 },
-        "description": "获得3天宽限期"
+        "id": "ok",
+        "label": "把手机扣在桌面上（强装镇定）",
+        "tone": "primary",
+        "effects": [
+          {
+            "kind": "stat",
+            "target": "focus",
+            "delta": -2
+          },
+          {
+            "kind": "log",
+            "title": "强装镇定",
+            "detail": "你把它当成噪音，但噪音还是噪音。",
+            "tone": "info"
+          }
+        ]
       },
       {
-        "id": "hang_up",
-        "label": "挂断电话",
-        "effect": { "collection_level": 1, "stress": 15 },
-        "description": "催收会升级"
+        "id": "panic",
+        "label": "点开消息反复确认（焦虑加重）",
+        "tone": "danger",
+        "effects": [
+          {
+            "kind": "stat",
+            "target": "focus",
+            "delta": -8
+          },
+          {
+            "kind": "stat",
+            "target": "fatigue",
+            "delta": 4
+          },
+          {
+            "kind": "log",
+            "title": "催收干扰",
+            "detail": "你越看越烦，注意力像被掏空了一块。",
+            "tone": "warn"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "debt_restructure",
+    "title": "债务重组机会",
+    "body": "催收部门联系你，提供一次\"债务重组\"机会：延长还款期限，但总利息会增加30%。这能让你暂时喘口气，但代价不小。",
+    "type": "collection",
+    "tone": "warn",
+    "phase": "afterAction",
+    "weight": 3,
+    "cooldownDays": 7,
+    "trigger": {
+      "minDelinquency": 2
+    },
+    "options": [
+      {
+        "id": "restructure",
+        "label": "接受重组（延长期限，增加利息）",
+        "tone": "primary",
+        "effects": [
+          {
+            "kind": "debt",
+            "mode": "addInterest",
+            "amount": 0
+          },
+          {
+            "kind": "econ",
+            "target": "delinquency",
+            "delta": -1
+          },
+          {
+            "kind": "log",
+            "title": "债务重组完成",
+            "detail": "逾期等级降低，但总利息增加。你换来了喘息的时间。",
+            "tone": "warn"
+          }
+        ]
+      },
+      {
+        "id": "decline",
+        "label": "拒绝（继续承受压力）",
+        "tone": "danger",
+        "effects": [
+          {
+            "kind": "stat",
+            "target": "focus",
+            "delta": -3
+          },
+          {
+            "kind": "log",
+            "title": "拒绝重组",
+            "detail": "你选择硬扛。压力还在，但至少债务没有变得更重。",
+            "tone": "info"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "teacher_care",
+    "title": "老师的“关心”",
+    "body": "老师把你叫到一旁，先夸你\"基础不错\"，再递来一张价目表：功能增强剂、静心剂、天灵根体验券……最后补一句：走正规渠道，最安全。",
+    "type": "teacher",
+    "tone": "info",
+    "phase": "afterAction",
+    "weight": 4,
+    "cooldownDays": 3,
+    "trigger": {
+      "maxDay": 14
+    },
+    "options": [
+      {
+        "id": "buy_small",
+        "label": "买一份便宜的（心里发痛）",
+        "tone": "primary",
+        "effects": [
+          {
+            "kind": "econ",
+            "target": "cash",
+            "delta": -180
+          },
+          {
+            "kind": "stat",
+            "target": "focus",
+            "delta": 6
+          },
+          {
+            "kind": "stat",
+            "target": "fatigue",
+            "delta": -4
+          },
+          {
+            "kind": "log",
+            "title": "买了点“正规货”",
+            "detail": "花了钱，短期状态变好。你知道这不是免费的。",
+            "tone": "ok"
+          }
+        ]
+      },
+      {
+        "id": "refuse",
+        "label": "婉拒（感觉被记了一笔）",
+        "effects": [
+          {
+            "kind": "stat",
+            "target": "focus",
+            "delta": -3
+          },
+          {
+            "kind": "log",
+            "title": "婉拒",
+            "detail": "你拒绝了，空气里多了一点冷。",
+            "tone": "warn"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "job_push",
+    "title": "零工通知：临时安保/搬运",
+    "body": "中介发来消息：今晚有四小时临时活，按小时结算。强度不低，但钱很干净——至少看起来是。",
+    "type": "job",
+    "tone": "info",
+    "phase": "afterAction",
+    "weight": 4,
+    "cooldownDays": 2,
+    "trigger": {
+      "maxDelinquency": 2
+    },
+    "options": [
+      {
+        "id": "take",
+        "label": "接单（赚钱优先）",
+        "tone": "primary",
+        "effects": [
+          {
+            "kind": "econ",
+            "target": "cash",
+            "delta": 700
+          },
+          {
+            "kind": "stat",
+            "target": "fatigue",
+            "delta": 10
+          },
+          {
+            "kind": "stat",
+            "target": "focus",
+            "delta": -2
+          },
+          {
+            "kind": "log",
+            "title": "接了零工",
+            "detail": "赚到一点钱，但你明显更累了。",
+            "tone": "ok"
+          }
+        ]
+      },
+      {
+        "id": "skip",
+        "label": "放弃（保留精力修炼）",
+        "effects": [
+          {
+            "kind": "log",
+            "title": "放弃零工",
+            "detail": "你选择把时间留给修炼与考试。",
+            "tone": "info"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ritual_offer",
+    "title": "请神广告：三个愿望（限时）",
+    "body": "你刷到一条\"修仙贷\"广告，画面里是一个破旧布娃娃。它说：你只要点头，就能把\"潜力\"激发出来。代价？合同里写得很小很小。",
+    "type": "ritual",
+    "tone": "danger",
+    "phase": "afterAction",
+    "weight": 2,
+    "cooldownDays": 7,
+    "trigger": {
+      "minDay": 8
+    },
+    "options": [
+      {
+        "id": "accept",
+        "label": "签（我没得选）",
+        "tone": "danger",
+        "effects": [
+          {
+            "kind": "contract",
+            "target": "active",
+            "value": true
+          },
+          {
+            "kind": "contract",
+            "target": "progress",
+            "delta": 12
+          },
+          {
+            "kind": "contract",
+            "target": "vigilance",
+            "delta": 18
+          },
+          {
+            "kind": "stat",
+            "target": "focus",
+            "delta": -6
+          },
+          {
+            "kind": "log",
+            "title": "请神契约生效",
+            "detail": "你签下去那一刻，世界安静了一秒。然后你知道：你再也没有“纯休息”的权利了。",
+            "tone": "danger"
+          }
+        ]
+      },
+      {
+        "id": "ignore",
+        "label": "划走（先苟住）",
+        "effects": [
+          {
+            "kind": "contract",
+            "target": "progress",
+            "delta": 1
+          },
+          {
+            "kind": "log",
+            "title": "你划走了",
+            "detail": "你告诉自己：等缓过来再说。你也知道这话通常是假的。",
+            "tone": "info"
+          }
+        ]
       }
     ]
   }

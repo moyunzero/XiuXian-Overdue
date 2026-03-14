@@ -9,8 +9,9 @@ import EventModal from '~/components/game/EventModal.vue'
 import Button from '~/components/ui/Button.vue'
 import Card from '~/components/ui/Card.vue'
 import Pill from '~/components/ui/Pill.vue'
+import HumanModelViewer from '~/components/game/HumanModelViewer.vue'
 
-const { game, activeSlot, saveToSlot, totalDebt, minPayment, nextLabel, act, borrow, repay, resolveEvent } = useGame()
+const { game, activeSlot, saveToSlot, totalDebt, minPayment, accumulatedMinPayment, nextLabel, act, borrow, repay, resolveEvent } = useGame()
 
 const showBorrow = ref(false)
 const showRepay = ref(false)
@@ -91,6 +92,7 @@ const eventForModal = computed(() => {
   return {
     title: g.value.pendingEvent.title,
     body: g.value.pendingEvent.body,
+    mandatory: g.value.pendingEvent.mandatory,
     options: g.value.pendingEvent.options.map(opt => ({
       id: opt.id,
       label: opt.label,
@@ -98,6 +100,22 @@ const eventForModal = computed(() => {
     }))
   }
 })
+
+const isRepaymentModal = computed(() =>
+  eventForModal.value?.title?.includes('用身体偿还') ?? false
+)
+
+const modalAccumulatedPayment = computed(() =>
+  isRepaymentModal.value ? accumulatedMinPayment.value : undefined
+)
+
+const modalCurrentCash = computed(() =>
+  isRepaymentModal.value ? g.value.econ.cash : undefined
+)
+
+const modalTotalDebt = computed(() =>
+  isRepaymentModal.value ? (g.value.econ.debtPrincipal + g.value.econ.debtInterestAccrued) : undefined
+)
 
 function onBorrow() {
   borrow(borrowAmt.value)
@@ -164,29 +182,38 @@ watch(
     </div>
     
     <p class="Sub">
-      你每一天有三段行动：清晨、午后、深夜。每段只能做一件事。第 7、14、21…天结算"月考"，决定待遇与压迫程度。
+      你每一天有三段行动：清晨、午后、深夜。每段只能做一件事。第 7、14、21…天结算"月考"，决定待遇。
     </p>
 
     <!-- Main Content Grid -->
     <div class="Grid2" style="margin-top: 14px">
-      <!-- Left Column: Character Stats -->
-      <Card padding="md">
-        <div class="Row">
-          <Pill>角色</Pill>
-          <Pill>{{ g.startConfig?.playerName }}</Pill>
-          <Pill>城市：{{ g.startConfig?.startingCity }}</Pill>
-          <span class="Spacer" />
-          <Pill>出身：{{ g.startConfig?.background }}</Pill>
-          <Pill>天赋：{{ g.startConfig?.talent }}</Pill>
-        </div>
+      <!-- Left Column: Character Stats + Human Model -->
+      <div style="display: flex; flex-direction: column; gap: 14px">
+        <Card padding="md">
+          <div class="Row">
+            <Pill>角色</Pill>
+            <Pill>{{ g.startConfig?.playerName }}</Pill>
+            <Pill>城市：{{ g.startConfig?.startingCity }}</Pill>
+            <span class="Spacer" />
+            <Pill>出身：{{ g.startConfig?.background }}</Pill>
+            <Pill>天赋：{{ g.startConfig?.talent }}</Pill>
+          </div>
 
-        <StatPanel
-          :stats="playerStats"
-          layout="grid"
-          :columns="3"
-          style="margin-top: 12px"
-        />
-      </Card>
+          <StatPanel
+            :stats="playerStats"
+            layout="grid"
+            :columns="3"
+            style="margin-top: 12px"
+          />
+        </Card>
+
+        <Card padding="md">
+          <div class="Row" style="margin-bottom: 10px">
+            <Pill>人体状态</Pill>
+          </div>
+          <HumanModelViewer />
+        </Card>
+      </div>
 
       <!-- Right Column: Debt & Actions -->
       <div style="display: flex; flex-direction: column; gap: 14px">
@@ -273,7 +300,6 @@ watch(
           <div class="Label">建议策略（仅供第一局）</div>
           <div class="MonoSmall" style="margin-top: 8px">
             先用"上课/吐纳"稳住分数，再用"打工"补现金缺口。等你能维持周最低还款，再考虑炼体冲分。<br />
-            这一切听起来像建议，其实是社会的默认路径。
           </div>
         </Card>
       </Card>
@@ -354,8 +380,14 @@ watch(
     <!-- Event Modal -->
     <EventModal
       :event="eventForModal"
+      :accumulated-payment="modalAccumulatedPayment"
+      :current-cash="modalCurrentCash"
+      :total-debt="modalTotalDebt"
       @resolve="resolveEvent"
       @dismiss="() => resolveEvent(eventForModal?.options[0]?.id || 'ok')"
     />
   </div>
 </template>
+
+<style scoped>
+</style>
