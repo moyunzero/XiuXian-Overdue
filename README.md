@@ -1,10 +1,41 @@
 # 修仙欠费中
 
-> **在压迫中挣扎求存**  
-> 一款探索修仙世界中阶级固化与生存压力的模拟经营游戏。。
+> **在压迫中挣扎求存 · 在绝望中寻找出路**  
+> 一款探索修仙世界中阶级固化、债务螺旋与生存压力的赛博朋克风格模拟经营游戏
+
+[![在线体验](https://img.shields.io/badge/🎮_在线体验-no--money--xiuxian.vercel.app-00DC82?style=for-the-badge)](https://no-money-xiuxian.vercel.app/)
+
 [![Nuxt](https://img.shields.io/badge/Nuxt-4.3.1-00DC82?logo=nuxt.js)](https://nuxt.com)
 [![Vue](https://img.shields.io/badge/Vue-3.5.30-4FC08D?logo=vue.js)](https://vuejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript)](https://www.typescriptlang.org)
+[![License](https://img.shields.io/badge/License-学习交流-blue)](./LICENSE)
+
+[在线游玩](https://no-money-xiuxian.vercel.app/) · [快速开始](#-快速开始) · [贡献指南](#-贡献指南) · [事件创作](./docs/事件创作指南.md)
+
+</div>
+
+---
+
+## 📸 游戏截图
+
+<div align="center">
+
+### 开局配置页面
+*自定义角色、选择出身、设置初始债务*
+
+<img src="./docs/screenshots/screenshot-start.png" alt="开局配置" width="800"/>
+
+### 游戏主界面
+*三段式时间系统、属性面板、债务仪表盘、3D 人体模型*
+
+<img src="./docs/screenshots/screenshot-game.png" alt="游戏主界面" width="800"/>
+
+### 身体偿还事件
+*当债务无法偿还时，系统会提供"另一种选择"*
+
+<img src="./docs/screenshots/screenshot-body-repayment.png" alt="身体偿还事件" width="800"/>
+
+</div>
 
 ---
 
@@ -69,45 +100,42 @@
 
 ## 🚀 快速开始
 
-### 环境要求
+### 在线体验（推荐）
+
+直接访问 [https://no-money-xiuxian.vercel.app/](https://no-money-xiuxian.vercel.app/)，无需安装任何东西。
+
+### 本地运行
+
+#### 环境要求
 - Node.js 18.x 或更高版本
 - npm / pnpm / yarn / bun
 
-### 安装依赖
+#### 安装依赖
 
 ```bash
-# 使用 npm
+# 克隆仓库
+git clone https://github.com/your-username/xiuxian-sim.git
+cd xiuxian-sim
+
+# 安装依赖（选择一种）
 npm install
-
-# 使用 pnpm
+# 或
 pnpm install
-
-# 使用 yarn
+# 或
 yarn install
-
-# 使用 bun
+# 或
 bun install
 ```
 
-### 开发模式
+#### 开发模式
 
 启动开发服务器，访问 `http://localhost:3000`：
 
 ```bash
-# 使用 npm
 npm run dev
-
-# 使用 pnpm
-pnpm dev
-
-# 使用 yarn
-yarn dev
-
-# 使用 bun
-bun run dev
 ```
 
-### 生产构建
+#### 生产构建
 
 ```bash
 # 构建生产版本
@@ -124,105 +152,89 @@ npm run preview
 ```
 xiuxian-sim/
 ├── app/
-│   ├── assets/
-│   │   └── css/
-│   │       └── main.css              # 全局样式和设计系统
+│   ├── assets/css/
+│   │   └── main.css              # 全局样式和设计系统
 │   ├── components/
-│   │   ├── ui/                       # 原子组件
-│   │   │   ├── Button.vue
-│   │   │   ├── Card.vue
-│   │   │   ├── Pill.vue
-│   │   │   └── ProgressBar.vue
-│   │   └── game/                     # 复合组件
-│   │       ├── StatPanel.vue
-│   │       ├── LogPanel.vue
-│   │       ├── DebtDashboard.vue
-│   │       └── EventModal.vue
+│   │   ├── ui/                   # 原子组件
+│   │   │   ├── Button.vue        # 按钮组件
+│   │   │   ├── Card.vue          # 卡片容器
+│   │   │   ├── Pill.vue          # 标签组件
+│   │   │   └── ProgressBar.vue   # 进度条
+│   │   └── game/                 # 游戏组件
+│   │       ├── StatPanel.vue     # 属性面板
+│   │       ├── LogPanel.vue      # 日志面板
+│   │       ├── DebtDashboard.vue # 债务仪表盘
+│   │       ├── EventModal.vue    # 事件弹窗
+│   │       └── HumanModelViewer.vue # 3D 人体模型
 │   ├── composables/
-│   │   └── useGame.ts                # 游戏状态管理
+│   │   └── useGame.ts            # 游戏状态管理（核心逻辑）
 │   ├── pages/
-│   │   ├── index.vue                 # 开局页
-│   │   ├── game.vue                  # 游戏主页
-│   │   └── body.vue                  # 3D 模型查看器
+│   │   ├── index.vue             # 开局页
+│   │   ├── game.vue              # 游戏主页
+│   │   └── body.vue              # 3D 模型查看器
 │   ├── types/
-│   │   └── game.ts                   # TypeScript 类型定义
+│   │   └── game.ts               # TypeScript 类型定义
 │   └── utils/
-│       └── rng.ts                    # 随机数生成器
+│       ├── events.ts             # 事件系统
+│       └── rng.ts                # 随机数生成器（seeded）
 ├── data/
-│   └── events.json                   # 事件数据
+│   └── events.json               # 事件数据（数据驱动）
 ├── docs/
-│   └── 交互流程图.md                  # 交互流程文档
-├── public/
-│   └── models/                       # 3D 模型资源
-├── nuxt.config.ts                    # Nuxt 配置
-├── package.json                      # 项目依赖
-└── tsconfig.json                     # TypeScript 配置
+│   └── 事件创作指南.md            # 面向非开发者的事件创作教程
+├── public/models/                # 3D 模型资源
+├── tests/                        # 单元测试
+└── nuxt.config.ts                # Nuxt 配置
 ```
 
----
+### 核心特性
 
-## 🎨 设计系统
-
-### 配色方案
-- **背景色**：深黑色（#000000, #121212, #0A0E27）
-- **霓虹强调色**：Matrix Green (#00FF00), Magenta (#FF00FF), Cyan (#00FFFF)
-- **功能色**：Primary (#1E40AF), Danger (#FF3B3B), Warning (#FFD24A), Success (#44FF9A)
-
-### 字体系统
-- **标题字体**：Fira Code (monospace)
-- **正文字体**：Fira Sans (sans-serif)
-- **中文字体**：Source Han Sans, Noto Sans SC
-
-### 视觉效果
-- **霓虹发光**：多层 text-shadow 实现发光效果
-- **玻璃态**：backdrop-filter: blur(10px) + 半透明背景
-- **CRT 扫描线**：repeating-linear-gradient 实现复古效果（可选）
+- **组件化架构**：原子组件 + 复合组件，易于维护和扩展
+- **状态管理**：基于 Vue 3 Composition API 的 `useGame` composable，无需 Vuex/Pinia
+- **类型安全**：完整的 TypeScript 类型定义，减少运行时错误
+- **数据驱动**：事件系统完全由 JSON 配置，非开发者也能贡献内容
+- **响应式设计**：支持桌面端、平板端和移动端
+- **性能优化**：虚拟滚动、懒加载、代码分割
 
 ---
 
-## 🛠️ 技术栈
-
-- **框架**：[Nuxt 3](https://nuxt.com) - Vue 3 全栈框架
-- **UI 库**：[Vue 3](https://vuejs.org) - 渐进式 JavaScript 框架
-- **语言**：[TypeScript](https://www.typescriptlang.org) - JavaScript 的超集
-- **3D 渲染**：[Three.js](https://threejs.org) - WebGL 3D 库
-- **样式**：原生 CSS + CSS 变量系统
-
----
-
-## 📚 文档
+## � 文档
 
 - [事件创作指南](./docs/事件创作指南.md) - 面向非开发者的事件 JSON 编写说明
-- [部署指南](./DEPLOY.md) - 如何将项目上传到 GitHub
+- [交互流程图](./docs/交互流程图.md) - 游戏流程与状态机详解
+- [系统逻辑总览](./docs/系统逻辑总览.md) - 完整的游戏机制、数值公式与联动关系
 - [UI/UX 设计规范](./.kiro/specs/ui-ux-game-optimization/) - 完整的 UI/UX 设计系统文档
 
 ---
+
 ## 🎯 开发路线图
 
-### 已完成
-- ✅ 核心游戏循环（三段式时间系统）
-- ✅ 基础行动系统（上课、吐纳、炼体、打工、休息、买补给）
-- ✅ 债务管理系统（借贷、还款、利息滚动）
-- ✅ 月考与分班系统
-- ✅ 随机事件系统
-- ✅ 存档系统（自动存档 + 3 个手动存档槽）
-- ✅ 基础 UI 组件库
+### ✅ 已完成（v1.0）
+- 核心游戏循环（三段式时间系统）
+- 基础行动系统（上课、吐纳、炼体、打工、休息、买补给）
+- 债务管理系统（借贷、还款、利息滚动、逾期升级）
+- 月考与分班系统（动态评分、待遇更新）
+- 随机事件系统（数据驱动、加权随机、冷却机制）
+- 请神契约系统（反噬监工、强制行动）
+- 身体劣化系统（动态估值、隐性惩罚、叙事延迟）
+- 存档系统（自动存档 + 3 个手动存档槽）
+- 基础 UI 组件库（赛博朋克风格）
+- 3D 人体模型查看器（Three.js）
 
-### 进行中
-- 🚧 UI/UX 优化（赛博朋克主题）
-- 🚧 响应式布局优化
-- 🚧 性能优化（虚拟滚动、懒加载）
+### 🚧 进行中（v1.1）
+- UI/UX 优化（响应式布局、动画效果）
+- 性能优化（虚拟滚动、懒加载）
+- 更多随机事件（目标：20+ 种事件）
+- 音效与背景音乐
 
-### 计划中
-- 📋 试功/试药系统
-- 📋 法赛系统（奖金驱动）
-- 📋 灵根租赁系统
-- 📋 静室系统
-- 📋 老师推销系统扩展
-- 📋 债务重组系统
-- 📋 更多随机事件
-- 📋 成就系统
-- 📋 多结局系统
+### 📋 计划中（v2.0）
+- **试功/试药系统**：企业试功事件，可能造成内伤/奖励现金/获得新功法
+- **法赛系统**：奖金驱动的竞赛，投入资源冲刺 vs 保守稳债
+- **灵根租赁系统**：短期效率暴涨 vs 债务与副作用上升
+- **静室系统**：付费获得更好的修炼环境
+- **老师推销系统扩展**：更多"正规货"与羞辱选项
+- **债务重组系统扩展**：学校补助、班主任介入
+- **成就系统**：记录玩家的"生存轨迹"
+- **多结局系统**：根据玩家选择触发不同结局
 
 ---
 
@@ -230,7 +242,32 @@ xiuxian-sim/
 
 欢迎贡献代码、报告问题或提出建议！
 
-### 开发流程
+### 我能做什么？
+
+#### 1. 创作事件（无需编程经验）
+
+游戏的所有事件都存储在 `data/events.json` 中，你可以：
+- 复制现有事件，修改文案和数值
+- 提交 Pull Request 或在 Issue 中分享你的点子
+
+详见 [事件创作指南](./docs/事件创作指南.md)。
+
+#### 2. 报告 Bug
+
+在 [Issues](https://github.com/your-username/xiuxian-sim/issues) 中提交 Bug 报告，请包含：
+- 复现步骤
+- 预期行为 vs 实际行为
+- 截图或录屏（如果可能）
+
+#### 3. 提出建议
+
+在 [Discussions](https://github.com/your-username/xiuxian-sim/discussions) 中分享你的想法：
+- 新的游戏机制
+- UI/UX 改进建议
+- 平衡性调整
+
+#### 4. 贡献代码
+
 1. Fork 本仓库
 2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
 3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
@@ -238,10 +275,34 @@ xiuxian-sim/
 5. 开启 Pull Request
 
 ### 代码规范
+
 - 使用 TypeScript 进行类型检查
 - 遵循 Vue 3 Composition API 最佳实践
 - 保持组件单一职责
 - 编写清晰的注释和文档
+- 运行 `npm run validate:events` 验证事件数据
+
+---
+
+## 🙏 致谢
+
+### 灵感来源
+
+本游戏的核心设计灵感源于小说《没钱修什么仙？》（作者：熊狼狗）。小说对修仙世界中**分数、债务与系统性压迫**的深刻探讨，启发了我们创作这款游戏。
+
+### 设计灵感
+
+- **赛博朋克 2077**：霓虹美学、反乌托邦氛围
+- **Blade Runner**：压抑的视觉风格
+- **Papers, Please**：系统性压迫的游戏化表达
+- **This War of Mine**：生存压力与道德困境
+
+### 技术支持
+
+- [Nuxt 3](https://nuxt.com) - 强大的 Vue 3 全栈框架
+- [Vue 3](https://vuejs.org) - 渐进式 JavaScript 框架
+- [Three.js](https://threejs.org) - WebGL 3D 库
+- [Vercel](https://vercel.com) - 免费的部署平台
 
 ---
 
@@ -251,23 +312,30 @@ xiuxian-sim/
 
 ---
 
-## 🙏 致谢
-
-- **灵感来源**：小说《没钱修什么仙？》（作者：熊狼狗）- 本模拟器的核心设计灵感源于该小说对修仙世界中分数、债务与系统性压迫的深刻探讨
-- **UI/UX 设计灵感**：赛博朋克 2077、Blade Runner
-- **技术支持**：Nuxt 3, Vue 3, Three.js 社区
-
----
-
 ## 📞 联系方式
 
 如有问题或建议，欢迎通过以下方式联系：
 
-- 提交 Issue
-- 发起 Discussion
-- 提交 Pull Request
+- 提交 [Issue](https://github.com/your-username/xiuxian-sim/issues)
+- 发起 [Discussion](https://github.com/your-username/xiuxian-sim/discussions)
+- 提交 [Pull Request](https://github.com/your-username/xiuxian-sim/pulls)
 
 ---
+
+## 🌟 Star History
+
+如果你喜欢这个项目，请给我们一个 Star ⭐️
+
+[![Star History Chart](https://api.star-history.com/svg?repos=your-username/xiuxian-sim&type=Date)](https://star-history.com/#your-username/xiuxian-sim&Date)
+
 ---
+
+<div align="center">
 
 **记住：欠费不停，修仙不止。**
+
+[立即体验](https://no-money-xiuxian.vercel.app/) · [查看文档](./docs/) · [贡献代码](#-贡献指南)
+
+Made with 💀 by the Xiuxian Sim Team
+
+</div>
