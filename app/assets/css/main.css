@@ -5,13 +5,9 @@
   --bg-primary: #000000;      /* 深黑色 - 主背景 */
   --bg-secondary: #121212;    /* 暗灰色 - 次级背景 */
   --bg-tertiary: #0A0E27;     /* 午夜蓝 - 卡片背景 */
-  --bg-card: rgba(255,255,255,0.04);  /* 半透明白 - 玻璃态 */
-  
-  /* Legacy aliases for backwards compatibility */
+  --bg-card: rgba(255,255,255,0.04);    /* Legacy aliases for backwards compatibility */
   --bg0: #07080c;
   --bg1: #0b0f16;
-  --card: #0f1420;
-  --card2: #0b101a;
   
   /* ========================================
      霓虹强调色系统 (Neon Accent Colors)
@@ -20,25 +16,17 @@
   --neon-magenta: #FF00FF;    /* 品红 - 警告/特殊 */
   --neon-cyan: #00FFFF;       /* 青色 - 主要强调 */
   --neon-blue: #0080FF;       /* 霓虹蓝 - 次要强调 */
-  --neon-pink: #FF006E;       /* 热粉 - 危险/债务 */
-  
-  /* Legacy aliases */
+  --neon-pink: #FF006E;         /* Legacy aliases */
   --aqua: #38f8d0;
-  --acid: #e7ff4a;
-  --ember: #ff4f7a;
-  --violet: #7c5cff;
   
   /* ========================================
      功能色系统 (Functional Colors)
      ======================================== */
   --primary: #1E40AF;         /* 主要操作 */
   --secondary: #3B82F6;       /* 次要操作 */
-  --cta: #F59E0B;            /* 行动号召 */
   --danger: #FF3B3B;         /* 危险/错误 */
   --warning: #FFD24A;        /* 警告 */
-  --success: #44FF9A;        /* 成功 */
-  
-  /* Legacy aliases */
+  --success: #44FF9A;          /* Legacy aliases */
   --ok: #44ff9a;
   --warn: #ffd24a;
   
@@ -48,9 +36,7 @@
   --text-primary: #E8ECF6;    /* 主文本 - 高对比度 */
   --text-secondary: #9AA6C6;  /* 次要文本 */
   --text-muted: #6B7280;      /* 弱化文本 */
-  --text-danger: #FF3B3B;     /* 危险文本 */
-  
-  /* Legacy aliases */
+  --text-danger: #FF3B3B;       /* Legacy aliases */
   --text: #e8ecf6;
   --muted: #9aa6c6;
   
@@ -58,12 +44,10 @@
      边框和效果 (Borders & Effects)
      ======================================== */
   --border-default: rgba(255,255,255,0.10);
-  --border-focus: rgba(0,255,255,0.50);
   --overlay: rgba(0,0,0,0.62);
   
   /* Legacy aliases */
   --line: rgba(255,255,255,.10);
-  --glass: rgba(255,255,255,.04);
   --border: rgba(255,255,255,.10);
   
   /* 发光效果 (Glow Effects) */
@@ -71,21 +55,10 @@
   --glow-magenta: 0 0 10px rgba(255,0,255,0.5);
   --glow-green: 0 0 10px rgba(0,255,0,0.5);
   --glow-red: 0 0 10px rgba(255,59,59,0.5);
-  --glow-blue: 0 0 10px rgba(0,128,255,0.5);
   
-  /* ========================================
-     字体系统 (Typography System)
-     ======================================== */
-  
-  /* 字体族 (Font Families) */
-  --font-heading: 'Fira Code', monospace;
-  --font-body: 'Fira Sans', sans-serif;
-  --font-chinese: 'Source Han Sans', 'Noto Sans SC', sans-serif;
-  
-  /* Legacy aliases */
+      /* Legacy aliases */
   --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --serif: "ZCOOL XiaoWei", ui-serif, Georgia, "Times New Roman", serif;
-  --sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   
   /* 字体大小 (Font Sizes) - 7级系统 */
   --text-xs: 11px;
@@ -123,23 +96,16 @@
   --spacing-16: 64px;
   
   /* Legacy aliases */
-  --space-0: 0px;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
   --space-4: 16px;
   --space-5: 20px;
   --space-6: 24px;
-  --space-8: 32px;
-  --space-10: 40px;
-  --space-12: 48px;
-  --space-16: 64px;
   
   /* 语义化间距 (Semantic Spacing) */
   --card-padding: 16px;
   --section-gap: 14px;
-  --button-gap: 10px;
-  --input-padding: 10px 12px;
   
   /* ========================================
      边框半径 (Border Radius)
@@ -163,31 +129,11 @@
   --duration-fast: 150ms;
   --duration-normal: 200ms;
   --duration-slow: 300ms;
-  --duration-modal: 300ms;
   
-  /* ========================================
-     Z-Index 层级 (Z-Index Layers)
-     ======================================== */
-  --z-base: 0;
-  --z-dropdown: 10;
-  --z-sticky: 20;
-  --z-fixed: 30;
-  --z-modal-backdrop: 40;
-  --z-modal: 50;
-  --z-popover: 60;
-  --z-tooltip: 70;
-  
-  /* ========================================
+    /* ========================================
      响应式断点 (Responsive Breakpoints)
      ======================================== */
-  --breakpoint-mobile: 768px;
-  --breakpoint-tablet: 920px;
-  --breakpoint-desktop: 1440px;
 }
-
-/* ========================================
-   CSS Reset (基于 modern-normalize)
-   ======================================== */
 
 /* Use a better box model (opinionated) */
 *,
@@ -828,13 +774,6 @@ video {
   }
 }
 
-
-
-
-/* ========================================
-   霓虹发光效果工具类 (Neon Glow Utilities)
-   ======================================== */
-
 .neon-glow-cyan {
   text-shadow: 
     0 0 10px rgba(0,255,255,0.8),
@@ -863,10 +802,6 @@ video {
     0 0 30px rgba(255,59,59,0.3);
 }
 
-/* ========================================
-   边框发光效果 (Border Glow Effects)
-   ======================================== */
-
 .border-glow-cyan {
   border-color: rgba(0,255,255,0.5);
   box-shadow: var(--glow-cyan);
@@ -887,10 +822,6 @@ video {
   box-shadow: var(--glow-red);
 }
 
-/* ========================================
-   分班视觉样式 (Class Rank Styles)
-   ======================================== */
-
 .class-elite {
   border-color: rgba(56,248,208,0.5);
   background: rgba(56,248,208,0.18);
@@ -908,10 +839,6 @@ video {
   box-shadow: var(--glow-red);
 }
 
-/* ========================================
-   玻璃态效果 (Glassmorphism)
-   ======================================== */
-
 .glass-effect {
   background: rgba(255,255,255,0.04);
   backdrop-filter: blur(10px);
@@ -924,10 +851,6 @@ video {
     backdrop-filter: blur(4px);
   }
 }
-
-/* ========================================
-   扫描线效果 (Scanlines) - 可选装饰
-   ======================================== */
 
 .scanlines::before {
   content: '';
@@ -954,10 +877,6 @@ video {
   }
 }
 
-/* ========================================
-   动画偏好支持 (Reduced Motion)
-   ======================================== */
-
 @media (prefers-reduced-motion: reduce) {
   .scanlines::before {
     animation: none !important;
@@ -969,109 +888,6 @@ video {
     transition-duration: 0.01ms !important;
   }
 }
-
-/* ========================================
-   辅助工具类 (Utility Classes)
-   ======================================== */
-
-/* 文本颜色 */
-.text-primary { color: var(--text-primary); }
-.text-secondary { color: var(--text-secondary); }
-.text-muted { color: var(--text-muted); }
-.text-danger { color: var(--text-danger); }
-.text-success { color: var(--success); }
-.text-warning { color: var(--warning); }
-
-/* 背景颜色 */
-.bg-primary { background-color: var(--bg-primary); }
-.bg-secondary { background-color: var(--bg-secondary); }
-.bg-tertiary { background-color: var(--bg-tertiary); }
-.bg-card { background-color: var(--bg-card); }
-
-/* 字体大小 */
-.text-xs { font-size: var(--text-xs); }
-.text-sm { font-size: var(--text-sm); }
-.text-base { font-size: var(--text-base); }
-.text-lg { font-size: var(--text-lg); }
-.text-xl { font-size: var(--text-xl); }
-.text-2xl { font-size: var(--text-2xl); }
-.text-3xl { font-size: var(--text-3xl); }
-
-/* 字重 */
-.font-normal { font-weight: var(--font-normal); }
-.font-medium { font-weight: var(--font-medium); }
-.font-semibold { font-weight: var(--font-semibold); }
-.font-bold { font-weight: var(--font-bold); }
-
-/* 行高 */
-.leading-tight { line-height: var(--leading-tight); }
-.leading-normal { line-height: var(--leading-normal); }
-.leading-relaxed { line-height: var(--leading-relaxed); }
-
-/* 间距 - Margin */
-.m-0 { margin: var(--spacing-0); }
-.m-1 { margin: var(--spacing-1); }
-.m-2 { margin: var(--spacing-2); }
-.m-3 { margin: var(--spacing-3); }
-.m-4 { margin: var(--spacing-4); }
-.m-5 { margin: var(--spacing-5); }
-.m-6 { margin: var(--spacing-6); }
-.m-8 { margin: var(--spacing-8); }
-.m-10 { margin: var(--spacing-10); }
-.m-12 { margin: var(--spacing-12); }
-.m-16 { margin: var(--spacing-16); }
-
-/* 间距 - Padding */
-.p-0 { padding: var(--spacing-0); }
-.p-1 { padding: var(--spacing-1); }
-.p-2 { padding: var(--spacing-2); }
-.p-3 { padding: var(--spacing-3); }
-.p-4 { padding: var(--spacing-4); }
-.p-5 { padding: var(--spacing-5); }
-.p-6 { padding: var(--spacing-6); }
-.p-8 { padding: var(--spacing-8); }
-.p-10 { padding: var(--spacing-10); }
-.p-12 { padding: var(--spacing-12); }
-.p-16 { padding: var(--spacing-16); }
-
-/* 间距 - Gap */
-.gap-1 { gap: var(--spacing-1); }
-.gap-2 { gap: var(--spacing-2); }
-.gap-3 { gap: var(--spacing-3); }
-.gap-4 { gap: var(--spacing-4); }
-.gap-5 { gap: var(--spacing-5); }
-.gap-6 { gap: var(--spacing-6); }
-.gap-8 { gap: var(--spacing-8); }
-.gap-10 { gap: var(--spacing-10); }
-.gap-12 { gap: var(--spacing-12); }
-
-/* 边框半径 */
-.rounded-sm { border-radius: var(--radius-sm); }
-.rounded-md { border-radius: var(--radius-md); }
-.rounded-lg { border-radius: var(--radius-lg); }
-.rounded-xl { border-radius: var(--radius-xl); }
-.rounded-full { border-radius: var(--radius-full); }
-
-/* 阴影 */
-.shadow-sm { box-shadow: var(--shadow-sm); }
-.shadow-md { box-shadow: var(--shadow-md); }
-.shadow-lg { box-shadow: var(--shadow-lg); }
-
-/* 过渡 */
-.transition-fast { transition-duration: var(--duration-fast); }
-.transition-normal { transition-duration: var(--duration-normal); }
-.transition-slow { transition-duration: var(--duration-slow); }
-
-/* 光标 */
-.cursor-pointer { cursor: pointer; }
-.cursor-not-allowed { cursor: not-allowed; }
-
-/* 触摸优化 */
-.touch-manipulation { touch-action: manipulation; }
-
-/* ========================================
-   可访问性工具类 (Accessibility)
-   ======================================== */
 
 /* 焦点状态 */
 .focus-visible:focus-visible {
@@ -1092,17 +908,46 @@ video {
   border-width: 0;
 }
 
-/* ========================================
-   性能优化类 (Performance)
-   ======================================== */
-
 /* GPU 加速 */
 .gpu-accelerated {
   transform: translateZ(0);
   will-change: transform;
 }
 
-/* 内容可见性优化 */
-.content-visibility-auto {
-  content-visibility: auto;
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+
+.modal-enter-active .EventModal,
+.modal-leave-active .EventModal {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.modal-enter-from .EventModal,
+.modal-leave-to .EventModal {
+  transform: scale(0.9);
+  opacity: 0;
+}
+
+@media (max-width: 767px) {
+  .modal-enter-active,
+  .modal-leave-active {
+    transition: opacity 0.2s ease;
+  }
+
+  .modal-enter-active .EventModal,
+  .modal-leave-active .EventModal {
+    transition: opacity 0.2s ease;
+  }
+
+  .modal-enter-from .EventModal,
+  .modal-leave-to .EventModal {
+    transform: none;
+  }
 }

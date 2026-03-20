@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import type { Background, StartConfig, Talent } from '~/types/game'
 import { useGame } from '~/composables/useGame'
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { navigateTo } from '#app'
 import Button from '~/components/ui/Button.vue'
 import Card from '~/components/ui/Card.vue'
 import Pill from '~/components/ui/Pill.vue'
 
-const { game, startNew, reset, listSlots, loadFromSlot, saveToSlot, activeSlot } = useGame()
+const { game, startNew, reset, listSlots, loadFromSlot, saveToSlot, activeSlot, migrateLegacy } = useGame()
 
 const playerName = ref('龙傲天')
 const background = ref<Background>('贫民')
@@ -28,6 +28,10 @@ const talentDesc = computed(() => {
 })
 
 const canContinue = computed(() => game.value.started)
+
+onMounted(() => {
+  migrateLegacy()
+})
 
 function onStart() {
   const cfg: StartConfig = {
@@ -117,13 +121,13 @@ function resume(slotId: 'autosave' | 'slot1' | 'slot2' | 'slot3') {
             v-model.number="initialDebt"
             class="DebtSlider"
             type="range"
-            min="0"
+            min="5000"
             max="200000"
             step="1000"
-            :style="{ '--pct': (initialDebt / 200000 * 100) + '%' }"
+            :style="{ '--pct': ((initialDebt - 5000) / (200000 - 5000) * 100) + '%' }"
           />
           <div class="Row" style="margin-top: 10px; gap: 8px">
-            <Button size="sm" @click="initialDebt = 0">0</Button>
+            <Button size="sm" @click="initialDebt = 5000">5千</Button>
             <Button size="sm" @click="initialDebt = 20000">2万</Button>
             <Button size="sm" @click="initialDebt = 70000">7万</Button>
             <Button size="sm" @click="initialDebt = 150000">15万</Button>

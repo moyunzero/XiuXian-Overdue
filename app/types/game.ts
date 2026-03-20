@@ -33,6 +33,9 @@ export interface PlayerStats {
 
 export interface EconomyState {
   cash: number
+  collectionFee: number // 系统费用池（学籍维护费、风控费、催收服务费）
+  coreDebt: number // 核心债（制度性债务，不可被常规还款直接清零）
+  initialCoreDebt: number // 开局核心债快照，用于计算核心债下限
   debtPrincipal: number
   debtInterestAccrued: number
   dailyRate: number // 日利率（例如 0.008）
@@ -243,3 +246,34 @@ export interface GameState {
   pendingNarratives?: Array<{ day: number; partId: string }>
 }
 
+
+// ========================================
+// 展示层类型（UI 渲染专用，与数据层类型分离）
+// ========================================
+
+/** EventModal 展示用的选项类型（不含 effects 等游戏逻辑字段） */
+export interface EventOptionDisplay {
+  id: string
+  label: string
+  tone?: 'normal' | 'danger' | 'primary'
+  consequence?: string
+}
+
+/** EventModal 展示用的事件载荷类型 */
+export interface EventModalPayload {
+  title: string
+  body: string
+  illustration?: string
+  options: EventOptionDisplay[]
+  mandatory?: boolean
+  type?: string
+}
+
+/** LogPanel 展示用的日志条目类型（tone 为必填，与 LogEntry 的可选 tone 区分） */
+export interface LogEntryDisplay {
+  id: string
+  day: number
+  title: string
+  detail: string
+  tone: 'info' | 'warn' | 'danger' | 'ok'
+}

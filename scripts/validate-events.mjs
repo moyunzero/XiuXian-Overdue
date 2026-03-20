@@ -25,7 +25,7 @@ const allowedTones = ['info', 'warn', 'danger', 'ok']
 const allowedOptionTones = ['normal', 'primary', 'danger']
 const allowedEffectKinds = ['stat', 'econ', 'debt', 'contract', 'school', 'log']
 const statTargets = ['daoXin', 'faLi', 'rouTi', 'fatigue', 'focus']
-const econTargets = ['cash', 'debtPrincipal', 'debtInterestAccrued', 'dailyRate', 'delinquency', 'lastPaymentDay']
+const econTargets = ['cash', 'collectionFee', 'debtPrincipal', 'debtInterestAccrued', 'dailyRate', 'delinquency', 'lastPaymentDay']
 
 function validateEvent(event, index) {
   const where = `事件[${index}] id=${event.id ?? '<未填写>'}`

@@ -30,21 +30,13 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-
-interface LogEntry {
-  id: string
-  day: number
-  title: string
-  detail: string
-  tone: 'info' | 'warn' | 'danger' | 'ok'
-  timestamp?: number
-}
+import type { LogEntryDisplay } from '~/types/game'
 
 interface LogPanelProps {
-  logs: LogEntry[]
+  logs: LogEntryDisplay[]
   maxVisible?: number
   selectedId?: string
-  filterByTone?: LogEntry['tone'][]
+  filterByTone?: LogEntryDisplay['tone'][]
 }
 
 const props = withDefaults(defineProps<LogPanelProps>(), {
@@ -60,17 +52,13 @@ const internalSelectedId = ref(props.selectedId || (props.logs[0]?.id || ''))
 
 const filteredLogs = computed(() => {
   let logs = props.logs
-  
   if (props.filterByTone && props.filterByTone.length > 0) {
     logs = logs.filter(log => props.filterByTone!.includes(log.tone))
   }
-  
   return logs.slice(0, props.maxVisible)
 })
 
-const selectedLog = computed(() => {
-  return filteredLogs.value.find(log => log.id === internalSelectedId.value)
-})
+const selectedLog = computed(() => filteredLogs.value.find(log => log.id === internalSelectedId.value))
 
 const logItemClasses = (id: string) => ({
   'LogItem': true,
@@ -82,13 +70,8 @@ const selectLog = (id: string) => {
   emit('select', id)
 }
 
-const toneLabel = (tone: LogEntry['tone']) => {
-  const labels = {
-    info: '信息',
-    warn: '警告',
-    danger: '危险',
-    ok: '成功'
-  }
+const toneLabel = (tone: LogEntryDisplay['tone']) => {
+  const labels: Record<LogEntryDisplay['tone'], string> = { info: '信息', warn: '警告', danger: '危险', ok: '成功' }
   return labels[tone]
 }
 </script>

@@ -5,18 +5,12 @@
         <span class="DebtLabel">总债务</span>
         <span class="DebtAmount">¥{{ totalDebt.toFixed(2) }}</span>
       </div>
-      <div class="DebtMeta">
-        <div class="DebtMetaItem">
-          <span class="DebtMetaLabel">日利率</span>
-          <span class="DebtMetaValue">{{ (dailyRate * 100).toFixed(2) }}%</span>
-        </div>
-        <div class="DebtMetaItem">
-          <span class="DebtMetaLabel">逾期等级</span>
-          <span :class="delinquencyClasses">{{ delinquency }}</span>
-        </div>
+      <div class="DebtCoreSummary">
+        <span class="DebtInfoText">现金: ¥{{ cash.toFixed(2) }}</span>
+        <span class="DebtInfoText">最低还款: ¥{{ minPayment.toFixed(2) }}</span>
       </div>
     </div>
-    
+
     <ProgressBar
       :value="debtPressure"
       :max="100"
@@ -24,29 +18,60 @@
       height="md"
       :animated="delinquency >= 2"
     />
-    
-    <div class="DebtInfo">
-      <span class="DebtInfoText">最低还款: ¥{{ minPayment.toFixed(2) }}</span>
-      <span class="DebtInfoText">现金: ¥{{ cash.toFixed(2) }}</span>
-    </div>
-    
+
     <div class="DebtActions">
-      <Button variant="danger" size="sm" @click="emit('repay')">
-        还款
-      </Button>
-      <Button variant="ghost" size="sm" @click="emit('borrow')">
-        借贷
-      </Button>
+      <Button variant="danger" size="sm" @click="emit('repay')">还款</Button>
+      <Button variant="ghost" size="sm" @click="emit('borrow')">借贷</Button>
+      <span class="Spacer" />
+      <button class="ExpandToggle" @click="expanded = !expanded">
+        {{ expanded ? '收起详情 ▲' : '展开详情 ▼' }}
+      </button>
     </div>
+
+    <Transition name="detail">
+      <div v-if="expanded" class="DebtDetail">
+        <div class="DebtDetailRow">
+          <span class="DebtDetailLabel" :title="TOOLTIPS.coreLoan">制度欠款</span>
+          <span class="DebtDetailValue">¥{{ coreDebt.toFixed(2) }}</span>
+        </div>
+        <div class="DebtDetailRow">
+          <span class="DebtDetailLabel" :title="TOOLTIPS.rollingDebt">可偿还债务</span>
+          <span class="DebtDetailValue">¥{{ rollingDebt.toFixed(2) }}</span>
+        </div>
+        <div class="DebtDetailRow DebtDetailRow--sub">
+          <span class="DebtDetailLabel">┗ 管理费</span>
+          <span class="DebtDetailValue">¥{{ collectionFee.toFixed(2) }}</span>
+        </div>
+        <div class="DebtDetailRow DebtDetailRow--sub">
+          <span class="DebtDetailLabel">┗ 利息</span>
+          <span class="DebtDetailValue">¥{{ interest.toFixed(2) }}</span>
+        </div>
+        <div class="DebtDetailRow DebtDetailRow--sub">
+          <span class="DebtDetailLabel">┗ 本金</span>
+          <span class="DebtDetailValue">¥{{ principal.toFixed(2) }}</span>
+        </div>
+        <div class="DebtDetailSep" />
+        <div class="DebtDetailRow">
+          <span class="DebtDetailLabel">日利率</span>
+          <span class="DebtDetailValue">{{ (dailyRate * 100).toFixed(2) }}%</span>
+        </div>
+        <div class="DebtDetailRow">
+          <span class="DebtDetailLabel">逾期等级</span>
+          <span :class="delinquencyClasses">{{ delinquency }}</span>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import Button from '../ui/Button.vue'
 import ProgressBar from '../ui/ProgressBar.vue'
 
 interface DebtDashboardProps {
+  coreDebt?: number
+  collectionFee?: number
   principal?: number
   interest?: number
   dailyRate?: number
@@ -55,7 +80,14 @@ interface DebtDashboardProps {
   cash?: number
 }
 
+const TOOLTIPS = {
+  coreLoan: '学籍许可费、授信保留金等制度性费用，无法直接偿还',
+  rollingDebt: '管理费 + 利息 + 本金，可通过日常还款或身体偿还减少'
+}
+
 const props = withDefaults(defineProps<DebtDashboardProps>(), {
+  coreDebt: 0,
+  collectionFee: 0,
   principal: 0,
   interest: 0,
   dailyRate: 0,
@@ -69,7 +101,10 @@ const emit = defineEmits<{
   repay: []
 }>()
 
-const totalDebt = computed(() => props.principal + props.interest)
+const expanded = ref(false)
+
+const rollingDebt = computed(() => props.collectionFee + props.principal + props.interest)
+const totalDebt = computed(() => props.coreDebt + rollingDebt.value)
 
 const debtPressure = computed(() => {
   const ratio = totalDebt.value / Math.max(props.cash, 1)
@@ -77,9 +112,9 @@ const debtPressure = computed(() => {
 })
 
 const delinquencyClasses = computed(() => ({
-  'DebtMetaValue': true,
-  'DebtMetaValue--danger': props.delinquency >= 2,
-  'DebtMetaValue--warning': props.delinquency === 1
+  'DebtDetailValue': true,
+  'DebtDetailValue--danger': props.delinquency >= 2,
+  'DebtDetailValue--warning': props.delinquency === 1
 }))
 </script>
 
@@ -98,7 +133,7 @@ const delinquencyClasses = computed(() => ({
 .DebtHeader {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: flex-end;
   gap: var(--space-4);
 }
 
@@ -121,55 +156,11 @@ const delinquencyClasses = computed(() => ({
   font-family: var(--mono);
 }
 
-.DebtMeta {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  align-items: flex-end;
-}
-
-.DebtMetaItem {
+.DebtCoreSummary {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 2px;
-}
-
-.DebtMetaLabel {
-  font-size: var(--text-xs);
-  color: var(--muted);
-}
-
-.DebtMetaValue {
-  font-size: var(--text-base);
-  font-weight: var(--font-semibold);
-  color: var(--text);
-}
-
-.DebtMetaValue--warning {
-  color: var(--warn);
-}
-
-.DebtMetaValue--danger {
-  color: var(--danger);
-  animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.6;
-  }
-}
-
-.DebtInfo {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: var(--space-2);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .DebtInfoText {
@@ -179,66 +170,128 @@ const delinquencyClasses = computed(() => ({
 
 .DebtActions {
   display: flex;
+  align-items: center;
   gap: var(--space-2);
 }
 
-/* Responsive */
+.Spacer {
+  flex: 1;
+}
+
+.ExpandToggle {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: var(--text-xs);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+}
+.ExpandToggle:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.DebtDetail {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: var(--space-2);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.DebtDetailRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.DebtDetailRow--sub {
+  padding-left: 12px;
+  opacity: 0.75;
+}
+
+.DebtDetailLabel {
+  font-size: var(--text-sm);
+  color: var(--muted);
+  cursor: default;
+}
+
+.DebtDetailLabel[title] {
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.2);
+}
+
+.DebtDetailValue {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text);
+  font-family: var(--mono);
+}
+
+.DebtDetailValue--warning {
+  color: var(--warn);
+}
+
+.DebtDetailValue--danger {
+  color: var(--danger);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.DebtDetailSep {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+  margin: 2px 0;
+}
+
+.detail-enter-active,
+.detail-leave-active {
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+.detail-enter-from,
+.detail-leave-to {
+  opacity: 0;
+  max-height: 0;
+}
+.detail-enter-to,
+.detail-leave-from {
+  opacity: 1;
+  max-height: 300px;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
 @media (max-width: 767px) {
   .DebtDashboard {
     gap: var(--space-3);
     padding: 14px;
-    /* Reduce backdrop-filter for performance */
     backdrop-filter: blur(4px);
   }
-  
   .DebtHeader {
     flex-direction: column;
+    align-items: flex-start;
     gap: var(--space-3);
   }
-  
-  .DebtLabel {
-    font-size: 11px;
-  }
-  
-  .DebtAmount {
-    font-size: 24px;
-  }
-  
-  .DebtMeta {
+  .DebtCoreSummary {
     flex-direction: row;
     align-items: flex-start;
     width: 100%;
     justify-content: space-between;
   }
-  
-  .DebtMetaItem {
-    align-items: flex-start;
-  }
-  
-  .DebtMetaLabel {
-    font-size: 10px;
-  }
-  
-  .DebtMetaValue {
-    font-size: 13px;
-  }
-  
-  .DebtInfo {
-    padding-top: var(--space-1);
-  }
-  
-  .DebtInfoText {
-    font-size: 11px;
-  }
-  
-  .DebtActions {
-    gap: var(--space-3);
-  }
+  .DebtLabel { font-size: 11px; }
+  .DebtAmount { font-size: 24px; }
+  .DebtInfoText { font-size: 11px; }
+  .DebtDetailLabel { font-size: 11px; }
+  .DebtDetailValue { font-size: 11px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .DebtMetaValue--danger {
-    animation: none;
-  }
+  .DebtDetailValue--danger { animation: none; }
+  .detail-enter-active,
+  .detail-leave-active { transition: none; }
 }
 </style>

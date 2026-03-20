@@ -347,5 +347,347 @@
         ]
       }
     ]
+  },
+  {
+    "id": "roommate_borrow",
+    "title": "同门借钱",
+    "body": "室友把你拉到角落，压低声音说他这个月断粮了。你手里的钱也不算多，但他的眼神让你没法假装没听到。",
+    "type": "social",
+    "tone": "info",
+    "phase": "afterAction",
+    "weight": 4,
+    "cooldownDays": 5,
+    "trigger": {
+      "minDay": 5,
+      "minCash": 300
+    },
+    "options": [
+      {
+        "id": "lend",
+        "label": "借给他¥300（他说下周还）",
+        "tone": "primary",
+        "effects": [
+          {
+            "kind": "econ",
+            "target": "cash",
+            "delta": -300
+          },
+          {
+            "kind": "stat",
+            "target": "focus",
+            "delta": 3
+          },
+          {
+            "kind": "log",
+            "title": "借钱给同门",
+            "detail": "你知道这笔钱大概率不会回来。但你的心稍微安了一点。",
+            "tone": "ok"
+          }
+        ]
+      },
+      {
+        "id": "refuse_lend",
+        "label": "拒绝（翻出空钱包给他看）",
+        "tone": "normal",
+        "effects": [
+          {
+            "kind": "stat",
+            "target": "focus",
+            "delta": -2
+          },
+          {
+            "kind": "log",
+            "title": "拒绝同门",
+            "detail": "你心里堵得慌。你知道如果换成你求人，结果也一样。",
+            "tone": "warn"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "black_market",
+    "title": "黑市补给",
+    "body": "后门小巷里有人招手：\u201c便宜的，效果一样。\u201d包装是假的，但你闻得出里面确实有灵药成分。只是不知道掺了什么。",
+    "type": "market",
+    "tone": "warn",
+    "phase": "afterAction",
+    "weight": 3,
+    "cooldownDays": 4,
+    "trigger": {
+      "minDay": 10
+    },
+    "options": [
+      {
+        "id": "buy_black",
+        "label": "买一份（¥150，便宜有便宜的代价）",
+        "tone": "danger",
+        "effects": [
+          {
+            "kind": "econ",
+            "target": "cash",
+            "delta": -150
+          },
+          {
+            "kind": "stat",
+            "target": "fatigue",
+            "delta": -8
+          },
+          {
+            "kind": "stat",
+            "target": "focus",
+            "delta": 2
+          },
+          {
+            "kind": "log",
+            "title": "黑市交易",
+            "detail": "短期确实有效。但你注意到手指在微微发颤，买的次数越多，补给效果越差。",
+            "tone": "warn"
+          }
+        ]
+      },
+      {
+        "id": "ignore_market",
+        "label": "走开（不值得冒险）",
+        "tone": "normal",
+        "effects": [
+          {
+            "kind": "log",
+            "title": "离开黑市",
+            "detail": "你加快脚步离开。那些东西不会消失，只会在你最绝望的时候更有吸引力。",
+            "tone": "info"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "spirit_surge",
+    "title": "灵气潮涌",
+    "body": "空气突然变稠，灵气密度陡然上升。这是罕见的\u201c潮涌\u201d——如果把握住，修炼效率可以翻好几倍。但身体也会被强行拉到极限。",
+    "type": "cultivation",
+    "tone": "info",
+    "phase": "afterAction",
+    "weight": 2,
+    "cooldownDays": 7,
+    "trigger": {
+      "minDay": 14
+    },
+    "options": [
+      {
+        "id": "seize",
+        "label": "全力把握（身体扛得住就行）",
+        "tone": "primary",
+        "effects": [
+          {
+            "kind": "stat",
+            "target": "faLi",
+            "delta": 0.3
+          },
+          {
+            "kind": "stat",
+            "target": "fatigue",
+            "delta": 15
+          },
+          {
+            "kind": "log",
+            "title": "灵气潮涌·全力吸纳",
+            "detail": "你的气海像被灌满了水。法力大涨，但浑身关节都在抗议。",
+            "tone": "ok"
+          }
+        ]
+      },
+      {
+        "id": "avoid",
+        "label": "浅尝辄止（安全第一）",
+        "tone": "normal",
+        "effects": [
+          {
+            "kind": "stat",
+            "target": "faLi",
+            "delta": 0.05
+          },
+          {
+            "kind": "log",
+            "title": "灵气潮涌·浅尝",
+            "detail": "你只吸纳了一点点。安全，但看着别人突破的表情，心里不是滋味。",
+            "tone": "info"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "family_call",
+    "title": "家人来电",
+    "body": "手机亮了，是家里的号码。你犹豫了三秒才接。对方问你过得好不好，声音里带着小心翼翼。",
+    "type": "social",
+    "tone": "info",
+    "phase": "afterAction",
+    "weight": 3,
+    "cooldownDays": 7,
+    "trigger": {
+      "minDay": 7
+    },
+    "options": [
+      {
+        "id": "honest",
+        "label": "坦白（把债务的事说了）",
+        "tone": "primary",
+        "effects": [
+          {
+            "kind": "stat",
+            "target": "focus",
+            "delta": -5
+          },
+          {
+            "kind": "stat",
+            "target": "daoXin",
+            "delta": 1
+          },
+          {
+            "kind": "log",
+            "title": "坦白",
+            "detail": "电话那头沉默了很久。你知道他们帮不了你，但说出来之后，胸口不那么闷了。",
+            "tone": "ok"
+          }
+        ]
+      },
+      {
+        "id": "lie",
+        "label": "撒谎（说一切都好）",
+        "tone": "normal",
+        "effects": [
+          {
+            "kind": "stat",
+            "target": "focus",
+            "delta": -2
+          },
+          {
+            "kind": "log",
+            "title": "撒谎",
+            "detail": "你挂了电话，发现手心全是汗。谎言说多了会变轻，但每一次都在你心上划一道。",
+            "tone": "warn"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "class_bully",
+    "title": "末位班\u201c规矩\u201d",
+    "body": "几个高年级的把你堵在走廊拐角。他们说末位班有末位班的\u201c规矩\u201d：要么交保护费，要么挨一顿。",
+    "type": "school",
+    "tone": "danger",
+    "phase": "afterAction",
+    "weight": 5,
+    "cooldownDays": 5,
+    "trigger": {
+      "classTierIn": ["末位班"]
+    },
+    "options": [
+      {
+        "id": "fight",
+        "label": "反抗（豁出去了）",
+        "tone": "danger",
+        "effects": [
+          {
+            "kind": "stat",
+            "target": "focus",
+            "delta": -4
+          },
+          {
+            "kind": "stat",
+            "target": "fatigue",
+            "delta": 6
+          },
+          {
+            "kind": "stat",
+            "target": "rouTi",
+            "delta": 0.1
+          },
+          {
+            "kind": "log",
+            "title": "反抗霸凌",
+            "detail": "你挨了几下，也还了几下。之后他们没再来找你，但伤痕要自己扛。",
+            "tone": "warn"
+          }
+        ]
+      },
+      {
+        "id": "endure",
+        "label": "忍受（低头走过去）",
+        "tone": "normal",
+        "effects": [
+          {
+            "kind": "stat",
+            "target": "focus",
+            "delta": -8
+          },
+          {
+            "kind": "log",
+            "title": "忍受霸凌",
+            "detail": "你低着头走过去，假装没事。但你知道，他们下次还会来。",
+            "tone": "danger"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "system_notice",
+    "title": "系统维护通告",
+    "body": "学院行政系统弹出一条\u201c维护通告\u201d：因资源调配需要，本期须缴纳系统维护费¥200。不缴纳将影响信用记录。",
+    "type": "system",
+    "tone": "warn",
+    "phase": "afterAction",
+    "weight": 3,
+    "cooldownDays": 7,
+    "trigger": {
+      "minDay": 21
+    },
+    "options": [
+      {
+        "id": "accept_fee",
+        "label": "接受（交了吧）",
+        "tone": "primary",
+        "effects": [
+          {
+            "kind": "econ",
+            "target": "collectionFee",
+            "delta": 200
+          },
+          {
+            "kind": "log",
+            "title": "缴纳维护费",
+            "detail": "又一笔莫名其妙的费用。你甚至不确定这笔钱去了哪里。",
+            "tone": "warn"
+          }
+        ]
+      },
+      {
+        "id": "complain",
+        "label": "投诉（然后还是得交）",
+        "tone": "danger",
+        "effects": [
+          {
+            "kind": "econ",
+            "target": "collectionFee",
+            "delta": 200
+          },
+          {
+            "kind": "stat",
+            "target": "focus",
+            "delta": -3
+          },
+          {
+            "kind": "log",
+            "title": "投诉无果",
+            "detail": "你发了一封投诉邮件。回复是自动生成的。费用照扣。",
+            "tone": "danger"
+          }
+        ]
+      }
+    ]
   }
 ]

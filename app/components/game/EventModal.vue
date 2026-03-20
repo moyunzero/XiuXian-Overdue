@@ -22,38 +22,21 @@
             <h2 class="EventTitle">{{ event.title }}</h2>
             <p class="EventBody">{{ event.body }}</p>
             
-            <!-- Mandatory warning -->
             <div v-if="isMandatory" class="MandatoryWarning" role="alert">
               你已经没有选择的余地。
             </div>
           </div>
 
-          <!-- Repayment info panel -->
-          <div v-if="isRepaymentEvent" class="RepaymentInfo">
-            <div v-if="totalDebt !== undefined" class="RepaymentDebt">
-              当前总债务：<span class="DebtAmount">¥{{ Math.floor(totalDebt).toLocaleString() }}</span>
-            </div>
-            <div class="RepaymentWarning">
-              偿还后的身体部位无法恢复。这不是游戏机制，这是你的选择。
-            </div>
-          </div>
+          <RepaymentInfoPanel
+            v-if="isRepaymentEvent"
+            :total-debt="totalDebt ?? 0"
+            :accumulated-payment="accumulatedPayment ?? 0"
+            :current-cash="currentCash ?? 0"
+          />
           
           <div class="EventOptions" aria-live="polite">
-            <template v-for="option in visibleOptions" :key="option.id">
-              <!-- Immediate payment option with cash info -->
-              <div v-if="option.id === 'immediate_payment' && isRepaymentEvent" class="PaymentOptionWrapper">
-                <div v-if="accumulatedPayment !== undefined" class="PaymentInfo">
-                  <span>需还款：¥{{ Math.floor(accumulatedPayment).toLocaleString() }}</span>
-                  <span v-if="currentCash !== undefined">
-                    · 现金：¥{{ Math.floor(currentCash).toLocaleString() }}
-                  </span>
-                  <span
-                    v-if="currentCash !== undefined && accumulatedPayment !== undefined && currentCash < accumulatedPayment"
-                    class="DeficitText"
-                  >
-                    · 差额：¥{{ Math.floor(accumulatedPayment - currentCash).toLocaleString() }}
-                  </span>
-                </div>
+            <template v-for="option in visibleOptions">
+              <div v-if="option.id === 'immediate_payment' && isRepaymentEvent" :key="option.id" class="PaymentOptionWrapper">
                 <Button
                   :variant="canAffordPayment ? 'primary' : 'danger'"
                   size="md"
@@ -65,9 +48,9 @@
                 </Button>
               </div>
               
-              <!-- Regular option -->
               <Button
                 v-else
+                :key="option.id + '_reg'"
                 :variant="getOptionVariant(option.tone)"
                 size="md"
                 full-width
@@ -89,31 +72,15 @@
 <script setup lang="ts">
 import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
 import Button from '../ui/Button.vue'
+import RepaymentInfoPanel from './RepaymentInfoPanel.vue'
+import type { EventModalPayload, EventOptionDisplay } from '~/types/game'
 
-interface EventOption {
-  id: string
-  label: string
-  tone?: 'normal' | 'danger' | 'primary'
-  consequence?: string
-}
-
-interface GameEvent {
-  title: string
-  body: string
-  illustration?: string
-  options: EventOption[]
-  mandatory?: boolean
-  type?: string
-}
-
-interface EventModalProps {
-  event: GameEvent | null
+const props = defineProps<{
+  event: EventModalPayload | null
   accumulatedPayment?: number
   currentCash?: number
   totalDebt?: number
-}
- 
-const props = defineProps<EventModalProps>()
+}>()
 
 const emit = defineEmits<{
   resolve: [optionId: string]
@@ -126,8 +93,7 @@ const isMandatory = computed(() => props.event?.mandatory === true)
 
 const isRepaymentEvent = computed(() => {
   if (!props.event) return false
-  return props.event.type === 'repayment' ||
-    props.event.title?.includes('用身体偿还')
+  return props.event.type === 'repayment' || props.event.title?.includes('用身体偿还')
 })
 
 const canAffordPayment = computed(() => {
@@ -135,24 +101,19 @@ const canAffordPayment = computed(() => {
   return props.currentCash >= props.accumulatedPayment
 })
 
-// Filter out 'refuse' option if mandatory (safety net)
-const visibleOptions = computed(() => {
+const visibleOptions = computed((): EventOptionDisplay[] => {
   if (!props.event) return []
-  if (isMandatory.value) {
-    return props.event.options.filter(o => o.id !== 'refuse')
-  }
+  if (isMandatory.value) return props.event.options.filter(o => o.id !== 'refuse')
   return props.event.options
 })
 
-const getOptionVariant = (tone?: 'normal' | 'danger' | 'primary') => {
+const getOptionVariant = (tone?: EventOptionDisplay['tone']) => {
   if (tone === 'danger') return 'danger'
   if (tone === 'primary') return 'primary'
   return 'secondary'
 }
 
-const handleResolve = (optionId: string) => {
-  emit('resolve', optionId)
-}
+const handleResolve = (optionId: string) => emit('resolve', optionId)
 
 const handleDismiss = () => {
   if (isMandatory.value) return
@@ -161,15 +122,10 @@ const handleDismiss = () => {
 
 const handleKeydown = (e: KeyboardEvent) => {
   if (!props.event) return
-  
   if (e.key === 'Escape') {
-    if (!isMandatory.value) {
-      handleDismiss()
-    }
+    if (!isMandatory.value) handleDismiss()
     return
   }
-  
-  // Focus trap: Tab cycles within modal
   if (e.key === 'Tab') {
     const modal = modalRef.value
     if (!modal) return
@@ -179,16 +135,11 @@ const handleKeydown = (e: KeyboardEvent) => {
     if (!focusable.length) return
     const first = focusable[0]
     const last = focusable[focusable.length - 1]
+    if (!first || !last) return
     if (e.shiftKey) {
-      if (document.activeElement === first) {
-        e.preventDefault()
-        last.focus()
-      }
+      if (document.activeElement === first) { e.preventDefault(); last.focus() }
     } else {
-      if (document.activeElement === last) {
-        e.preventDefault()
-        first.focus()
-      }
+      if (document.activeElement === last) { e.preventDefault(); first.focus() }
     }
   }
 }
@@ -199,22 +150,14 @@ watch(
     document.body.style.overflow = event ? 'hidden' : ''
     if (event) {
       await nextTick()
-      // Focus first focusable element in modal
-      const modal = modalRef.value
-      if (modal) {
-        const firstFocusable = modal.querySelector<HTMLElement>(
-          'button:not([disabled]), [href], input:not([disabled])'
-        )
-        firstFocusable?.focus()
-      }
+      const firstFocusable = modalRef.value?.querySelector<HTMLElement>('button:not([disabled]), [href], input:not([disabled])')
+      firstFocusable?.focus()
     }
   },
   { immediate: true }
 )
- 
-onUnmounted(() => {
-  document.body.style.overflow = ''
-})
+
+onUnmounted(() => { document.body.style.overflow = '' })
 </script>
 
 <style scoped>
@@ -248,11 +191,7 @@ onUnmounted(() => {
   background: linear-gradient(180deg, rgba(56, 248, 208, 0.1), transparent);
 }
 
-.EventIllustration img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
+.EventIllustration img { width: 100%; height: 100%; object-fit: cover; }
 
 .EventContent {
   padding: var(--space-6) var(--space-4);
@@ -287,29 +226,6 @@ onUnmounted(() => {
   font-weight: 600;
 }
 
-.RepaymentInfo {
-  padding: 0 var(--space-4) var(--space-3);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.RepaymentDebt {
-  font-size: var(--text-sm);
-  color: var(--muted);
-}
-
-.DebtAmount {
-  color: #ff6b6b;
-  font-weight: 600;
-}
-
-.RepaymentWarning {
-  font-size: var(--text-sm);
-  color: rgba(255, 107, 107, 0.8);
-  font-style: italic;
-}
-
 .EventOptions {
   padding: var(--space-4);
   padding-top: 0;
@@ -324,18 +240,6 @@ onUnmounted(() => {
   gap: var(--space-2);
 }
 
-.PaymentInfo {
-  font-size: var(--text-xs);
-  color: var(--muted);
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-
-.DeficitText {
-  color: #ff6b6b;
-}
-
 .OptionConsequence {
   display: block;
   font-size: var(--text-xs);
@@ -343,77 +247,14 @@ onUnmounted(() => {
   margin-top: var(--space-1);
 }
 
-/* Transitions */
-.modal-enter-active,
-.modal-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.modal-enter-from,
-.modal-leave-to {
-  opacity: 0;
-}
-
-.modal-enter-active .EventModal,
-.modal-leave-active .EventModal {
-  transition: transform 0.3s ease, opacity 0.3s ease;
-}
-
-.modal-enter-from .EventModal,
-.modal-leave-to .EventModal {
-  transform: scale(0.9);
-  opacity: 0;
-}
-
-/* Responsive */
 @media (max-width: 767px) {
-  .EventModalBackdrop {
-    padding: var(--space-2);
-    backdrop-filter: blur(3px);
-  }
-  
-  .EventModal {
-    border-radius: 16px;
-    max-height: 92vh;
-  }
-  
-  .EventIllustration {
-    height: 160px;
-  }
-  
-  .EventContent {
-    padding: var(--space-4) var(--space-3);
-    gap: var(--space-3);
-  }
-  
-  .EventTitle {
-    font-size: 20px;
-  }
-  
-  .EventBody {
-    font-size: 13px;
-  }
-  
-  .EventOptions {
-    padding: var(--space-3);
-    padding-top: 0;
-    gap: var(--space-3);
-  }
-  
-  .modal-enter-active,
-  .modal-leave-active {
-    transition: opacity 0.2s ease;
-  }
-  
-  .modal-enter-active .EventModal,
-  .modal-leave-active .EventModal {
-    transition: opacity 0.2s ease;
-  }
-  
-  .modal-enter-from .EventModal,
-  .modal-leave-to .EventModal {
-    transform: none;
-  }
+  .EventModalBackdrop { padding: var(--space-2); backdrop-filter: blur(3px); }
+  .EventModal { border-radius: 16px; max-height: 92vh; }
+  .EventIllustration { height: 160px; }
+  .EventContent { padding: var(--space-4) var(--space-3); gap: var(--space-3); }
+  .EventTitle { font-size: 20px; }
+  .EventBody { font-size: 13px; }
+  .EventOptions { padding: var(--space-3); padding-top: 0; gap: var(--space-3); }
 }
 
 @media (prefers-reduced-motion: reduce) {
