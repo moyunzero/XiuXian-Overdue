@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-21T09:50:30.389Z"
+last_updated: "2026-03-21T10:12:25.307Z"
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 9
-  completed_plans: 9
+  total_plans: 12
+  completed_plans: 10
 ---
 
 # STATE
@@ -21,12 +21,12 @@ progress:
 
 - **Core Value:** 让玩家在完整一局后切身感受到：在某些系统面前，“努力”也可能只是更高级的自我奴役。
 - **Non-Negotiables:** 无限天沙盒循环、无硬 Game Over、心理驯化主题一致性、纯单机本地存档、Web 响应式可用。
-- **Current Focus:** Phase 04 — 精神驯化表达与无硬失败收束（规划/执行待启动）
+- **Current Focus:** Phase 04 — 精神驯化表达与无硬失败收束
 
 ## Current Position
 
-Phase: 03 (状态驱动事件与反馈可解释性) — COMPLETE
-Plan: 3 of 3（全部交付）
+Phase: 04 (精神驯化表达与无硬失败收束) — EXECUTING
+Plan: 2 of 3
 
 ## Performance Metrics
 
@@ -35,7 +35,7 @@ Plan: 3 of 3（全部交付）
 - **Coverage:** 100%
 - **Open Blockers:** 0
 - **Roadmap Revisions Pending:** 0
-- **Latest Execution:** 03-03 completed in ~15 min（3 tasks，5 files）；见 `03-03-SUMMARY.md`
+- **Latest Execution:** 04-01 completed in ~12 min（3 tasks，8 files）；见 `04-01-SUMMARY.md`
 
 ## Accumulated Context
 
@@ -64,19 +64,24 @@ Plan: 3 of 3（全部交付）
 - [Phase 03]: EVT-01：MIN 冷却 3 日、周降权 baseP×0.65、主随机仅 afterAction
 - [Phase 03]: EVT-02：数据事件主日志仅一条制度记录；log effect 在 resolve 路径抑制 inline 输出
 - [Phase 03]: EVT-03：family 字段取值为「社交|试功|法赛」；双维度按 stat/econ/debt/contract/school 去重计数，log 不计入 D-09
+- [Phase 04]: 中后期：`day≥10` 或 `contract.progress≥50%` 先到；阶梯加压（对齐 7 日节律）；复合压力；无前期保护。
+- [Phase 04]: 契约为主、驯化/麻木为辅；麻木休息；缠绕越高休息恢复越低；UI 以 Pill+日志为主。
+- [Phase 04]: 崩溃偏稀但重；每类崩溃每局首次完整后果，后回声；持续修正至下里程碑；collapse 卡组可配置。
+- [Phase 04]: 总结由副指标阈值 +（结局类事件 **或** 累计日≥30）双轨先到解锁；冷数据表；总结后存档提示继续、不硬结束。
+- [Phase 04]: PSY-01：休息先判麻木再判反噬；rest 与其它行动共用 strict；驯化随契约 progress/vigilance 上升同步
 
 ### TODOs
 
-- 在 Phase 3 执行与验证中补齐 **EVT 去重/tier/双反馈** 的可测指标（单元 + UAT）。
-- 在 Phase 4 规划中补齐主题强度与「休息冲突」的可测指标。
+- 在 Phase 4 规划中补齐 **PSY** 可测指标（契约/副指标/崩溃卡组/总结解锁）。
+- 修订 `ROADMAP.md` Phase 4 成功标准第 3 条，去除「固定 30 天终局」表述，与 `04-CONTEXT.md` D-15 对齐。
 - 在 Phase 5 明确移动端可用性验收清单（关键页面与操作覆盖）。
 
 ### Blockers
 
-- 当前无阻塞；Phase 3 已全部计划交付，可进入 Phase 4。
+- 当前无阻塞；Phase 4 讨论已落盘，下一步为 `/gsd-plan-phase 4`。
 
 ## Session Continuity
 
-- **Last Completed Step:** `03-03-PLAN.md`（EVT-03）已执行；见 `03-03-SUMMARY.md`。
-- **Next Command:** Phase 4 — 精神驯化与无硬失败（`/gsd-plan-phase` 或 roadmap 下一里程碑）。
-- **If Context Lost:** 先读取 `03-03-SUMMARY.md` 与 `.planning/ROADMAP.md` Phase 4 行。
+- **Last Completed Step:** `04-01-PLAN.md`（PSY-01）执行完毕；见 `04-01-SUMMARY.md`。
+- **Next Command:** 继续 `04-02-PLAN.md`（PSY-02）或 `/gsd-execute-phase 04`
+- **If Context Lost:** 先读取 `.planning/phases/04-精神驯化表达与无硬失败收束/04-02-PLAN.md` 与 `04-01-SUMMARY.md`。
