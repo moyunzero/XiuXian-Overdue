@@ -613,3 +613,107 @@ export function makeContractBacklashEvent(g: GameState, intended: ActionId): Pen
     ]
   }
 }
+
+// ========== PSY-02：强冲击崩溃卡组、间隔、首次/回声、里程碑修正（D-09～D-12） ==========
+
+/** D-09：强冲击最小间隔（日） */
+export const STRONG_COLLAPSE_MIN_GAP_DAYS = 10
+/** D-09：强冲击最大间隔（日，含） */
+export const STRONG_COLLAPSE_MAX_GAP_DAYS = 15
+
+/** D-09：上次触发后，下一次最早可触发的游戏日（fromDay + [10,15] 抖动） */
+export function computeNextStrongCollapseEarliestDay(fromDay: number, rand: () => number): number {
+  const span = STRONG_COLLAPSE_MAX_GAP_DAYS - STRONG_COLLAPSE_MIN_GAP_DAYS + 1
+  const jitter = Math.floor(rand() * span)
+  return fromDay + STRONG_COLLAPSE_MIN_GAP_DAYS + jitter
+}
+
+/**
+ * D-09：强冲击门闩（非机械 day%N）：中后期 + 最小间隔 + 状态就绪随机门。
+ */
+export function canTriggerStrongCollapse(g: GameState, rand: () => number): boolean {
+  if (!isMidLatePhase(g)) return false
+  const nextEarliest = g.nextStrongCollapseEarliestDay
+  if (nextEarliest !== undefined && g.school.day < nextEarliest) return false
+  const gate = clamp(0.18 + computePsychologicalPressureScore(g) / 520, 0.05, 0.48)
+  return rand() < gate
+}
+
+/** D-10：同一 collapseId 首次完整后果，之后仅回声 */
+export function resolveCollapsePresentation(collapseId: string, g: GameState): 'full' | 'echo' {
+  if (!g.collapseFirstDone) g.collapseFirstDone = {}
+  return g.collapseFirstDone[collapseId] ? 'echo' : 'full'
+}
+
+/** D-11：行动收益乘数（首次完整崩溃后至下周结算前 <1） */
+export function collapseModifierMultiplier(g: GameState): number {
+  return g.collapseModifierActive ? 0.88 : 1
+}
+
+/**
+ * D-11：将轻量修正挂到现有行动收益（study/tuna/train/parttime）。
+ */
+export function applyCollapseModifierToAction(g: GameState, action: ActionId, baseValue: number): number {
+  if (!g.collapseModifierActive) return baseValue
+  if (action === 'study' || action === 'tuna' || action === 'train' || action === 'parttime') {
+    return baseValue * collapseModifierMultiplier(g)
+  }
+  return baseValue
+}
+
+/** D-11：首次完整崩溃后开启修正（持续到下一周结算日清除） */
+export function activateCollapseModifierAfterFirstFull(g: GameState): void {
+  g.collapseModifierActive = true
+}
+
+/** D-11：在周结算块内与 `isWeeklySettlementDay` 对齐清除 */
+export function clearCollapseModifierOnWeeklySettlement(g: GameState): void {
+  if (!g.collapseModifierActive) return
+  g.collapseModifierActive = false
+}
+
+/** D-12：collapse deck 权重抽样（与 EventDefinition 兼容） */
+export function pickCollapseFromDeck(deck: EventDefinition[], rand: () => number): EventDefinition | undefined {
+  return pickWeightedEvent(deck, rand)
+}
+
+export type StrongCollapseEmitResult =
+  | { kind: 'full'; pending: PendingEvent; definition: EventDefinition }
+  | { kind: 'echo'; title: string; detail: string }
+
+/**
+ * PSY-02：尝试发出强冲击（稀但重）。full 弹窗 + 修正；echo 仅主日志短句。
+ * deck 由 `getCollapseEventDeck()` 等提供，通常 `type==='collapse'`。
+ */
+export function tryEmitStrongCollapse(
+  g: GameState,
+  rand: () => number,
+  deck: EventDefinition[]
+): StrongCollapseEmitResult | undefined {
+  if (!deck.length) return undefined
+  if (!canTriggerStrongCollapse(g, rand)) return undefined
+
+  const candidates = deck.filter((e) => eventMatchesTrigger(e, g))
+  if (!candidates.length) return undefined
+
+  const picked = pickCollapseFromDeck(candidates, rand)
+  if (!picked) return undefined
+
+  const mode = resolveCollapsePresentation(picked.id, g)
+  g.lastStrongCollapseDay = g.school.day
+  g.nextStrongCollapseEarliestDay = computeNextStrongCollapseEarliestDay(g.school.day, rand)
+
+  if (mode === 'full') {
+    if (!g.collapseFirstDone) g.collapseFirstDone = {}
+    g.collapseFirstDone[picked.id] = true
+    activateCollapseModifierAfterFirstFull(g)
+    recordEventTrigger(g, picked)
+    return { kind: 'full', pending: toPendingEvent(picked), definition: picked }
+  }
+
+  return {
+    kind: 'echo',
+    title: '精神回声',
+    detail: `旧伤未愈：${picked.title}。系统只登记完整后果一次，其余以回声归档。`
+  }
+}

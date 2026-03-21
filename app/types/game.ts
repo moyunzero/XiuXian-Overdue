@@ -284,6 +284,15 @@ export interface GameState {
    * PSY-01：麻木副指标（0~100），麻木休息路径累积；与契约主题一致。
    */
   numbness?: number
+
+  /** PSY-02 D-09：上次强冲击的游戏日 */
+  lastStrongCollapseDay?: number
+  /** PSY-02 D-09：下一次最早可触发强冲击的游戏日（10～15 日抖动下界） */
+  nextStrongCollapseEarliestDay?: number
+  /** PSY-02 D-10：每种 collapseId 是否已走过完整后果（之后仅回声） */
+  collapseFirstDone?: Record<string, boolean>
+  /** PSY-02 D-11：首次完整崩溃后的轻量修正（周结算日清除） */
+  collapseModifierActive?: boolean
 }
 
 

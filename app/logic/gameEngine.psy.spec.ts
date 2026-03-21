@@ -1,15 +1,25 @@
 import { describe, expect, it } from 'vitest'
 import type { GameState } from '~/types/game'
 import {
+  activateCollapseModifierAfterFirstFull,
+  applyCollapseModifierToAction,
+  canTriggerStrongCollapse,
+  clearCollapseModifierOnWeeklySettlement,
+  computeNextStrongCollapseEarliestDay,
   computePsychologicalPressureScore,
   computeRestRecovery,
   formatPsySubsidiaryLine,
   getConflictPressureTier,
   isMidLatePhase,
   isWeeklySettlementDay,
+  pickCollapseFromDeck,
+  resolveCollapsePresentation,
   restRecoveryMultiplier,
-  syncDomesticationWithContractProgress
+  syncDomesticationWithContractProgress,
+  tryEmitStrongCollapse
 } from '~/logic/gameEngine'
+import type { EventDefinition } from '~/types/game'
+import { mulberry32 } from '~/utils/rng'
 
 /** PSY-01：可复用的最小 GameState 片段 */
 function baseGame(overrides: Partial<GameState> = {}): GameState {
@@ -164,5 +174,123 @@ describe('PSY-01 D-08: formatPsySubsidiaryLine 单行展示', () => {
     const line = formatPsySubsidiaryLine(g)
     expect(line.length).toBeGreaterThan(0)
     expect(line).not.toContain('\n')
+  })
+})
+
+const collapseDeckFixture = (id: string): EventDefinition => ({
+  id,
+  title: '崩溃样例',
+  body: 'body',
+  type: 'collapse',
+  weight: 1,
+  options: [{ id: 'ack', label: '承受', effects: [{ kind: 'stat', target: 'focus', delta: -1 }] }]
+})
+
+describe('PSY-02 D-09: canTriggerStrongCollapse 间隔与频率', () => {
+  it('距上次强冲击未过头时返回 false', () => {
+    const g = baseGame({
+      school: { ...baseGame().school, day: 12, week: 2 },
+      contract: { ...baseGame().contract, progress: 60 },
+      nextStrongCollapseEarliestDay: 15
+    })
+    expect(canTriggerStrongCollapse(g, () => 0.99)).toBe(false)
+  })
+
+  it('超过 nextEarliest 且门闩通过时可为 true', () => {
+    const g = baseGame({
+      school: { ...baseGame().school, day: 17, week: 3 },
+      contract: { ...baseGame().contract, progress: 60 },
+      nextStrongCollapseEarliestDay: 15
+    })
+    expect(canTriggerStrongCollapse(g, () => 0.01)).toBe(true)
+  })
+
+  it('computeNextStrongCollapseEarliestDay 落在 [10,15] 日抖动区间', () => {
+    const r = () => 0
+    const next = computeNextStrongCollapseEarliestDay(20, r)
+    expect(next).toBeGreaterThanOrEqual(20 + 10)
+    expect(next).toBeLessThanOrEqual(20 + 15)
+  })
+
+  it('固定种子下强冲击门闩非每步必触发（频率上界）', () => {
+    let hits = 0
+    for (let i = 0; i < 40; i++) {
+      const g = baseGame({
+        school: { ...baseGame().school, day: 10 + i, week: 2 },
+        contract: { ...baseGame().contract, progress: 60 },
+        nextStrongCollapseEarliestDay: 10
+      })
+      const rand = mulberry32(9000 + i)
+      if (canTriggerStrongCollapse(g, rand)) hits++
+    }
+    expect(hits).toBeLessThan(28)
+  })
+})
+
+describe('PSY-02 D-10: resolveCollapsePresentation 首次 full / 回声 echo', () => {
+  it('同一 collapseId 首次 full，之后 echo', () => {
+    const g = baseGame({ collapseFirstDone: {} })
+    expect(resolveCollapsePresentation('c1', g)).toBe('full')
+    g.collapseFirstDone!.c1 = true
+    expect(resolveCollapsePresentation('c1', g)).toBe('echo')
+  })
+})
+
+describe('PSY-02 D-11: collapseModifier 里程碑修正', () => {
+  it('applyCollapseModifierToAction 在修正激活时压低收益', () => {
+    const g = baseGame({ collapseModifierActive: true })
+    expect(applyCollapseModifierToAction(g, 'study', 10)).toBeCloseTo(8.8, 5)
+  })
+
+  it('activateCollapseModifierAfterFirstFull 打开修正', () => {
+    const g = baseGame({ collapseModifierActive: false })
+    activateCollapseModifierAfterFirstFull(g)
+    expect(g.collapseModifierActive).toBe(true)
+  })
+
+  it('clearCollapseModifierOnWeeklySettlement 清除修正标记', () => {
+    const g = baseGame({ collapseModifierActive: true })
+    clearCollapseModifierOnWeeklySettlement(g)
+    expect(g.collapseModifierActive).toBe(false)
+  })
+})
+
+describe('PSY-02 D-12: pickCollapseFromDeck 权重抽样', () => {
+  it('按 weight 从候选 deck 选出事件', () => {
+    const deck: EventDefinition[] = [
+      { ...collapseDeckFixture('light'), weight: 1 },
+      { ...collapseDeckFixture('heavy'), weight: 99 }
+    ]
+    const pick = pickCollapseFromDeck(deck, () => 0.5)
+    expect(pick?.id).toBe('heavy')
+  })
+})
+
+describe('PSY-02: tryEmitStrongCollapse 管线', () => {
+  it('full 返回 PendingEvent；echo 仅载荷', () => {
+    const deck = [collapseDeckFixture('c_full')]
+    const g1 = baseGame({
+      school: { ...baseGame().school, day: 12, week: 2 },
+      contract: { ...baseGame().contract, progress: 60 },
+      nextStrongCollapseEarliestDay: 1
+    })
+    const seqFull = [0.01, 0.5, 0.25]
+    let i = 0
+    const randFull = () => seqFull[i++] ?? 0.5
+    const full = tryEmitStrongCollapse(g1, randFull, deck)
+    expect(full?.kind).toBe('full')
+    if (full?.kind === 'full') expect(full.pending.title.length).toBeGreaterThan(0)
+
+    const g2 = baseGame({
+      school: { ...baseGame().school, day: 20, week: 3 },
+      contract: { ...baseGame().contract, progress: 60 },
+      collapseFirstDone: { c_full: true },
+      nextStrongCollapseEarliestDay: 1
+    })
+    const seqEcho = [0.01, 0.5, 0.25]
+    let j = 0
+    const randEcho = () => seqEcho[j++] ?? 0.5
+    const echo = tryEmitStrongCollapse(g2, randEcho, deck)
+    expect(echo?.kind).toBe('echo')
   })
 })
