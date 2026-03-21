@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useGame } from '~/composables/useGame'
 import { navigateTo } from '#app'
+import type { ActionId } from '~/types/game'
 import StatPanel from '~/components/game/StatPanel.vue'
 import LogPanel from '~/components/game/LogPanel.vue'
 import DebtDashboard from '~/components/game/DebtDashboard.vue'
@@ -13,7 +14,7 @@ import HumanModelViewer from '~/components/game/HumanModelViewer.vue'
 import BorrowModal from '~/components/game/BorrowModal.vue'
 import RepayModal from '~/components/game/RepayModal.vue'
 
-const { game, activeSlot, saveToSlot, totalDebt, minPayment, accumulatedMinPayment, creditLimit, nextLabel, act, borrow, repay, resolveEvent } = useGame()
+const { game, activeSlot, saveToSlot, totalDebt, minPayment, accumulatedMinPayment, creditLimit, nextLabel, remainingSlots, actionTrendLabel, act, borrow, repay, resolveEvent } = useGame()
 
 const showBorrow = ref(false)
 const showRepay = ref(false)
@@ -85,6 +86,21 @@ const contractPill = computed(() => {
   const v = Math.round(g.value.contract.vigilance)
   return `已请神 · 缠绕${p}% · 监工${v}`
 })
+
+const actionEntries = computed<Array<{ id: ActionId; label: string; variant: 'primary' | 'secondary'; trend: string; note: string }>>(() => [
+  { id: 'study', label: '上课/刷题', variant: 'primary', trend: actionTrendLabel('study'), note: '稳分' },
+  { id: 'tuna', label: '吐纳', variant: 'primary', trend: actionTrendLabel('tuna'), note: '养气' },
+  { id: 'train', label: '炼体', variant: 'primary', trend: actionTrendLabel('train'), note: '冲体' },
+  { id: 'parttime', label: '打工', variant: 'secondary', trend: actionTrendLabel('parttime'), note: '补现' },
+  { id: 'rest', label: '休息', variant: 'secondary', trend: actionTrendLabel('rest'), note: '回稳' },
+  { id: 'buy', label: '买补给', variant: 'secondary', trend: actionTrendLabel('buy'), note: '短撑' }
+])
+
+function actionCopyForTrend(trend: string) {
+  if (trend === '稳健') return '稳健'
+  if (trend === '冒险') return '冒险'
+  return '透支'
+}
 
 // Event for EventModal
 const eventForModal = computed(() => {
@@ -242,29 +258,28 @@ watch(
             </Pill>
           </div>
 
-          <div class="Row" style="gap: 8px; flex-wrap: wrap">
-            <Button variant="primary" :disabled="actionsLocked" @click="act('study')">
-              上课/刷题
-            </Button>
-            <Button variant="primary" :disabled="actionsLocked" @click="act('tuna')">
-              吐纳
-            </Button>
-            <Button variant="primary" :disabled="actionsLocked" @click="act('train')">
-              炼体
-            </Button>
-            <Button variant="secondary" :disabled="actionsLocked" @click="act('parttime')">
-              打工
-            </Button>
-            <Button variant="secondary" :disabled="actionsLocked" @click="act('rest')">
-              休息
-            </Button>
-            <Button variant="secondary" :disabled="actionsLocked" @click="act('buy')">
-              买补给
-            </Button>
+          <div class="ActionGrid">
+            <div
+              v-for="entry in actionEntries"
+              :key="entry.id"
+              class="ActionItem"
+            >
+              <Button
+                :variant="entry.variant"
+                :disabled="actionsLocked"
+                class="ActionButton"
+                @click="act(entry.id)"
+              >
+                {{ entry.label }}
+              </Button>
+              <div class="ActionPreview">
+                趋势：{{ actionCopyForTrend(entry.trend) }}（{{ entry.note }}） · 剩余时段：{{ remainingSlots }}
+              </div>
+            </div>
           </div>
 
           <div class="MonoSmall" style="margin-top: 10px">
-            每段行动都会改变疲劳/专注，并可能触发随机事件。最恶心的不是事件本身，而是它会在你最缺钱、最缺时间的时候出现。
+            预览仅展示趋势（稳健 / 冒险 / 透支），不展示精确计算公式。行动结果会统一进入主日志。
           </div>
         </Card>
       </div>
@@ -342,4 +357,34 @@ watch(
 </template>
 
 <style scoped>
+.ActionGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.ActionItem {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.ActionButton {
+  width: 100%;
+  white-space: normal;
+}
+
+.ActionPreview {
+  font-size: 12px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.76);
+  word-break: break-word;
+}
+
+@media (max-width: 740px) {
+  .ActionGrid {
+    grid-template-columns: 1fr;
+  }
+}
 </style>
