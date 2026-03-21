@@ -35,6 +35,13 @@ export type DelinquencyPolicy = {
   collectionRiskWeight: number
 }
 
+export type TierDebtProfile = {
+  studyGainMultiplier: number
+  dailyRateMultiplier: number
+  minWeeklyPaymentMultiplier: number
+  collectionRiskWeight: number
+}
+
 const DELINQUENCY_POLICIES: Record<number, DelinquencyPolicy> = {
   0: { level: 0, rateStepMultiplier: 1, minWeeklyPaymentMultiplier: 1, collectionRiskWeight: 1 },
   1: { level: 1, rateStepMultiplier: 1, minWeeklyPaymentMultiplier: 1, collectionRiskWeight: 1.05 },
@@ -73,6 +80,42 @@ export function calculateWeeklyMinPayment(totalDebt: number, delinquency: number
   const policy = delinquencyPolicy(delinquency)
   const base = debt * 0.08
   return Math.max(280, Math.floor(base * policy.minWeeklyPaymentMultiplier))
+}
+
+export function debtProfileForTier(tier: GameState['school']['classTier']): TierDebtProfile {
+  if (tier === '示范班') {
+    return {
+      studyGainMultiplier: 1.12,
+      dailyRateMultiplier: 0.94,
+      minWeeklyPaymentMultiplier: 0.93,
+      collectionRiskWeight: 0.86
+    }
+  }
+  if (tier === '普通班') {
+    return {
+      studyGainMultiplier: 1,
+      dailyRateMultiplier: 1,
+      minWeeklyPaymentMultiplier: 1,
+      collectionRiskWeight: 1
+    }
+  }
+  return {
+    // 末位班用持续小惩罚，不做单周重击。
+    studyGainMultiplier: 0.9,
+    dailyRateMultiplier: 1.08,
+    minWeeklyPaymentMultiplier: 1.09,
+    collectionRiskWeight: 1.18
+  }
+}
+
+export function calculateTierAdjustedMinPayment(
+  totalDebt: number,
+  delinquency: number,
+  tier: GameState['school']['classTier']
+): number {
+  const base = calculateWeeklyMinPayment(totalDebt, delinquency)
+  if (base <= 0) return 0
+  return Math.max(280, Math.floor(base * debtProfileForTier(tier).minWeeklyPaymentMultiplier))
 }
 
 export function describePerkChange(
@@ -195,11 +238,11 @@ export function estimateDebtAtWeek(g: GameState, weeksAgo: number): number {
 export function calculateAccumulatedMinPayment(g: GameState): number {
   const daysSincePay = g.school.day - g.econ.lastPaymentDay
   const weeksPassed = Math.floor(daysSincePay / 7)
-  if (weeksPassed <= 0) return calculateWeeklyMinPayment(fullDebt(g), g.econ.delinquency)
+  if (weeksPassed <= 0) return calculateTierAdjustedMinPayment(fullDebt(g), g.econ.delinquency, g.school.classTier)
   let accumulated = 0
   for (let i = 0; i < weeksPassed; i++) {
     const debtAtWeek = estimateDebtAtWeek(g, i)
-    const minPay = calculateWeeklyMinPayment(debtAtWeek, g.econ.delinquency)
+    const minPay = calculateTierAdjustedMinPayment(debtAtWeek, g.econ.delinquency, g.school.classTier)
     accumulated += minPay
   }
   return accumulated
@@ -220,9 +263,12 @@ export function shouldTriggerRepaymentEvent(g: GameState, rand: () => number): {
 
   if (g.econ.delinquency >= 3) {
     const totalDebt = fullDebt(g)
+    const tierProfile = debtProfileForTier(g.school.classTier)
     let prob = 0.25
     if (g.econ.delinquency >= 4) prob += 0.20
     if (totalDebt > 80000) prob += 0.15
+    prob *= tierProfile.collectionRiskWeight
+    prob = clamp(prob, 0.08, 0.82)
     if (rand() < prob) return { trigger: true, mandatory: false }
   }
 

@@ -64,7 +64,8 @@ function remainingSlotsFor(slot: GameState['school']['slot']): number {
 function applyStudyAction(g: GameState, integrity: number, addLog: AddLog): void {
   const focusFactor = (g.stats.focus + g.school.perks.focusBonus) / 100
   const palmPenalty = (g.bodyPartRepayment?.LeftPalm || g.bodyPartRepayment?.RightPalm) ? 0.95 : 1.0
-  const faLiGain = (0.05 + focusFactor * 0.06) * integrity * palmPenalty
+  const classStudyMultiplier = Engine.debtProfileForTier(g.school.classTier).studyGainMultiplier
+  const faLiGain = (0.05 + focusFactor * 0.06) * integrity * palmPenalty * classStudyMultiplier
   g.stats.faLi = round1(g.stats.faLi + faLiGain)
   g.stats.focus = clamp(g.stats.focus + 2, 0, 100)
   addLog('上课/刷题', `你把时间换成了0.1点不到的优势。对别人来说，这足够决定命运。`, 'info')
@@ -186,8 +187,9 @@ function applyDelinquencyCheck(g: GameState, minPaymentVal: number): void {
 
   if (g.econ.delinquency >= 2) {
     const policy = Engine.delinquencyPolicy(g.econ.delinquency)
+    const tierDebtProfile = Engine.debtProfileForTier(g.school.classTier)
     const beforeRate = g.econ.dailyRate
-    const afterRate = Math.min(0.05, Number((beforeRate * policy.rateStepMultiplier).toFixed(4)))
+    const afterRate = Math.min(0.05, Number((beforeRate * policy.rateStepMultiplier * tierDebtProfile.dailyRateMultiplier).toFixed(4)))
     g.econ.dailyRate = afterRate
     const detail = afterRate > beforeRate
       ? `逾期${g.econ.delinquency}级，日利率由 ${(beforeRate * 100).toFixed(2)}% 上浮至 ${(afterRate * 100).toFixed(2)}%。`
@@ -345,7 +347,7 @@ export function useGame() {
   )
 
   const minPayment = computed(() => {
-    return Engine.calculateWeeklyMinPayment(totalDebt.value, game.value.econ.delinquency)
+    return Engine.calculateTierAdjustedMinPayment(totalDebt.value, game.value.econ.delinquency, game.value.school.classTier)
   })
 
   const nextLabel = computed(() => Engine.describeSlot(game.value.school.slot))
@@ -769,11 +771,13 @@ export function useGame() {
       const debtPressure = Engine.describeDebtPressure(g.econ.delinquency)
       const tierChange = previousTier === g.school.classTier ? '维持不变' : `${previousTier}→${g.school.classTier}`
       const perkChange = Engine.describePerkChange(previousPerks, g.school.perks)
+      const tierDebtProfile = Engine.debtProfileForTier(g.school.classTier)
+      const riskSummary = `风险倍率：利率×${tierDebtProfile.dailyRateMultiplier.toFixed(2)}，最低周还款×${tierDebtProfile.minWeeklyPaymentMultiplier.toFixed(2)}，催收权重×${tierDebtProfile.collectionRiskWeight.toFixed(2)}`
       g.logs.unshift({
         id: uid('log'),
         day: settledDay,
         title: `周结算通报（第${g.school.week}周）`,
-        detail: `分数：${g.school.lastExamScore}；分班变化：${tierChange}；债务压力：${debtPressure}；${perkChange}。本通报已归档，系统将继续执行下一日流程。`,
+        detail: `分数：${g.school.lastExamScore}；分班变化：${tierChange}；债务压力：${debtPressure}；${perkChange}；${riskSummary}。本通报已归档，系统将继续执行下一日流程。`,
         tone: debtPressure === '高' || debtPressure === '极高' ? 'warn' : 'info'
       })
       if (g.logs.length > 120) g.logs.pop()

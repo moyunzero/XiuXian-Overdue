@@ -156,7 +156,7 @@ describe('CLASS-01/02 Wave 0 分班制度测试', () => {
     game.value = makeSeededGame(2222)
     setTierProfile(game, 'bottom')
     game.value.econ.delinquency = 2
-    game.value.econ.lastPaymentDay = 1
+    game.value.econ.lastPaymentDay = -8
 
     const beforeRate = game.value.econ.dailyRate
     const policyOnlyRate = Number((beforeRate * delinquencyPolicy(2).rateStepMultiplier).toFixed(4))
@@ -170,6 +170,6 @@ describe('CLASS-01/02 Wave 0 分班制度测试', () => {
       game.value.econ.delinquency
     )
     expect(minPayment.value).toBeGreaterThan(policyOnlyMinPayment)
-    expect(game.value.logs.some((log) => log.title.includes('风险'))).toBe(true)
+    expect(game.value.logs.some((log) => log.detail.includes('风险倍率'))).toBe(true)
   })
 })
