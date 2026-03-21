@@ -30,7 +30,7 @@ describe('LOOP 时间循环闭环', () => {
     })
   })
 
-  it('LOOP-01: 从 day=1 连续执行 90 次动作后，day 到达 30 且 slot 回到 morning', () => {
+  it('LOOP-01: 从 day=1 连续执行 105 次动作后，day 到达 36 且 slot 回到 morning（可超过 day30）', () => {
     const { game, act } = useGame()
     game.value = defaultState()
     game.value.started = true
@@ -43,11 +43,11 @@ describe('LOOP 时间循环闭环', () => {
       RightLeg: true
     }
 
-    for (let i = 0; i < 90; i += 1) {
+    for (let i = 0; i < 105; i += 1) {
       act('rest')
     }
 
-    expect(game.value.school.day).toBe(30)
+    expect(game.value.school.day).toBe(36)
     expect(game.value.school.slot).toBe('morning')
   })
 
