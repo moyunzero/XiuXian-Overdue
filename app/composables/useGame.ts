@@ -674,17 +674,9 @@ export function useGame() {
         if (g.logs.length > 120) g.logs.pop()
       }
 
-      const debtPressure = g.econ.delinquency >= 4
-        ? '极高'
-        : g.econ.delinquency >= 2
-          ? '高'
-          : g.econ.delinquency >= 1
-            ? '中'
-            : '低'
+      const debtPressure = Engine.describeDebtPressure(g.econ.delinquency)
       const tierChange = previousTier === g.school.classTier ? '维持不变' : `${previousTier}→${g.school.classTier}`
-      const perkChange = previousPerks.mealSubsidy === g.school.perks.mealSubsidy && previousPerks.focusBonus === g.school.perks.focusBonus
-        ? `下周待遇变化：维持（餐补¥${g.school.perks.mealSubsidy}/日，专注加成${g.school.perks.focusBonus}）`
-        : `下周待遇变化：餐补¥${previousPerks.mealSubsidy}→¥${g.school.perks.mealSubsidy}/日，专注加成${previousPerks.focusBonus}→${g.school.perks.focusBonus}`
+      const perkChange = Engine.describePerkChange(previousPerks, g.school.perks)
       g.logs.unshift({
         id: uid('log'),
         day: settledDay,

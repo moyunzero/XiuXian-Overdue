@@ -25,6 +25,23 @@ export function describeSlot(slot: SlotId) {
   return '深夜'
 }
 
+export function describeDebtPressure(delinquency: number): '低' | '中' | '高' | '极高' {
+  if (delinquency >= 4) return '极高'
+  if (delinquency >= 2) return '高'
+  if (delinquency >= 1) return '中'
+  return '低'
+}
+
+export function describePerkChange(
+  previous: GameState['school']['perks'],
+  current: GameState['school']['perks']
+): string {
+  if (previous.mealSubsidy === current.mealSubsidy && previous.focusBonus === current.focusBonus) {
+    return `下周待遇变化：维持（餐补¥${current.mealSubsidy}/日，专注加成${current.focusBonus}）`
+  }
+  return `下周待遇变化：餐补¥${previous.mealSubsidy}→¥${current.mealSubsidy}/日，专注加成${previous.focusBonus}→${current.focusBonus}`
+}
+
 export function scoreForExam(g: GameState, rand: () => number) {
   const { daoXin, faLi, rouTi, focus, fatigue } = g.stats
   const tier = g.school.classTier
