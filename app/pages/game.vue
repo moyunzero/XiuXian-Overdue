@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useGame } from '~/composables/useGame'
 import * as Engine from '~/logic/gameEngine'
 import { navigateTo } from '#app'
@@ -48,6 +48,26 @@ const dismissOptionId = computed(() => {
 
 const showBorrow = ref(false)
 const showRepay = ref(false)
+
+/** Phase 5（SAVE-03）：窄屏默认折叠 3D；≥640px 展开 */
+const modelDetailsEl = ref<HTMLDetailsElement | null>(null)
+let modelMq: MediaQueryList | null = null
+const syncModelDetailsOpen = () => {
+  const el = modelDetailsEl.value
+  const mq = modelMq
+  if (!el || !mq) return
+  el.open = mq.matches
+}
+onMounted(async () => {
+  if (import.meta.server) return
+  await nextTick()
+  modelMq = window.matchMedia('(min-width: 640px)')
+  syncModelDetailsOpen()
+  modelMq.addEventListener('change', syncModelDetailsOpen)
+})
+onUnmounted(() => {
+  modelMq?.removeEventListener('change', syncModelDetailsOpen)
+})
 
 const g = computed(() => game.value)
 const started = computed(() => g.value.started)
@@ -239,9 +259,9 @@ watch(
     </Card>
   </div>
 
-  <div v-else class="Container">
+  <div v-else class="Container GameScreen">
     <!-- Header -->
-    <div class="Row" style="align-items: baseline">
+    <div class="Row GameScreen__header" style="align-items: baseline">
       <h1 class="Title">日程面板</h1>
       <Pill>{{ nextLabel }}</Pill>
       <Pill :style="{ background: tierColor }">
@@ -288,92 +308,85 @@ watch(
       你每一天有三段行动：清晨、午后、深夜。每段只能做一件事。第 7、14、21…天结算"月考"，决定待遇。
     </p>
 
-    <!-- Main Content Grid -->
-    <div class="Grid2" style="margin-top: 14px">
-      <!-- Left Column: Character Stats + Human Model -->
-      <div style="display: flex; flex-direction: column; gap: 14px">
-        <Card padding="md">
-          <div class="Row">
-            <Pill>角色</Pill>
-            <Pill>{{ g.startConfig?.playerName }}</Pill>
-            <Pill>城市：{{ g.startConfig?.startingCity }}</Pill>
-            <span class="Spacer" />
-            <Pill>出身：{{ g.startConfig?.background }}</Pill>
-            <Pill>天赋：{{ g.startConfig?.talent }}</Pill>
-          </div>
+    <!-- Phase 5：栅格区 — 窄屏顺序 stats → logs → debt → actions → perks → model（D-13～D-15） -->
+    <div class="GamePage">
+      <Card class="GamePage__stats" padding="md">
+        <div class="Row">
+          <Pill>角色</Pill>
+          <Pill>{{ g.startConfig?.playerName }}</Pill>
+          <Pill>城市：{{ g.startConfig?.startingCity }}</Pill>
+          <span class="Spacer" />
+          <Pill>出身：{{ g.startConfig?.background }}</Pill>
+          <Pill>天赋：{{ g.startConfig?.talent }}</Pill>
+        </div>
 
-          <StatPanel
-            :stats="playerStats"
-            layout="grid"
-            :columns="3"
-            style="margin-top: 12px"
-          />
-        </Card>
+        <StatPanel
+          :stats="playerStats"
+          layout="grid"
+          :columns="3"
+          style="margin-top: 12px"
+        />
+      </Card>
 
+      <div class="GamePage__model">
         <Card padding="md">
-          <div class="Row" style="margin-bottom: 10px">
-            <Pill>人体状态</Pill>
-          </div>
-          <HumanModelViewer />
+          <details ref="modelDetailsEl" class="ModelFold">
+            <summary class="ModelFold__summary">人体模型（3D）</summary>
+            <HumanModelViewer />
+          </details>
         </Card>
       </div>
 
-      <!-- Right Column: Debt & Actions -->
-      <div style="display: flex; flex-direction: column; gap: 14px">
-        <DebtDashboard
-          :core-debt="g.econ.coreDebt || 0"
-          :collection-fee="g.econ.collectionFee || 0"
-          :principal="g.econ.debtPrincipal || 0"
-          :interest="g.econ.debtInterestAccrued || 0"
-          :daily-rate="g.econ.dailyRate || 0"
-          :delinquency="g.econ.delinquency || 0"
-          :min-payment="minPayment || 0"
-          :cash="g.econ.cash || 0"
-          @borrow="showBorrow = true"
-          @repay="showRepay = true"
-        />
+      <DebtDashboard
+        class="GamePage__debt"
+        :core-debt="g.econ.coreDebt || 0"
+        :collection-fee="g.econ.collectionFee || 0"
+        :principal="g.econ.debtPrincipal || 0"
+        :interest="g.econ.debtInterestAccrued || 0"
+        :daily-rate="g.econ.dailyRate || 0"
+        :delinquency="g.econ.delinquency || 0"
+        :min-payment="minPayment || 0"
+        :cash="g.econ.cash || 0"
+        @borrow="showBorrow = true"
+        @repay="showRepay = true"
+      />
 
-        <Card padding="md">
-          <div class="Row" style="margin-bottom: 12px">
-            <Pill>行动</Pill>
-            <span class="Spacer" />
-            <Pill>
-              上次月考：{{ g.school.lastExamScore || '未结算' }} · 
-              排名：{{ g.school.lastRank === 999 ? '—' : `约第${g.school.lastRank}名` }}
-            </Pill>
-          </div>
+      <Card class="GamePage__actions" padding="md">
+        <div class="Row" style="margin-bottom: 12px">
+          <Pill>行动</Pill>
+          <span class="Spacer" />
+          <Pill>
+            上次月考：{{ g.school.lastExamScore || '未结算' }} ·
+            排名：{{ g.school.lastRank === 999 ? '—' : `约第${g.school.lastRank}名` }}
+          </Pill>
+        </div>
 
-          <div class="ActionGrid">
-            <div
-              v-for="entry in actionEntries"
-              :key="entry.id"
-              class="ActionItem"
+        <div class="ActionGrid">
+          <div
+            v-for="entry in actionEntries"
+            :key="entry.id"
+            class="ActionItem"
+          >
+            <Button
+              :variant="entry.variant"
+              :disabled="actionsLocked"
+              class="ActionButton"
+              @click="act(entry.id)"
             >
-              <Button
-                :variant="entry.variant"
-                :disabled="actionsLocked"
-                class="ActionButton"
-                @click="act(entry.id)"
-              >
-                {{ entry.label }}
-              </Button>
-              <div class="ActionPreview">
-                趋势：{{ actionCopyForTrend(entry.trend) }}（{{ entry.note }}） · 剩余时段：{{ remainingSlots }}
-              </div>
+              {{ entry.label }}
+            </Button>
+            <div class="ActionPreview">
+              趋势：{{ actionCopyForTrend(entry.trend) }}（{{ entry.note }}） · 剩余时段：{{ remainingSlots }}
             </div>
           </div>
+        </div>
 
-          <div class="MonoSmall" style="margin-top: 10px">
-            预览仅展示趋势（稳健 / 冒险 / 透支），不展示具体计算细节。行动结果会统一进入主日志。
-          </div>
-        </Card>
-      </div>
-    </div>
+        <div class="MonoSmall" style="margin-top: 10px">
+          预览仅展示趋势（稳健 / 冒险 / 透支），不展示具体计算细节。行动结果会统一进入主日志。
+        </div>
+      </Card>
 
-    <!-- Bottom Grid: Logs & Perks -->
-    <div class="Grid2" style="margin-top: 14px">
-      <!-- Logs -->
-      <Card padding="md">
+      <Card class="GamePage__logs" padding="md">
         <div class="Row">
           <Pill>日志</Pill>
           <Pill>最近 30 条</Pill>
@@ -385,8 +398,7 @@ watch(
         />
       </Card>
 
-      <!-- Perks & Strategy -->
-      <Card padding="md">
+      <Card class="GamePage__perks" padding="md">
         <div class="Row">
           <Pill>分班后果追踪</Pill>
           <span class="Spacer" />
@@ -459,6 +471,90 @@ watch(
 </template>
 
 <style scoped>
+/* Phase 5（SAVE-03）：三断点栅格 — 窄屏日志优先、3D 置底可折 */
+.GameScreen {
+  font-size: var(--font-body, 14px);
+}
+
+.GameScreen__header {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.GamePage {
+  display: grid;
+  gap: 14px;
+  margin-top: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-areas:
+    'stats debt'
+    'model actions'
+    'logs perks';
+}
+
+.GamePage__stats {
+  grid-area: stats;
+}
+.GamePage__model {
+  grid-area: model;
+}
+.GamePage__debt {
+  grid-area: debt;
+}
+.GamePage__actions {
+  grid-area: actions;
+}
+.GamePage__logs {
+  grid-area: logs;
+}
+.GamePage__perks {
+  grid-area: perks;
+}
+
+@media (max-width: 639px) {
+  .GamePage {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'stats'
+      'logs'
+      'debt'
+      'actions'
+      'perks'
+      'model';
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .GamePage {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.ModelFold {
+  border: none;
+}
+
+.ModelFold__summary {
+  cursor: pointer;
+  font-size: var(--font-meta, 12px);
+  color: rgba(255, 255, 255, 0.78);
+  margin-bottom: 10px;
+  list-style: none;
+}
+
+.ModelFold__summary::-webkit-details-marker {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .ModelFold__summary {
+    display: none;
+  }
+  .ModelFold {
+    display: block;
+  }
+}
+
 .ActionGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

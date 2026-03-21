@@ -11,7 +11,7 @@ import { ALL_EVENTS, getEventsByPhase } from '~/utils/events'
 import { buildInstitutionalEventLogDetail } from '~/logic/eventInstitutionalLog'
 import * as Engine from '~/logic/gameEngine'
 import { useGameState, defaultState } from './useGameState'
-import { useGameStorage, type SaveSlotId } from './useGameStorage'
+import { useGameStorage, resetModuleStorageState } from './useGameStorage'
 
 // ========================================
 // 模块级行动子函数（非 export，仅供 act() 调用）
@@ -382,7 +382,7 @@ function buildRepaymentEvent(
 
 export function useGame() {
   const { game } = useGameState()
-  const { activeSlot, saveToSlot, loadFromSlot, listSlots, buildMeta, STORAGE_KEY, LEGACY_STORAGE_KEY } = useGameStorage()
+  const { activeSlot, saveToSlot, loadFromSlot, listSlots } = useGameStorage()
 
   const summaryPanelOpen = ref(false)
 
@@ -456,9 +456,7 @@ export function useGame() {
 
   const reset = () => {
     game.value = defaultState()
-    if (!import.meta.server) {
-      localStorage.removeItem(STORAGE_KEY)
-    }
+    resetModuleStorageState()
     activeSlot.value = 'autosave'
   }
 
@@ -503,7 +501,7 @@ export function useGame() {
     ]
 
     game.value = g
-    saveToSlot('autosave', '自动存档')
+    /** Phase 5：新局落盘由首页在选定槽后 `saveToSlot` 一次完成（双写 autosave） */
   }
 
   const creditLimit = computed(() => Math.max(2000, 50000 - totalDebt.value))
@@ -970,36 +968,12 @@ export function useGame() {
     }
   }
 
-  const migrateLegacy = () => {
-    if (import.meta.server) return
-    const already = localStorage.getItem(STORAGE_KEY)
-    if (already) return
-    const legacyRaw = localStorage.getItem(LEGACY_STORAGE_KEY)
-    if (!legacyRaw) return
-    try {
-      const legacyState = JSON.parse(legacyRaw) as GameState
-      if (typeof legacyState.econ.coreDebt !== 'number' || legacyState.econ.coreDebt < 0) legacyState.econ.coreDebt = 0
-      if (typeof legacyState.econ.initialCoreDebt !== 'number' || legacyState.econ.initialCoreDebt < 0) legacyState.econ.initialCoreDebt = legacyState.econ.coreDebt
-      if (legacyState.scoreDayStreak === undefined) legacyState.scoreDayStreak = 0
-      if (legacyState.cashDayStreak === undefined) legacyState.cashDayStreak = 0
-      if (legacyState.daySlotActions === undefined) legacyState.daySlotActions = {}
-      if (legacyState.familyHistory === undefined) legacyState.familyHistory = {}
-      if (typeof legacyState.domestication !== 'number' || legacyState.domestication < 0) legacyState.domestication = 0
-      if (typeof legacyState.numbness !== 'number' || legacyState.numbness < 0) legacyState.numbness = 0
-      if (legacyState.collapseModifierActive === undefined) legacyState.collapseModifierActive = false
-      const container = { activeSlot: 'autosave' as SaveSlotId, slots: { autosave: { meta: buildMeta('autosave', '自动存档（迁移）', legacyState), state: legacyState } } }
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(container))
-      localStorage.removeItem(LEGACY_STORAGE_KEY)
-    } catch { /* ignore */ }
-  }
-
   return {
     game,
     activeSlot,
     saveToSlot,
     loadFromSlot,
     listSlots,
-    migrateLegacy,
     reset,
     startNew,
     totalDebt,

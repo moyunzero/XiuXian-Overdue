@@ -1,13 +1,27 @@
 <script setup lang="ts">
 import type { Background, StartConfig, Talent } from '~/types/game'
 import { useGame } from '~/composables/useGame'
-import { computed, onMounted, ref } from 'vue'
+import type { SaveSlotId } from '~/composables/useGameStorage'
+import { computed, ref } from 'vue'
 import { navigateTo } from '#app'
 import Button from '~/components/ui/Button.vue'
 import Card from '~/components/ui/Card.vue'
 import Pill from '~/components/ui/Pill.vue'
 
-const { game, startNew, reset, listSlots, loadFromSlot, saveToSlot, activeSlot, migrateLegacy } = useGame()
+const { game, startNew, reset, listSlots, loadFromSlot, saveToSlot, activeSlot } = useGame()
+
+/** 与 listSlots 顺序一致（autosave + 三手动槽） */
+const saveSlotOrder: SaveSlotId[] = ['autosave', 'slot1', 'slot2', 'slot3']
+
+const slotRows = computed(() =>
+  saveSlotOrder.map((id, idx) => ({
+    id,
+    meta: listSlots.value[idx] ?? null
+  }))
+)
+
+/** Phase 5：新局写入目标槽（D-09） */
+const selectedNewGameSlot = ref<'slot1' | 'slot2' | 'slot3'>('slot1')
 
 const playerName = ref('龙傲天')
 const background = ref<Background>('贫民')
@@ -29,10 +43,6 @@ const talentDesc = computed(() => {
 
 const canContinue = computed(() => game.value.started)
 
-onMounted(() => {
-  migrateLegacy()
-})
-
 function onStart() {
   const cfg: StartConfig = {
     playerName: playerName.value.trim() || '无名氏',
@@ -42,26 +52,55 @@ function onStart() {
     startingCity: startingCity.value.trim() || '嵩阳市'
   }
   startNew(cfg)
-  saveToSlot('slot1', `第1局·${cfg.playerName}`)
-  activeSlot.value = 'slot1'
+  const slot = selectedNewGameSlot.value
+  const n = slot.slice(-1)
+  saveToSlot(slot, `第${n}局·${cfg.playerName}`)
+  activeSlot.value = slot
   navigateTo('/game')
 }
 
-function resume(slotId: 'autosave' | 'slot1' | 'slot2' | 'slot3') {
+function resume(slotId: SaveSlotId) {
   const ok = loadFromSlot(slotId)
   if (ok) navigateTo('/game')
+}
+
+/** 存档槽展示名：有记录用 label；空槽用「槽位名（空）」 */
+const slotIdLabel: Record<SaveSlotId, string> = {
+  autosave: '自动存档',
+  slot1: '存档槽 1',
+  slot2: '存档槽 2',
+  slot3: '存档槽 3'
+}
+
+function slotRowTitle(id: SaveSlotId, label: string | undefined): string {
+  if (label) return label
+  return `${slotIdLabel[id]}（空）`
+}
+
+/** 空槽摘要（有记录时由模板内联展示，不走此函数） */
+function slotEmptyHint(id: SaveSlotId): string {
+  if (id === 'autosave') return '暂无自动存档记录。'
+  return '暂无记录。可在左侧选择「新局写入槽」后开局写入本槽。'
+}
+
+/** D-11：清空存档 — 冷制度确认，清除全部本地槽位 */
+function onClearSaves() {
+  const ok = window.confirm(
+    '将清除本机「全部」存档槽位（含自动存档与手动槽）记录。该操作不可逆，按制度立即执行。'
+  )
+  if (ok) reset()
 }
 </script>
 
 <template>
-  <div class="Container">
+  <div class="Container IndexPage">
     <div class="Row" style="align-items: baseline">
       <h1 class="Title">修仙欠费中</h1>
       <Pill>模拟修仙 · 每天三段行动 · 周结算</Pill>
       <span class="Spacer" />
-      <Button variant="ghost" size="sm" @click="reset">清空存档</Button>
+      <Button variant="ghost" @click="onClearSaves">清空存档</Button>
     </div>
-    
+
     <p class="Sub">
       <br />
       这一版是可玩 MVP：一局建议先跑满 7 天，看第一次月考如何把你分门别类。
@@ -73,6 +112,16 @@ function resume(slotId: 'autosave' | 'slot1' | 'slot2' | 'slot3') {
         <div class="Row">
           <Pill variant="info">自定义开局</Pill>
           <span class="Spacer" />
+          <div class="Row" style="gap: 8px; align-items: center; flex-wrap: wrap">
+            <span class="Label">新局写入槽</span>
+            <select v-model="selectedNewGameSlot" class="Field" style="max-width: 140px">
+              <option value="slot1">存档槽 1</option>
+              <option value="slot2">存档槽 2</option>
+              <option value="slot3">存档槽 3</option>
+            </select>
+          </div>
+        </div>
+        <div class="Row" style="margin-top: 12px">
           <Button variant="primary" @click="onStart">开始这局</Button>
           <Button variant="secondary" :disabled="!canContinue" @click="navigateTo('/game')">
             继续
@@ -179,26 +228,35 @@ function resume(slotId: 'autosave' | 'slot1' | 'slot2' | 'slot3') {
             <Pill size="sm">当前：{{ activeSlot }}</Pill>
           </div>
 
-          <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px">
-            <div 
-              v-for="meta in listSlots" 
-              :key="meta?.id || Math.random()" 
-              class="Row" 
-              style="gap: 8px; flex-wrap: wrap"
+          <div class="SaveSlotList">
+            <div
+              v-for="row in slotRows"
+              :key="row.id"
+              class="SaveSlotRow"
+              :class="{ 'SaveSlotRow--active': activeSlot === row.id }"
             >
-              <template v-if="meta">
-                <Pill size="sm">{{ meta.label }}</Pill>
-                <Pill size="sm">第{{ meta.day }}天</Pill>
-                <Pill size="sm">分班：{{ meta.tier }}</Pill>
-                <Pill size="sm">现金：¥{{ meta.cash.toLocaleString() }}</Pill>
-                <Pill size="sm" variant="danger">债务：¥{{ meta.debt.toLocaleString() }}</Pill>
-                <span class="Spacer" />
-                <Button size="sm" @click="resume(meta.id)">载入</Button>
-              </template>
-              <template v-else>
-                <Pill size="sm" variant="default">空槽</Pill>
-                <span class="Spacer" />
-              </template>
+              <div class="SaveSlotRow__main">
+                <div class="SaveSlotRow__title">{{ slotRowTitle(row.id, row.meta?.label) }}</div>
+                <div class="SaveSlotRow__summary">
+                  <template v-if="row.meta">
+                    <span>第{{ row.meta.day }}天 · {{ row.meta.tier }} · 现金 ¥{{ row.meta.cash.toLocaleString() }} · </span>
+                    <span class="SaveSlotRow__debt">债务 ¥{{ row.meta.debt.toLocaleString() }}</span>
+                  </template>
+                  <template v-else>
+                    {{ slotEmptyHint(row.id) }}
+                  </template>
+                </div>
+              </div>
+              <div class="SaveSlotRow__action">
+                <Button
+                  v-if="row.meta"
+                  size="sm"
+                  class="SaveSlotRow__loadBtn"
+                  @click="resume(row.id)"
+                >
+                  载入
+                </Button>
+              </div>
             </div>
           </div>
         </Card>
@@ -208,6 +266,104 @@ function resume(slotId: 'autosave' | 'slot1' | 'slot2' | 'slot3') {
 </template>
 
 <style scoped>
+.IndexPage {
+  font-size: var(--font-body, 14px);
+}
+
+/* 存档槽：标题 + 一行摘要，右侧载入固定列（不换行错位） */
+.SaveSlotList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.SaveSlotRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.2);
+  min-height: 52px;
+}
+
+.SaveSlotRow--active {
+  border-color: rgba(34, 197, 94, 0.45);
+  box-shadow: inset 3px 0 0 0 rgba(34, 197, 94, 0.75);
+}
+
+.SaveSlotRow__main {
+  min-width: 0;
+}
+
+.SaveSlotRow__title {
+  font-weight: 600;
+  font-size: var(--font-body, 14px);
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.SaveSlotRow__summary {
+  margin-top: 4px;
+  font-size: var(--font-meta, 12px);
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.62);
+  word-break: break-word;
+}
+
+.SaveSlotRow__debt {
+  color: rgba(248, 113, 113, 0.95);
+  font-weight: 500;
+}
+
+.SaveSlotRow__action {
+  flex-shrink: 0;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 72px;
+}
+
+.SaveSlotRow__loadBtn {
+  min-height: 40px;
+  min-width: 72px;
+}
+
+@media (max-width: 520px) {
+  .SaveSlotRow {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .SaveSlotRow__action {
+    min-width: 0;
+    justify-content: stretch;
+  }
+
+  .SaveSlotRow__loadBtn {
+    width: 100%;
+  }
+}
+
+.IndexLegacyNote {
+  font-size: var(--font-meta, 12px);
+  color: rgba(255, 255, 255, 0.72);
+  margin: 0 0 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  line-height: 1.5;
+}
+
+.IndexLegacyNote code {
+  font-size: var(--font-meta, 12px);
+}
+
 /* ── Debt Slider ── */
 .DebtSlider {
   -webkit-appearance: none;
@@ -223,8 +379,8 @@ function resume(slotId: 'autosave' | 'slot1' | 'slot2' | 'slot3') {
     to right,
     #3b82f6 0%,
     #3b82f6 var(--pct, 10%),
-    rgba(255,255,255,0.12) var(--pct, 10%),
-    rgba(255,255,255,0.12) 100%
+    rgba(255, 255, 255, 0.12) var(--pct, 10%),
+    rgba(255, 255, 255, 0.12) 100%
   );
 }
 
@@ -232,28 +388,28 @@ function resume(slotId: 'autosave' | 'slot1' | 'slot2' | 'slot3') {
 .DebtSlider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: #3b82f6;
   border: 2px solid #fff;
-  box-shadow: 0 0 6px rgba(59,130,246,0.6);
+  box-shadow: 0 0 6px rgba(59, 130, 246, 0.6);
   cursor: pointer;
   transition: transform 0.15s, box-shadow 0.15s;
 }
 .DebtSlider::-webkit-slider-thumb:hover {
   transform: scale(1.2);
-  box-shadow: 0 0 10px rgba(59,130,246,0.8);
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.8);
 }
 
 /* Thumb – Firefox */
 .DebtSlider::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: #3b82f6;
   border: 2px solid #fff;
-  box-shadow: 0 0 6px rgba(59,130,246,0.6);
+  box-shadow: 0 0 6px rgba(59, 130, 246, 0.6);
   cursor: pointer;
 }
 
@@ -261,7 +417,7 @@ function resume(slotId: 'autosave' | 'slot1' | 'slot2' | 'slot3') {
 .DebtSlider::-moz-range-track {
   height: 6px;
   border-radius: 999px;
-  background: rgba(255,255,255,0.12);
+  background: rgba(255, 255, 255, 0.12);
 }
 .DebtSlider::-moz-range-progress {
   height: 6px;

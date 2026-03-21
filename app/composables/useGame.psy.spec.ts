@@ -3,7 +3,7 @@ import { computed, ref } from 'vue'
 import type { EventDefinition, GameState, PendingEvent } from '~/types/game'
 import { defaultState } from './useGameState'
 import { useGame } from './useGame'
-import { useGameStorage } from './useGameStorage'
+import { useGameStorage, resetModuleStorageState } from './useGameStorage'
 
 const { collapseEvt, mockEvents } = vi.hoisted(() => {
   const collapseEvt: EventDefinition = {
@@ -54,6 +54,7 @@ function started(): GameState {
 
 describe('PSY-02: useGame 管线（collapse resolve / 修正）', () => {
   beforeEach(() => {
+    resetModuleStorageState()
     const stateMap = new Map<string, ReturnType<typeof ref>>()
     vi.stubGlobal('computed', computed)
     vi.stubGlobal('useState', <T>(key: string, init: () => T) => {
@@ -94,6 +95,7 @@ describe('PSY-02: useGame 管线（collapse resolve / 修正）', () => {
 
 describe('PSY-03: 存档旗标默认合并', () => {
   beforeEach(() => {
+    resetModuleStorageState()
     const stateMap = new Map<string, ReturnType<typeof ref>>()
     vi.stubGlobal('computed', computed)
     vi.stubGlobal('useState', <T>(key: string, init: () => T) => {

@@ -81,14 +81,16 @@ const handleClick = () => {
   cursor: not-allowed;
 }
 
-/* Sizes */
+/* Sizes — Phase 5（SAVE-03）：触控目标底线 40px（D-14） */
 .Button--sm {
-  height: 32px;
-  padding: 0 12px;
+  min-height: 40px;
+  height: auto;
+  padding: 8px 12px;
   font-size: var(--text-sm);
 }
 
 .Button--md {
+  min-height: 40px;
   height: 40px;
   padding: 0 14px;
   font-size: var(--text-base);
