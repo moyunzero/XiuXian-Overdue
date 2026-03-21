@@ -187,9 +187,54 @@ export function eventMatchesTrigger(event: EventDefinition, g: GameState) {
   return true
 }
 
+/** 事件 id 冷却下限（D-03），与数据 cooldownDays 取 max */
+export const MIN_EVENT_COOLDOWN_DAYS = 3
+
+/** 周结算游玩日上对非强制随机的概率乘数（D-04），区间 0.5～0.75 */
+export const WEEKLY_RANDOM_DOWNWEIGHT_K = 0.65
+
+export function effectiveEventCooldownDays(event: EventDefinition): number {
+  // Task 0 RED：未与 MIN 取 max（Task 1 修正）
+  const raw = event.cooldownDays
+  if (raw === undefined || raw <= 0) return 0
+  return raw
+}
+
+/**
+ * endDay 内 day 自增后与周结算块一致的条件 (g.school.day - 1) % 7 === 0（D-04 / 03-RESEARCH Pitfall 2）
+ */
+export function isWeeklySettlementDayAfterDayRoll(day: number): boolean {
+  return (day - 1) % 7 === 0
+}
+
+/**
+ * 当前游玩日是否处于「下一次 endDay 将跑周结算」的周界日前段（D-04）。
+ * 等价于 day 自增后满足 isWeeklySettlementDayAfterDayRoll。
+ */
+export function isWeeklySettlementDay(g: GameState): boolean {
+  // Task 0 RED stub
+  return false
+}
+
+export function applyWeeklyRandomDownweightToProbability(baseP: number, g: GameState): number {
+  // Task 0 RED stub
+  return baseP
+}
+
+export function isFamilyOnCooldown(g: GameState, event: EventDefinition): boolean {
+  // Task 0 RED stub
+  return false
+}
+
+export function recordEventTrigger(g: GameState, event: EventDefinition): void {
+  // Task 0 RED stub
+  void g
+  void event
+}
+
 export function isEventOnCooldown(g: GameState, event: EventDefinition) {
-  const cd = event.cooldownDays
-  if (cd === undefined || cd <= 0) return false
+  const cd = effectiveEventCooldownDays(event)
+  if (cd <= 0) return false
   const hist = g.eventHistory?.[event.id]
   if (!hist) return false
   return g.school.day - hist.lastDay < cd

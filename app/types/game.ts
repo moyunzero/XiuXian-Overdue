@@ -164,6 +164,8 @@ export interface EventDefinition {
   title: string
   body: string
   type: string
+  /** 同族互斥冷却（D-02），与 id 冷却并行 */
+  family?: string
   tone?: EventTone
   phase?: EventPhase
   weight?: number
@@ -203,6 +205,8 @@ export interface GameState {
       times: number
     }
   >
+  /** 同 family 上次触发日（D-02） */
+  familyHistory?: Record<string, { lastDay: number }>
   pendingEvent?: PendingEvent
   bodyPartRepayment?: Record<string, boolean>
   /** 最近一次身体偿还的天数，用于冷却 */
