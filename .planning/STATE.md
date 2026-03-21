@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-21T10:12:25.307Z"
+last_updated: "2026-03-21T10:17:20.187Z"
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 12
-  completed_plans: 10
+  completed_plans: 11
 ---
 
 # STATE
@@ -26,7 +26,7 @@ progress:
 ## Current Position
 
 Phase: 04 (精神驯化表达与无硬失败收束) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 
 ## Performance Metrics
 
@@ -35,7 +35,7 @@ Plan: 2 of 3
 - **Coverage:** 100%
 - **Open Blockers:** 0
 - **Roadmap Revisions Pending:** 0
-- **Latest Execution:** 04-01 completed in ~12 min（3 tasks，8 files）；见 `04-01-SUMMARY.md`
+- **Latest Execution:** 04-02 completed in ~3 min（3 tasks，7 files）；见 `04-02-SUMMARY.md`
 
 ## Accumulated Context
 
@@ -69,6 +69,7 @@ Plan: 2 of 3
 - [Phase 04]: 崩溃偏稀但重；每类崩溃每局首次完整后果，后回声；持续修正至下里程碑；collapse 卡组可配置。
 - [Phase 04]: 总结由副指标阈值 +（结局类事件 **或** 累计日≥30）双轨先到解锁；冷数据表；总结后存档提示继续、不硬结束。
 - [Phase 04]: PSY-01：休息先判麻木再判反噬；rest 与其它行动共用 strict；驯化随契约 progress/vigilance 上升同步
+- [Phase 04]: PSY-02：collapse 仅经 tryEmitStrongCollapse 调度；random 池排除 type=collapse；修正周界清除
 
 ### TODOs
 
@@ -82,6 +83,6 @@ Plan: 2 of 3
 
 ## Session Continuity
 
-- **Last Completed Step:** `04-01-PLAN.md`（PSY-01）执行完毕；见 `04-01-SUMMARY.md`。
-- **Next Command:** 继续 `04-02-PLAN.md`（PSY-02）或 `/gsd-execute-phase 04`
-- **If Context Lost:** 先读取 `.planning/phases/04-精神驯化表达与无硬失败收束/04-02-PLAN.md` 与 `04-01-SUMMARY.md`。
+- **Last Completed Step:** `04-02-PLAN.md`（PSY-02）执行完毕；见 `04-02-SUMMARY.md`。
+- **Next Command:** 继续 `04-03-PLAN.md`（PSY-03）或 `/gsd-execute-phase 04`
+- **If Context Lost:** 先读取 `.planning/phases/04-精神驯化表达与无硬失败收束/04-03-PLAN.md` 与 `04-02-SUMMARY.md`。
