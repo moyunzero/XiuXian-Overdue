@@ -7,7 +7,7 @@
       </div>
       <div class="DebtCoreSummary">
         <span class="DebtInfoText">现金: ¥{{ cash.toFixed(2) }}</span>
-        <span class="DebtInfoText">最低还款: ¥{{ minPayment.toFixed(2) }}</span>
+        <span class="DebtInfoText">最低周还款: ¥{{ minPayment.toFixed(2) }}</span>
       </div>
     </div>
 
@@ -57,7 +57,7 @@
         </div>
         <div class="DebtDetailRow">
           <span class="DebtDetailLabel">逾期等级</span>
-          <span :class="delinquencyClasses">{{ delinquency }}</span>
+          <span :class="delinquencyClasses">{{ delinquency }} / 5</span>
         </div>
       </div>
     </Transition>

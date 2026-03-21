@@ -432,7 +432,7 @@ export function useGame() {
     const budget = Math.min(a, g.econ.cash, totalDebt.value)
     const repayment = applyRepaymentByPriority(g, budget)
     if (repayment.totalPaid <= 0) {
-      g.logs.unshift({ id: uid('log'), day: g.school.day, title: '暂无可偿还滚动债', detail: '当前仅剩核心债。核心债不会被日常还款直接冲减，会在每周风控结算中按状态动态调整。', tone: 'warn' })
+      g.logs.unshift({ id: uid('log'), day: g.school.day, title: '还款未记账', detail: '当前仅剩核心债。核心债不会被日常还款直接冲减，系统将在周结算中执行重估。', tone: 'warn' })
       if (g.logs.length > 120) g.logs.pop()
       saveToSlot(activeSlot.value)
       return
@@ -448,7 +448,7 @@ export function useGame() {
       id: uid('log'),
       day: g.school.day,
       title: '还款',
-      detail: `你还了¥${repayment.totalPaid.toLocaleString()}（费用¥${repayment.feePaid.toLocaleString()}、利息¥${repayment.interestPaid.toLocaleString()}、本金¥${repayment.principalPaid.toLocaleString()}）。${delinquencyNote}核心债仍为¥${g.econ.coreDebt.toLocaleString()}。`,
+      detail: `系统已记账：¥${repayment.totalPaid.toLocaleString()}（利息¥${repayment.interestPaid.toLocaleString()}、费用¥${repayment.feePaid.toLocaleString()}、本金¥${repayment.principalPaid.toLocaleString()}）。${delinquencyNote}核心债维持¥${g.econ.coreDebt.toLocaleString()}。`,
       tone: 'ok'
     })
     if (g.logs.length > 120) g.logs.pop()
@@ -513,7 +513,7 @@ export function useGame() {
         const result = executeImmediatePayment(g, pay)
         if (!result.success) addLog('还款失败', '当前仅剩核心债，系统最低还款不会直接冲减核心债。', 'danger')
         else {
-          addLog('还款成功', `你支付了¥${result.paid.toLocaleString()}，逾期等级下降1级。`, 'ok')
+          addLog('还款记账完成', `系统已扣款¥${result.paid.toLocaleString()}，并将逾期等级下调 1 级。`, 'ok')
         }
       } else {
         addLog('还款失败', '余额不足。', 'danger')

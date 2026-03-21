@@ -122,6 +122,6 @@ describe('DEBT-01~DEBT-03 Wave 0 回归', () => {
     expect(top.detail).toContain('费用¥')
     expect(top.detail).toContain('利息¥')
     expect(top.detail).toContain('本金¥')
-    expect(top.detail).toContain('核心债仍为')
+    expect(top.detail).toContain('核心债维持')
   })
 })

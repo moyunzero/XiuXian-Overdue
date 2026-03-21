@@ -340,6 +340,10 @@ watch(
       :min-payment="minPayment"
       :total-debt="totalDebt"
       :cash="g.econ.cash"
+      :interest="g.econ.debtInterestAccrued"
+      :collection-fee="g.econ.collectionFee"
+      :principal="g.econ.debtPrincipal"
+      :delinquency="g.econ.delinquency"
       @close="showRepay = false"
       @confirm="onRepay"
     />
