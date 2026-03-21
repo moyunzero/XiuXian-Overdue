@@ -55,7 +55,11 @@ Plans:
   2. 同类事件不会在短周期内高频重复，玩家能感知到去重/冷却效果。
   3. 每次关键事件都同时给出叙事说明与系统数值反馈，玩家能理解“发生了什么、为什么发生”。
   4. 社交、试功、法赛等内容在 v1 以事件形式出现，且可真实影响局内决策与结果。
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [x] `03-01-PLAN.md` — EVT-01：gameEngine 家族去重、短冷却下限、周结算日非强制随机降权；`gameEngine.events.spec.ts`。
+- [ ] `03-02-PLAN.md` — EVT-02：`tier`/`defaultOptionId`、EventModal 叙事+折叠系统区、resolveEvent 制度摘要日志；`useGame.events.spec.ts`。
+- [ ] `03-03-PLAN.md` — EVT-03：`events.json` 社交/试功/法赛内容与双维度校验、`validate-events.mjs`、类型同步。
 
 ### Phase 4: 精神驯化表达与无硬失败收束
 **Goal**: 玩家在中后期体验到“恢复 vs 推进”的升级冲突，并在完整一局后感知“被系统驯化”的主题。  
@@ -83,6 +87,6 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. 时间循环与核心行动闭环 | 3/3 | Complete   | 2026-03-21 |
 | 2. 债务与分班制度压力 | 3/3 | Complete   | 2026-03-21 |
-| 3. 状态驱动事件与反馈可解释性 | 0/1 | Not started | - |
+| 3. 状态驱动事件与反馈可解释性 | 1/3 | In Progress|  |
 | 4. 精神驯化表达与无硬失败收束 | 0/1 | Not started | - |
 | 5. 本地存档、快速重开与跨端可用性 | 0/1 | Not started | - |

@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-21T09:15:04.245Z"
+last_updated: "2026-03-21T09:43:50.035Z"
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 9
+  completed_plans: 7
 ---
 
 # STATE
@@ -21,12 +21,12 @@ progress:
 
 - **Core Value:** 让玩家在完整一局后切身感受到：在某些系统面前，“努力”也可能只是更高级的自我奴役。
 - **Non-Negotiables:** 无限天沙盒循环、无硬 Game Over、心理驯化主题一致性、纯单机本地存档、Web 响应式可用。
-- **Current Focus:** Phase 02 — 债务与分班制度压力
+- **Current Focus:** Phase 03 — 状态驱动事件与反馈可解释性
 
 ## Current Position
 
-Phase: 02 (债务与分班制度压力) — READY_FOR_VERIFICATION
-Plan: 3 of 3（02-03 已执行）
+Phase: 03 (状态驱动事件与反馈可解释性) — EXECUTING
+Plan: 2 of 3
 
 ## Performance Metrics
 
@@ -35,7 +35,7 @@ Plan: 3 of 3（02-03 已执行）
 - **Coverage:** 100%
 - **Open Blockers:** 0
 - **Roadmap Revisions Pending:** 0
-- **Latest Execution:** 02-03 completed in 6 min (3 tasks, 7 files)
+- **Latest Execution:** 03-01 completed in ~8 min (3 tasks, 6 files)
 
 ## Accumulated Context
 
@@ -57,19 +57,24 @@ Plan: 3 of 3（02-03 已执行）
 - [Phase 02]: 分班影响债务参数通过利率/最低周还款/催收权重三轴表达，避免单点爆炸
 - [Phase 02]: 反馈语气保持冷静制度化表达，不输出最优策略指引
 - [Phase 02]: CLASS-03：纯刷分/纯打工日连计触发边际递减、事件概率与现金链费用抽检；仅输出冷制度提示。
+- [Phase 03]: 主随机仍以行动后为主；id+家族双轨去重；短冷却默认；周结算日对非强制随机降权。
+- [Phase 03]: 弹窗叙事优先、系统明细默认折叠；主日志仅摘要+关键数；关键事件用 tier（critical|normal）；正文可文学、系统区冷。
+- [Phase 03]: 社交/试功/法赛每类≥2 条、每条至少双维度影响；重大事件可 4 选项；不新开行动槽。
+- [Phase 03]: v1 不延后弹窗；多事件严格优先级队列；非强制 ESC/遮罩=默认消极项。
+- [Phase 03]: EVT-01：MIN 冷却 3 日、周降权 baseP×0.65、主随机仅 afterAction
 
 ### TODOs
 
-- 为 Phase 1 生成可执行 PLAN.md（由 `/gsd-plan-phase 1` 产出）。
-- 在 Phase 3/4 规划中补齐事件去重和主题强度的可测指标。
+- 在 Phase 3 执行与验证中补齐 **EVT 去重/tier/双反馈** 的可测指标（单元 + UAT）。
+- 在 Phase 4 规划中补齐主题强度与「休息冲突」的可测指标。
 - 在 Phase 5 明确移动端可用性验收清单（关键页面与操作覆盖）。
 
 ### Blockers
 
-- 当前无阻塞；Phase 02 全部计划已落地，建议运行 `/gsd-verify-work 02`。
+- 当前无阻塞；Phase 03 已具备讨论成果，下一步为规划与执行。
 
 ## Session Continuity
 
-- **Last Completed Step:** Completed 02-03-PLAN.md（CLASS-03 冲突内核）。
-- **Next Command:** `/gsd-verify-work 02` 或开始 Phase 03 规划。
-- **If Context Lost:** 先读取 `.planning/phases/02-债务与分班制度压力/02-03-SUMMARY.md`。
+- **Last Completed Step:** `03-01-PLAN.md` 已执行；见 `03-01-SUMMARY.md`。
+- **Next Command:** 继续 Phase 3 — `03-02-PLAN.md`（EVT-02）或 `/gsd-execute-phase 03`。
+- **If Context Lost:** 先读取 `03-01-SUMMARY.md` 与 `03-02-PLAN.md`。
