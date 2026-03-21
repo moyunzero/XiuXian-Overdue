@@ -70,7 +70,7 @@ completed: 2026-03-21
 2. **Task 1: 类型、toPendingEvent、制度摘要日志** — `6ce7723` (feat)
 3. **Task 2: EventModal 折叠区 + game.vue dismiss** — `0a310ef` (feat)
 
-**Plan metadata:** `20c2fd2` (docs: complete plan)
+**Plan metadata:** `260e694` (docs: complete plan)
 
 ## Files Created/Modified
 
@@ -110,7 +110,7 @@ None.
 
 - `app/logic/eventInstitutionalLog.ts`：存在。
 - `app/composables/useGame.events.spec.ts`：存在。
-- 提交 `9beb8cf`、`6ce7723`、`0a310ef`、`20c2fd2`：`git log --oneline` 可检出。
+- 提交 `9beb8cf`、`6ce7723`、`0a310ef`、`260e694`：`git log --oneline` 可检出。
 
 ---
 *Phase: 03-状态驱动事件与反馈可解释性*  
