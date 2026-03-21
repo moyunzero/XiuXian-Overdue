@@ -630,7 +630,6 @@ export function useGame() {
   const act = (action: ActionId) => {
       const g = game.value
       if (!g.started || g.pendingEvent) return
-      if (g.school.day >= Engine.maxGameDays()) return
 
       const rand = mulberry32(g.seed + g.school.day * 31 + Engine.slotOrder().indexOf(g.school.slot) * 997)
       const beforeAction: ActionSnapshot = {
@@ -713,11 +712,6 @@ export function useGame() {
 
   const endDay = () => {
     const g = game.value
-    if (g.school.day >= Engine.maxGameDays()) {
-      g.school.day = Engine.maxGameDays()
-      g.school.slot = 'morning'
-      return
-    }
     g.buyDebasement = Math.max(0, (g.buyDebasement ?? 0) - 0.2)
     g.school.day += 1
     g.school.slot = 'morning'
