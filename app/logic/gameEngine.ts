@@ -218,6 +218,20 @@ export function contractWouldTrigger(g: GameState, action: ActionId, rand: () =>
   return rand() < strict
 }
 
+export function actionTrendLabel(g: GameState, action: ActionId): '稳健' | '冒险' | '透支' {
+  const highFatigue = g.stats.fatigue >= 75
+  const mediumFatigue = g.stats.fatigue >= 55
+  const debtStress = g.econ.delinquency >= 2
+  const cashTight = g.econ.cash < 260
+
+  if (action === 'rest') return highFatigue || mediumFatigue ? '稳健' : '冒险'
+  if (action === 'buy') return cashTight ? '透支' : mediumFatigue ? '稳健' : '冒险'
+  if (action === 'parttime') return highFatigue ? '透支' : debtStress ? '稳健' : '冒险'
+  if (action === 'train') return highFatigue ? '透支' : mediumFatigue ? '冒险' : '稳健'
+  if (action === 'study') return highFatigue ? '透支' : debtStress ? '稳健' : '冒险'
+  return highFatigue ? '冒险' : '稳健'
+}
+
 export function makeContractBacklashEvent(g: GameState, intended: ActionId): PendingEvent {
   return {
     title: '反噬倒计时：不要故意拖延',

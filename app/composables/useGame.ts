@@ -17,6 +17,50 @@ import { useGameStorage, type SaveSlotId } from './useGameStorage'
 
 type AddLog = (title: string, detail: string, tone?: 'info' | 'warn' | 'danger' | 'ok') => void
 
+type ActionSnapshot = {
+  cash: number
+  fatigue: number
+  focus: number
+  faLi: number
+  rouTi: number
+}
+
+function pickActionSummaryItems(action: ActionId, before: ActionSnapshot, after: ActionSnapshot): string[] {
+  const deltaCash = after.cash - before.cash
+  const deltaFatigue = after.fatigue - before.fatigue
+  const deltaFocus = after.focus - before.focus
+  const deltaFaLi = after.faLi - before.faLi
+  const deltaRouTi = after.rouTi - before.rouTi
+  const withSign = (n: number) => (n >= 0 ? `+${n}` : `${n}`)
+
+  if (action === 'study') {
+    return [`法力${withSign(round1(deltaFaLi))}`, `专注${withSign(Math.round(deltaFocus))}`, `疲劳${withSign(Math.round(deltaFatigue))}`]
+  }
+  if (action === 'tuna') {
+    return [`法力${withSign(round1(deltaFaLi))}`, `专注${withSign(Math.round(deltaFocus))}`, `疲劳${withSign(Math.round(deltaFatigue))}`]
+  }
+  if (action === 'train') {
+    return [`肉体${withSign(round1(deltaRouTi))}`, `专注${withSign(Math.round(deltaFocus))}`, `疲劳${withSign(Math.round(deltaFatigue))}`]
+  }
+  if (action === 'parttime') {
+    return [`现金${withSign(deltaCash)}`, `专注${withSign(Math.round(deltaFocus))}`, `疲劳${withSign(Math.round(deltaFatigue))}`]
+  }
+  if (action === 'buy') {
+    return [`现金${withSign(deltaCash)}`, `专注${withSign(Math.round(deltaFocus))}`, `疲劳${withSign(Math.round(deltaFatigue))}`]
+  }
+  return [`专注${withSign(Math.round(deltaFocus))}`, `疲劳${withSign(Math.round(deltaFatigue))}`, `法力${withSign(round1(deltaFaLi))}`]
+}
+
+function mergeNarrativeAndSummary(narrative: string, summaryItems: string[]): string {
+  return `${narrative} 摘要：${summaryItems.join('｜')}`
+}
+
+function remainingSlotsFor(slot: GameState['school']['slot']): number {
+  if (slot === 'morning') return 3
+  if (slot === 'afternoon') return 2
+  return 1
+}
+
 function applyStudyAction(g: GameState, integrity: number, addLog: AddLog): void {
   const focusFactor = (g.stats.focus + g.school.perks.focusBonus) / 100
   const palmPenalty = (g.bodyPartRepayment?.LeftPalm || g.bodyPartRepayment?.RightPalm) ? 0.95 : 1.0
@@ -290,6 +334,7 @@ export function useGame() {
   })
 
   const nextLabel = computed(() => Engine.describeSlot(game.value.school.slot))
+  const remainingSlots = computed(() => remainingSlotsFor(game.value.school.slot))
 
   const accumulatedMinPayment = computed(() => Engine.calculateAccumulatedMinPayment(game.value))
 
@@ -588,6 +633,14 @@ export function useGame() {
       if (g.school.day >= Engine.maxGameDays()) return
 
       const rand = mulberry32(g.seed + g.school.day * 31 + Engine.slotOrder().indexOf(g.school.slot) * 997)
+      const beforeAction: ActionSnapshot = {
+        cash: g.econ.cash,
+        fatigue: g.stats.fatigue,
+        focus: g.stats.focus,
+        faLi: g.stats.faLi,
+        rouTi: g.stats.rouTi
+      }
+      const beforeLogLen = g.logs.length
 
       if (Engine.contractWouldTrigger(g, action, rand)) {
         g.contract.lastTriggerDay = g.school.day
@@ -616,6 +669,28 @@ export function useGame() {
       else if (action === 'parttime') applyParttimeAction(g, integrity, rand, addLog)
       else if (action === 'buy') applyBuyAction(g, addLog)
       else if (action === 'rest') applyRestAction(g, addLog)
+
+      const insertedCount = Math.max(0, g.logs.length - beforeLogLen)
+      const actionLogs = insertedCount > 0 ? g.logs.slice(0, insertedCount) : []
+      if (insertedCount > 0) g.logs.splice(0, insertedCount)
+      const primaryActionLog = actionLogs[0] ?? {
+        title: '行动执行',
+        detail: '系统已记录你的本时段行动结果。',
+        tone: 'info' as const
+      }
+      const afterAction: ActionSnapshot = {
+        cash: g.econ.cash,
+        fatigue: g.stats.fatigue,
+        focus: g.stats.focus,
+        faLi: g.stats.faLi,
+        rouTi: g.stats.rouTi
+      }
+      const summaryItems = pickActionSummaryItems(action, beforeAction, afterAction)
+      addLog(
+        primaryActionLog.title,
+        mergeNarrativeAndSummary(primaryActionLog.detail, summaryItems),
+        primaryActionLog.tone
+      )
 
       if (totalDebt.value > 0) {
         const daily = g.econ.dailyRate
@@ -719,6 +794,8 @@ export function useGame() {
     accumulatedMinPayment,
     creditLimit,
     nextLabel,
+    remainingSlots,
+    actionTrendLabel: (action: ActionId) => Engine.actionTrendLabel(game.value, action),
     act,
     borrow,
     repay,
