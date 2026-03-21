@@ -43,7 +43,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **PSY-01**: 玩家可在中后期体验“休息恢复 vs 成长推进”的高压冲突，且冲突会逐步加重
 - [x] **PSY-02**: 系统会通过崩溃点与麻木化反馈表达精神性失败，而非直接结束游戏
-- [ ] **PSY-03**: 玩家在**首次满足主题收束条件**（见 ROADMAP Phase 4）后，能从冷数据总结与过程中感知“被系统驯化”的主题表达；**不**强制结束沙盒
+- [x] **PSY-03**: 玩家在**首次满足主题收束条件**（见 ROADMAP Phase 4）后，能从冷数据总结与过程中感知“被系统驯化”的主题表达；**不**强制结束沙盒
 
 ### Save and Platform
 
@@ -104,7 +104,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EVT-03 | Phase 3 | Complete |
 | PSY-01 | Phase 4 | Complete |
 | PSY-02 | Phase 4 | Complete |
-| PSY-03 | Phase 4 | Pending |
+| PSY-03 | Phase 4 | Complete |
 | SAVE-01 | Phase 5 | Pending |
 | SAVE-02 | Phase 5 | Pending |
 | SAVE-03 | Phase 5 | Pending |
