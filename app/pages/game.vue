@@ -16,6 +16,14 @@ import RepayModal from '~/components/game/RepayModal.vue'
 
 const { game, activeSlot, saveToSlot, totalDebt, minPayment, accumulatedMinPayment, classPressureDigest, creditLimit, nextLabel, remainingSlots, actionTrendLabel, act, borrow, repay, resolveEvent } = useGame()
 
+/** D-16：ESC/遮罩关闭优先映射 defaultOptionId；无配置时回退末项（常见消极/拒绝），与后续 validate-events 可对齐收紧 */
+const dismissOptionId = computed(() => {
+  const p = game.value.pendingEvent
+  if (!p?.options?.length) return 'ok'
+  if (p.defaultOptionId) return p.defaultOptionId
+  return p.options[p.options.length - 1]!.id
+})
+
 const showBorrow = ref(false)
 const showRepay = ref(false)
 
@@ -114,11 +122,16 @@ function actionCopyForTrend(trend: string) {
 // Event for EventModal
 const eventForModal = computed(() => {
   if (!g.value.pendingEvent) return null
+  const pe = g.value.pendingEvent
   return {
-    title: g.value.pendingEvent.title,
-    body: g.value.pendingEvent.body,
-    mandatory: g.value.pendingEvent.mandatory,
-    options: g.value.pendingEvent.options.map(opt => ({
+    title: pe.title,
+    body: pe.body,
+    mandatory: pe.mandatory,
+    tier: pe.tier,
+    systemSummary: pe.systemSummary,
+    systemDetails: pe.systemDetails,
+    defaultOptionId: pe.defaultOptionId,
+    options: pe.options.map(opt => ({
       id: opt.id,
       label: opt.label,
       tone: opt.tone as 'normal' | 'danger' | 'primary'
@@ -376,7 +389,7 @@ watch(
       :current-cash="modalCurrentCash"
       :total-debt="modalTotalDebt"
       @resolve="resolveEvent"
-      @dismiss="() => resolveEvent(eventForModal?.options[0]?.id || 'ok')"
+      @dismiss="() => resolveEvent(dismissOptionId)"
     />
   </div>
 </template>

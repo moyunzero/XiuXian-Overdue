@@ -21,6 +21,15 @@
           <div class="EventContent">
             <h2 class="EventTitle">{{ event.title }}</h2>
             <p class="EventBody">{{ event.body }}</p>
+
+            <!-- EVT-02：critical 双区；制度/系统明细默认折叠（D-05） -->
+            <details
+              v-if="showSystemFeedback"
+              class="SystemFeedback"
+            >
+              <summary class="SystemFeedbackSummary">{{ systemFeedbackSummaryLabel }}</summary>
+              <pre class="SystemFeedbackDetail">{{ event.systemDetails }}</pre>
+            </details>
             
             <div v-if="isMandatory" class="MandatoryWarning" role="alert">
               你已经没有选择的余地。
@@ -90,6 +99,15 @@ const emit = defineEmits<{
 const modalRef = ref<HTMLElement | null>(null)
 
 const isMandatory = computed(() => props.event?.mandatory === true)
+
+/** critical 且带有系统块时展示折叠区（叙事仍在正文区） */
+const showSystemFeedback = computed(() => {
+  const e = props.event
+  if (!e || e.tier !== 'critical') return false
+  return Boolean(e.systemSummary || e.systemDetails)
+})
+
+const systemFeedbackSummaryLabel = computed(() => props.event?.systemSummary || '制度 / 系统记录')
 
 const isRepaymentEvent = computed(() => {
   if (!props.event) return false
@@ -214,6 +232,42 @@ onUnmounted(() => { document.body.style.overflow = '' })
   font-size: var(--text-base);
   color: var(--muted);
   line-height: var(--leading-relaxed);
+}
+
+.SystemFeedback {
+  margin: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.22);
+  padding: 0 var(--space-3);
+}
+
+.SystemFeedbackSummary {
+  cursor: pointer;
+  padding: var(--space-3) 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.72);
+  list-style: none;
+}
+
+.SystemFeedbackSummary::-webkit-details-marker {
+  display: none;
+}
+
+.SystemFeedback[open] .SystemFeedbackSummary {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.SystemFeedbackDetail {
+  margin: 0;
+  padding: var(--space-3) 0 var(--space-4);
+  font-family: var(--sans, system-ui, sans-serif);
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.58);
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .MandatoryWarning {
