@@ -3,6 +3,7 @@ import type { GameState } from '~/types/game'
 import {
   activateCollapseModifierAfterFirstFull,
   applyCollapseModifierToAction,
+  buildSummarySnapshot,
   canTriggerStrongCollapse,
   clearCollapseModifierOnWeeklySettlement,
   computeNextStrongCollapseEarliestDay,
@@ -10,11 +11,13 @@ import {
   computeRestRecovery,
   formatPsySubsidiaryLine,
   getConflictPressureTier,
+  hasMetSummarySubsidiaryThreshold,
   isMidLatePhase,
   isWeeklySettlementDay,
   pickCollapseFromDeck,
   resolveCollapsePresentation,
   restRecoveryMultiplier,
+  shouldUnlockSummary,
   syncDomesticationWithContractProgress,
   tryEmitStrongCollapse
 } from '~/logic/gameEngine'
@@ -292,5 +295,84 @@ describe('PSY-02: tryEmitStrongCollapse 管线', () => {
     const randEcho = () => seqEcho[j++] ?? 0.5
     const echo = tryEmitStrongCollapse(g2, randEcho, deck)
     expect(echo?.kind).toBe('echo')
+  })
+})
+
+/** D-14：冷表快照含关键字段 */
+function expectSnapshotShape(s: ReturnType<typeof buildSummarySnapshot>) {
+  expect(s.schoolDay).toBeGreaterThan(0)
+  expect(typeof s.totalDebt).toBe('number')
+  expect(typeof s.domestication).toBe('number')
+  expect(typeof s.numbness).toBe('number')
+  expect(typeof s.fullCollapseKinds).toBe('number')
+}
+
+describe('PSY-03 D-13/D-15: shouldUnlockSummary 三轨先到（纯函数）', () => {
+  it('D-15①: 副指标达阈值 ⇒ 真（不必 day≥30）', () => {
+    const g = baseGame({
+      school: { ...baseGame().school, day: 5, week: 1 },
+      domestication: 55,
+      numbness: 0
+    })
+    expect(hasMetSummarySubsidiaryThreshold(g)).toBe(true)
+    expect(shouldUnlockSummary(g)).toBe(true)
+  })
+
+  it('D-15②: 日志中已有「麻木化时刻」⇒ 真', () => {
+    const g = baseGame({
+      school: { ...baseGame().school, day: 3, week: 1 },
+      domestication: 0,
+      numbness: 0,
+      logs: [
+        {
+          id: 'x',
+          day: 3,
+          title: '情节结局：麻木化时刻',
+          detail: '…',
+          tone: 'warn'
+        }
+      ]
+    })
+    expect(shouldUnlockSummary(g)).toBe(true)
+  })
+
+  it('D-15②: 关键 collapse 事件曾触发 ⇒ 真', () => {
+    const g = baseGame({
+      school: { ...baseGame().school, day: 8, week: 2 },
+      eventHistory: { psy_collapse_spiral: { lastDay: 7, times: 1 } }
+    })
+    expect(shouldUnlockSummary(g)).toBe(true)
+  })
+
+  it('D-15③: day≥30 单独 ⇒ 真', () => {
+    const g = baseGame({
+      school: { ...baseGame().school, day: 30, week: 5 },
+      domestication: 0,
+      numbness: 0
+    })
+    expect(shouldUnlockSummary(g)).toBe(true)
+  })
+
+  it('三者均未满足 ⇒ 假', () => {
+    const g = baseGame({
+      school: { ...baseGame().school, day: 10, week: 2 },
+      domestication: 10,
+      numbness: 10
+    })
+    expect(shouldUnlockSummary(g)).toBe(false)
+  })
+})
+
+describe('PSY-03 D-14: buildSummarySnapshot', () => {
+  it('返回冷数据字段对象', () => {
+    const g = baseGame({
+      school: { ...baseGame().school, day: 22, week: 4 },
+      domestication: 33,
+      numbness: 12,
+      collapseFirstDone: { a: true, b: true }
+    })
+    const snap = buildSummarySnapshot(g)
+    expectSnapshotShape(snap)
+    expect(snap.schoolDay).toBe(22)
   })
 })
