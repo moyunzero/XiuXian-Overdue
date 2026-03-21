@@ -664,13 +664,16 @@ export function useGame() {
     }
 
     const imbBoost = Engine.imbalanceEventProbabilityBoost(g)
-    const baseP = clamp(0.04 + g.econ.delinquency * 0.04 + imbBoost, 0, 0.42)
+    let baseP = clamp(0.04 + g.econ.delinquency * 0.04 + imbBoost, 0, 0.42)
+    // D-04：周结算游玩日仅对非强制随机门降权（还款抢先已 return；此处为 afterAction 池）
+    baseP = Engine.applyWeeklyRandomDownweightToProbability(baseP, g)
     if (rand() > baseP) return undefined
 
     const pool = getEventsByPhase('afterAction')
     const candidates = pool.filter((event) => {
       if (!Engine.eventMatchesTrigger(event, g)) return false
       if (Engine.isEventOnCooldown(g, event)) return false
+      if (Engine.isFamilyOnCooldown(g, event)) return false
       if (Engine.hasEventReachedMaxTimes(g, event)) return false
       return true
     })
@@ -678,11 +681,7 @@ export function useGame() {
     const picked = Engine.pickWeightedEvent(candidates, rand)
     if (!picked) return undefined
 
-    if (!g.eventHistory) g.eventHistory = {}
-    const entry = g.eventHistory[picked.id] || { lastDay: 0, times: 0 }
-    entry.lastDay = g.school.day
-    entry.times += 1
-    g.eventHistory[picked.id] = entry
+    Engine.recordEventTrigger(g, picked)
 
     return Engine.toPendingEvent(picked)
   }
@@ -861,6 +860,7 @@ export function useGame() {
       if (legacyState.scoreDayStreak === undefined) legacyState.scoreDayStreak = 0
       if (legacyState.cashDayStreak === undefined) legacyState.cashDayStreak = 0
       if (legacyState.daySlotActions === undefined) legacyState.daySlotActions = {}
+      if (legacyState.familyHistory === undefined) legacyState.familyHistory = {}
       const container = { activeSlot: 'autosave' as SaveSlotId, slots: { autosave: { meta: buildMeta('autosave', '自动存档（迁移）', legacyState), state: legacyState } } }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(container))
       localStorage.removeItem(LEGACY_STORAGE_KEY)
