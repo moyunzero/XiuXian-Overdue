@@ -87,6 +87,15 @@ const contractPill = computed(() => {
   return `已请神 · 缠绕${p}% · 监工${v}`
 })
 
+/** CLASS-03：仅提示制度记录的偏科趋势，不给出策略（冷反馈） */
+const routeImbalancePill = computed(() => {
+  const ss = g.value.scoreDayStreak ?? 0
+  const cs = g.value.cashDayStreak ?? 0
+  if (ss < 2 && cs < 2) return ''
+  if (ss >= cs) return '系统记录：刷分路线偏科趋势'
+  return '系统记录：打工路线偏科趋势'
+})
+
 const actionEntries = computed<Array<{ id: ActionId; label: string; variant: 'primary' | 'secondary'; trend: string; note: string }>>(() => [
   { id: 'study', label: '上课/刷题', variant: 'primary', trend: actionTrendLabel('study'), note: '稳分' },
   { id: 'tuna', label: '吐纳', variant: 'primary', trend: actionTrendLabel('tuna'), note: '养气' },
@@ -190,6 +199,12 @@ watch(
         }"
       >
         {{ contractPill }}
+      </Pill>
+      <Pill
+        v-if="routeImbalancePill"
+        :style="{ borderColor: 'rgba(255,255,255,.2)', background: 'rgba(0,0,0,.2)' }"
+      >
+        {{ routeImbalancePill }}
       </Pill>
       <span class="Spacer" />
       <Pill>存档：{{ activeSlot }}</Pill>
