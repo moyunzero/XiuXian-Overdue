@@ -66,7 +66,8 @@ function applyStudyAction(g: GameState, integrity: number, addLog: AddLog): void
   const focusFactor = (g.stats.focus + g.school.perks.focusBonus) / 100
   const palmPenalty = (g.bodyPartRepayment?.LeftPalm || g.bodyPartRepayment?.RightPalm) ? 0.95 : 1.0
   const classStudyMultiplier = Engine.debtProfileForTier(g.school.classTier).studyGainMultiplier
-  const faLiGain = (0.05 + focusFactor * 0.06) * integrity * palmPenalty * classStudyMultiplier
+  const imb = Engine.studyGainImbalanceMultiplier(g)
+  const faLiGain = (0.05 + focusFactor * 0.06) * integrity * palmPenalty * classStudyMultiplier * imb
   g.stats.faLi = round1(g.stats.faLi + faLiGain)
   g.stats.focus = clamp(g.stats.focus + 2, 0, 100)
   addLog('上课/刷题', `你把时间换成了0.1点不到的优势。对别人来说，这足够决定命运。`, 'info')
@@ -96,7 +97,8 @@ function applyTrainAction(g: GameState, integrity: number, rand: () => number, a
 function applyParttimeAction(g: GameState, integrity: number, rand: () => number, addLog: AddLog): void {
   const basePay = Math.floor(260 + rand() * 260) + (g.school.classTier === '示范班' ? 120 : 0)
   const legPenalty = (g.bodyPartRepayment?.LeftLeg || g.bodyPartRepayment?.RightLeg) ? 0.90 : 1.0
-  const pay = Math.floor(basePay * integrity * legPenalty)
+  const payMult = Engine.parttimePayImbalanceMultiplier(g)
+  const pay = Math.floor(basePay * integrity * legPenalty * payMult)
   g.econ.cash += pay
   g.stats.focus = clamp(g.stats.focus - 4, 0, 100)
   addLog('打工', `你赚到¥${pay}。这点钱能换来一口气，或者一针药。`, 'ok')
@@ -123,6 +125,26 @@ function applyRestAction(g: GameState, addLog: AddLog): void {
   g.stats.focus = clamp(g.stats.focus + 6, 0, 100)
   addLog('休息', '你偷回了一点人味。', 'info')
 }
+function finalizeDayRouteStreak(g: GameState, addLog: AddLog): void {
+  const kind = Engine.classifyDayRoute(g.daySlotActions ?? {})
+  Engine.updateRouteStreaks(g, kind)
+  const maxStreak = Math.max(g.scoreDayStreak ?? 0, g.cashDayStreak ?? 0)
+  if (maxStreak >= 2) {
+    const day = g.school.day
+    const last = g.lastConflictNoticeDay ?? -999
+    if (day - last >= 2) {
+      g.lastConflictNoticeDay = day
+      const label = (g.scoreDayStreak ?? 0) >= 2 ? '刷分' : '打工'
+      addLog(
+        '制度记录：路线失衡',
+        `系统记录到${label}路线连续偏科。相关边际与现金链参数已调整。不提供策略建议。`,
+        'warn'
+      )
+    }
+  }
+  g.daySlotActions = {}
+}
+
 function applyNarrativeDelays(g: GameState): void {
   if (!g.pendingNarratives || g.pendingNarratives.length === 0) return
   const partNarratives: Record<string, string> = {
@@ -402,6 +424,10 @@ export function useGame() {
     g.stats.rouTi = 0.6
     g.school.classTier = '普通班'
     g.school.perks = Engine.perksForTier('普通班')
+    g.daySlotActions = {}
+    g.scoreDayStreak = 0
+    g.cashDayStreak = 0
+    g.lastConflictNoticeDay = undefined
     g.logs = [
       {
         id: uid('log'),
@@ -545,7 +571,8 @@ export function useGame() {
       g.stats.fatigue = clamp(g.stats.fatigue + fatigueUp, 0, 100)
       const focusFactor = (g.stats.focus + g.school.perks.focusBonus) / 100
       const palmPenalty = (g.bodyPartRepayment?.LeftPalm || g.bodyPartRepayment?.RightPalm) ? 0.95 : 1.0
-      const faLiGain = (0.05 + focusFactor * 0.06) * integrity * palmPenalty
+      const imb = Engine.studyGainImbalanceMultiplier(g)
+      const faLiGain = (0.05 + focusFactor * 0.06) * integrity * palmPenalty * imb
       g.stats.faLi = round1(g.stats.faLi + faLiGain)
       g.stats.focus = clamp(g.stats.focus + 2, 0, 100)
       g.contract.progress = clamp(g.contract.progress + 1, 0, 100)
@@ -636,7 +663,8 @@ export function useGame() {
       return buildRepaymentEvent(g, BODY_PART_PREREQS, rand)
     }
 
-    const baseP = clamp(0.04 + g.econ.delinquency * 0.04, 0, 0.35)
+    const imbBoost = Engine.imbalanceEventProbabilityBoost(g)
+    const baseP = clamp(0.04 + g.econ.delinquency * 0.04 + imbBoost, 0, 0.42)
     if (rand() > baseP) return undefined
 
     const pool = getEventsByPhase('afterAction')
@@ -663,6 +691,7 @@ export function useGame() {
       const g = game.value
       if (!g.started || g.pendingEvent) return
 
+      const slotAtStart = g.school.slot
       const rand = mulberry32(g.seed + g.school.day * 31 + Engine.slotOrder().indexOf(g.school.slot) * 997)
       const beforeAction: ActionSnapshot = {
         cash: g.econ.cash,
@@ -701,6 +730,9 @@ export function useGame() {
       else if (action === 'buy') applyBuyAction(g, addLog)
       else if (action === 'rest') applyRestAction(g, addLog)
 
+      if (!g.daySlotActions) g.daySlotActions = {}
+      g.daySlotActions[slotAtStart] = action
+
       const insertedCount = Math.max(0, g.logs.length - beforeLogLen)
       const actionLogs = insertedCount > 0 ? g.logs.slice(0, insertedCount) : []
       if (insertedCount > 0) g.logs.splice(0, insertedCount)
@@ -722,6 +754,19 @@ export function useGame() {
         mergeNarrativeAndSummary(primaryActionLog.detail, summaryItems),
         primaryActionLog.tone
       )
+
+      if ((action === 'study' || action === 'tuna') && (g.scoreDayStreak ?? 0) >= 2) {
+        const feeRand = mulberry32(g.seed + g.school.day * 401 + Engine.slotOrder().indexOf(slotAtStart) * 31)
+        if (feeRand() < 0.26) {
+          const bite = Math.floor(45 + feeRand() * 110)
+          g.econ.collectionFee = (g.econ.collectionFee ?? 0) + bite
+          addLog(
+            '制度抽检（费用）',
+            `系统记录到刷分路线偏科下的现金链承压。费用池增加¥${bite}。不形成建议。`,
+            'warn'
+          )
+        }
+      }
 
       if (totalDebt.value > 0) {
         const daily = g.econ.dailyRate
@@ -750,6 +795,11 @@ export function useGame() {
 
   const endDay = () => {
     const g = game.value
+    const addDayLog: AddLog = (title, detail, tone = 'info') => {
+      g.logs.unshift({ id: uid('log'), day: g.school.day, title, detail, tone })
+      if (g.logs.length > 120) g.logs.pop()
+    }
+    finalizeDayRouteStreak(g, addDayLog)
     g.buyDebasement = Math.max(0, (g.buyDebasement ?? 0) - 0.2)
     g.school.day += 1
     g.school.slot = 'morning'
@@ -808,6 +858,9 @@ export function useGame() {
       const legacyState = JSON.parse(legacyRaw) as GameState
       if (typeof legacyState.econ.coreDebt !== 'number' || legacyState.econ.coreDebt < 0) legacyState.econ.coreDebt = 0
       if (typeof legacyState.econ.initialCoreDebt !== 'number' || legacyState.econ.initialCoreDebt < 0) legacyState.econ.initialCoreDebt = legacyState.econ.coreDebt
+      if (legacyState.scoreDayStreak === undefined) legacyState.scoreDayStreak = 0
+      if (legacyState.cashDayStreak === undefined) legacyState.cashDayStreak = 0
+      if (legacyState.daySlotActions === undefined) legacyState.daySlotActions = {}
       const container = { activeSlot: 'autosave' as SaveSlotId, slots: { autosave: { meta: buildMeta('autosave', '自动存档（迁移）', legacyState), state: legacyState } } }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(container))
       localStorage.removeItem(LEGACY_STORAGE_KEY)

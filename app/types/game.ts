@@ -244,6 +244,15 @@ export interface GameState {
    * endDay() 检查 day+3 时触发对应部位的模糊感受日志。
    */
   pendingNarratives?: Array<{ day: number; partId: string }>
+
+  /** 当日各时段已执行行动（日终用于偏科/路线判定，周结后清空） */
+  daySlotActions?: Partial<Record<SlotId, ActionId>>
+  /** 连续「纯刷分日」天数（三时段均为 study/tuna） */
+  scoreDayStreak?: number
+  /** 连续「纯打工日」天数（三时段均为 parttime） */
+  cashDayStreak?: number
+  /** 上次输出路线失衡制度提示的游戏日（用于 2~3 日可见节律） */
+  lastConflictNoticeDay?: number
 }
 
 

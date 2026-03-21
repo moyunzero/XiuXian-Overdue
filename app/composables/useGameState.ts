@@ -47,7 +47,10 @@ export function defaultState(): GameState {
     bodyPartRepayment: {},
     bodyIntegrity: 1.0,
     bodyReputation: 'clean',
-    buyDebasement: 0
+    buyDebasement: 0,
+    daySlotActions: {},
+    scoreDayStreak: 0,
+    cashDayStreak: 0
   }
 }
 

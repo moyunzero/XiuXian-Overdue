@@ -307,6 +307,65 @@ export function contractWouldTrigger(g: GameState, action: ActionId, rand: () =>
   return rand() < strict
 }
 
+/** 刷分路线：上课/吐纳（与打工对立的制度轴） */
+export function isScoreRouteAction(action: ActionId): boolean {
+  return action === 'study' || action === 'tuna'
+}
+
+/** 现金路线：打工 */
+export function isCashRouteAction(action: ActionId): boolean {
+  return action === 'parttime'
+}
+
+/**
+ * 根据当日三时段行动判定单日路线；缺段或混用视为 mixed。
+ */
+export function classifyDayRoute(actions: Partial<Record<SlotId, ActionId>>): 'score' | 'cash' | 'mixed' {
+  const order: SlotId[] = ['morning', 'afternoon', 'night']
+  for (const s of order) {
+    if (actions[s] === undefined) return 'mixed'
+  }
+  const vals = order.map((s) => actions[s]!)
+  const allScore = vals.every((a) => isScoreRouteAction(a))
+  const allCash = vals.every((a) => isCashRouteAction(a))
+  if (allScore) return 'score'
+  if (allCash) return 'cash'
+  return 'mixed'
+}
+
+export function updateRouteStreaks(g: GameState, kind: 'score' | 'cash' | 'mixed'): void {
+  if (kind === 'score') {
+    g.scoreDayStreak = (g.scoreDayStreak ?? 0) + 1
+    g.cashDayStreak = 0
+  } else if (kind === 'cash') {
+    g.cashDayStreak = (g.cashDayStreak ?? 0) + 1
+    g.scoreDayStreak = 0
+  } else {
+    g.scoreDayStreak = 0
+    g.cashDayStreak = 0
+  }
+}
+
+/** 连续纯刷分日 ≥2 时边际递减（D-14） */
+export function studyGainImbalanceMultiplier(g: GameState): number {
+  const s = g.scoreDayStreak ?? 0
+  if (s < 2) return 1
+  return Math.max(0.72, 1 - 0.065 * (s - 1))
+}
+
+/** 连续纯打工日 ≥2 时边际递减 */
+export function parttimePayImbalanceMultiplier(g: GameState): number {
+  const s = g.cashDayStreak ?? 0
+  if (s < 2) return 1
+  return Math.max(0.74, 1 - 0.055 * (s - 1))
+}
+
+/** 失衡下随机事件基础概率上调权重（双轨反制之一） */
+export function imbalanceEventProbabilityBoost(g: GameState): number {
+  const m = Math.max(g.scoreDayStreak ?? 0, g.cashDayStreak ?? 0)
+  return m >= 2 ? 0.08 : 0
+}
+
 export function actionTrendLabel(g: GameState, action: ActionId): '稳健' | '冒险' | '透支' {
   const highFatigue = g.stats.fatigue >= 75
   const mediumFatigue = g.stats.fatigue >= 55
