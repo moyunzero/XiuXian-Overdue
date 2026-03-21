@@ -14,7 +14,7 @@ describe('永续债双层模型规则', () => {
     })
   })
 
-  it('还款顺序为 费用 -> 利息 -> 本金，且不触碰核心债', () => {
+  it('还款顺序为 利息 -> 费用 -> 本金，且不触碰核心债', () => {
     const g = defaultState()
     g.econ.coreDebt = 7000
     g.econ.initialCoreDebt = 7000
@@ -24,8 +24,8 @@ describe('永续债双层模型规则', () => {
 
     const result = __test__.applyRepaymentByPriority(g, 1000)
 
-    expect(result.feePaid).toBe(100)
     expect(result.interestPaid).toBe(200)
+    expect(result.feePaid).toBe(100)
     expect(result.principalPaid).toBe(700)
     expect(result.totalPaid).toBe(1000)
     expect(g.econ.collectionFee).toBe(0)

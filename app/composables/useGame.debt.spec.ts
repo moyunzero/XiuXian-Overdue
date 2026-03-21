@@ -62,13 +62,15 @@ describe('DEBT-01~DEBT-03 Wave 0 回归', () => {
 
   it('D-01/DEBT-01: 还款按利息->罚金->本金固定顺序结算，且结果可断言', () => {
     const g = seedPlayableDebtState()
-    const r = __test__.applyRepaymentByPriority(g, 3_000)
+    const r = __test__.applyRepaymentByPriority(g, 1_000)
 
     // 锁定 D-05：固定优先级 contract
     expect(r.interestPaid).toBe(800)
-    expect(r.feePaid).toBe(400)
-    expect(r.principalPaid).toBe(1_800)
-    expect(r.totalPaid).toBe(3_000)
+    expect(r.feePaid).toBe(200)
+    expect(r.principalPaid).toBe(0)
+    expect(r.totalPaid).toBe(1_000)
+    expect(g.econ.collectionFee).toBe(200)
+    expect(g.econ.debtPrincipal).toBe(12_000)
     expect(g.econ.coreDebt).toBe(7_000)
   })
 

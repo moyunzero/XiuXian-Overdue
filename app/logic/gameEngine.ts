@@ -28,6 +28,46 @@ export function describeDebtPressure(delinquency: number): '低' | '中' | '高'
   return '低'
 }
 
+export type DelinquencyPolicy = {
+  level: number
+  rateStepMultiplier: number
+  minWeeklyPaymentMultiplier: number
+  collectionRiskWeight: number
+}
+
+const DELINQUENCY_POLICIES: Record<number, DelinquencyPolicy> = {
+  0: { level: 0, rateStepMultiplier: 1, minWeeklyPaymentMultiplier: 1, collectionRiskWeight: 1 },
+  1: { level: 1, rateStepMultiplier: 1, minWeeklyPaymentMultiplier: 1, collectionRiskWeight: 1.05 },
+  2: { level: 2, rateStepMultiplier: 1.12, minWeeklyPaymentMultiplier: 1.08, collectionRiskWeight: 1.2 },
+  3: { level: 3, rateStepMultiplier: 1.18, minWeeklyPaymentMultiplier: 1.16, collectionRiskWeight: 1.35 },
+  4: { level: 4, rateStepMultiplier: 1.24, minWeeklyPaymentMultiplier: 1.24, collectionRiskWeight: 1.5 },
+  5: { level: 5, rateStepMultiplier: 1.3, minWeeklyPaymentMultiplier: 1.35, collectionRiskWeight: 1.7 }
+}
+
+export function normalizeDelinquencyLevel(level: number): number {
+  return clamp(Math.floor(level), 0, 5)
+}
+
+export function delinquencyPolicy(level: number): DelinquencyPolicy {
+  const normalized = normalizeDelinquencyLevel(level)
+  return DELINQUENCY_POLICIES[normalized]
+}
+
+export function nextWeeklyDelinquencyLevel(currentLevel: number, daysSinceLastPayment: number): number {
+  const normalizedCurrent = normalizeDelinquencyLevel(currentLevel)
+  // 首次逾期在满两周时进入 1 级，之后按每周节律升级。
+  if (daysSinceLastPayment <= 7) return normalizedCurrent
+  return normalizeDelinquencyLevel(normalizedCurrent + 1)
+}
+
+export function calculateWeeklyMinPayment(totalDebt: number, delinquency: number): number {
+  const debt = Math.max(0, Math.floor(totalDebt))
+  if (debt <= 0) return 0
+  const policy = delinquencyPolicy(delinquency)
+  const base = debt * 0.08
+  return Math.max(280, Math.floor(base * policy.minWeeklyPaymentMultiplier))
+}
+
 export function describePerkChange(
   previous: GameState['school']['perks'],
   current: GameState['school']['perks']
@@ -148,11 +188,11 @@ export function estimateDebtAtWeek(g: GameState, weeksAgo: number): number {
 export function calculateAccumulatedMinPayment(g: GameState): number {
   const daysSincePay = g.school.day - g.econ.lastPaymentDay
   const weeksPassed = Math.floor(daysSincePay / 7)
-  if (weeksPassed <= 0) return Math.max(280, Math.floor(fullDebt(g) * 0.08))
+  if (weeksPassed <= 0) return calculateWeeklyMinPayment(fullDebt(g), g.econ.delinquency)
   let accumulated = 0
   for (let i = 0; i < weeksPassed; i++) {
     const debtAtWeek = estimateDebtAtWeek(g, i)
-    const minPay = Math.max(280, Math.floor(debtAtWeek * 0.08))
+    const minPay = calculateWeeklyMinPayment(debtAtWeek, g.econ.delinquency)
     accumulated += minPay
   }
   return accumulated

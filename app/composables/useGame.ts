@@ -161,16 +161,33 @@ function applyDelinquencyCheck(g: GameState, minPaymentVal: number): void {
   if (minPaymentVal <= 0) return
   const daysSincePay = (g.school.day - 1) - g.econ.lastPaymentDay
   if (daysSincePay <= 7) return
-  g.econ.delinquency += 1
+  const prevLevel = Engine.normalizeDelinquencyLevel(g.econ.delinquency)
+  const nextLevel = Engine.nextWeeklyDelinquencyLevel(prevLevel, daysSincePay)
+  if (nextLevel <= prevLevel) return
+  g.econ.delinquency = nextLevel
+
   if (g.econ.delinquency === 1) {
-    g.logs.unshift({ id: uid('log'), day: g.school.day - 1, title: '逾期警告', detail: '信用评级开始下滑。催收人员正在关注你。', tone: 'warn' })
+    g.logs.unshift({
+      id: uid('log'),
+      day: g.school.day - 1,
+      title: '逾期警告',
+      detail: '系统记录到首次逾期。当前仅发出警告，后续周结算将持续提高制度压力。',
+      tone: 'warn'
+    })
   } else if (g.econ.delinquency >= 3) {
-    g.logs.unshift({ id: uid('log'), day: g.school.day - 1, title: '严重逾期', detail: '催收压力正在转化为具体的身体威胁。', tone: 'danger' })
+    g.logs.unshift({
+      id: uid('log'),
+      day: g.school.day - 1,
+      title: '严重逾期',
+      detail: `系统将你标记为高风险账户（${g.econ.delinquency}级）。催收频次、最低周还款与利率上浮将继续执行。`,
+      tone: 'danger'
+    })
   }
+
   if (g.econ.delinquency >= 2) {
+    const policy = Engine.delinquencyPolicy(g.econ.delinquency)
     const beforeRate = g.econ.dailyRate
-    const multiplier = 1 + 0.1 * (g.econ.delinquency - 1)
-    const afterRate = Math.min(0.05, Number((beforeRate * multiplier).toFixed(4)))
+    const afterRate = Math.min(0.05, Number((beforeRate * policy.rateStepMultiplier).toFixed(4)))
     g.econ.dailyRate = afterRate
     const detail = afterRate > beforeRate
       ? `逾期${g.econ.delinquency}级，日利率由 ${(beforeRate * 100).toFixed(2)}% 上浮至 ${(afterRate * 100).toFixed(2)}%。`
@@ -231,13 +248,13 @@ function applyWeeklyCollectionFee(g: GameState): number {
 function applyRepaymentByPriority(g: GameState, budget: number): { feePaid: number; interestPaid: number; principalPaid: number; totalPaid: number } {
   let remaining = Math.max(0, Math.floor(budget))
 
-  const feePaid = Math.min(remaining, Math.max(0, g.econ.collectionFee))
-  g.econ.collectionFee = Math.max(0, g.econ.collectionFee - feePaid)
-  remaining -= feePaid
-
   const interestPaid = Math.min(remaining, Math.max(0, g.econ.debtInterestAccrued))
   g.econ.debtInterestAccrued = Math.max(0, g.econ.debtInterestAccrued - interestPaid)
   remaining -= interestPaid
+
+  const feePaid = Math.min(remaining, Math.max(0, g.econ.collectionFee))
+  g.econ.collectionFee = Math.max(0, g.econ.collectionFee - feePaid)
+  remaining -= feePaid
 
   const principalPaid = Math.min(remaining, Math.max(0, g.econ.debtPrincipal))
   g.econ.debtPrincipal = Math.max(0, g.econ.debtPrincipal - principalPaid)
@@ -328,9 +345,7 @@ export function useGame() {
   )
 
   const minPayment = computed(() => {
-    const debt = totalDebt.value
-    if (debt <= 0) return 0
-    return Math.max(280, Math.floor(debt * 0.08))
+    return Engine.calculateWeeklyMinPayment(totalDebt.value, game.value.econ.delinquency)
   })
 
   const nextLabel = computed(() => Engine.describeSlot(game.value.school.slot))
