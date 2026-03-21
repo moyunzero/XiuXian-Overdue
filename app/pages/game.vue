@@ -14,7 +14,7 @@ import HumanModelViewer from '~/components/game/HumanModelViewer.vue'
 import BorrowModal from '~/components/game/BorrowModal.vue'
 import RepayModal from '~/components/game/RepayModal.vue'
 
-const { game, activeSlot, saveToSlot, totalDebt, minPayment, accumulatedMinPayment, creditLimit, nextLabel, remainingSlots, actionTrendLabel, act, borrow, repay, resolveEvent } = useGame()
+const { game, activeSlot, saveToSlot, totalDebt, minPayment, accumulatedMinPayment, classPressureDigest, creditLimit, nextLabel, remainingSlots, actionTrendLabel, act, borrow, repay, resolveEvent } = useGame()
 
 const showBorrow = ref(false)
 const showRepay = ref(false)
@@ -303,24 +303,30 @@ watch(
       <!-- Perks & Strategy -->
       <Card padding="md">
         <div class="Row">
-          <Pill>待遇（由分班决定）</Pill>
+          <Pill>分班后果追踪</Pill>
           <span class="Spacer" />
           <Pill>餐补：¥{{ g.school.perks.mealSubsidy }}/天</Pill>
           <Pill>专注加成：{{ g.school.perks.focusBonus }}</Pill>
         </div>
 
-        <div class="MonoSmall" style="margin-top: 10px">
-          - <b>示范班</b>：更稳定的餐补与专注优势，资源会更"像资源"。<br />
-          - <b>普通班</b>：资源不缺但也不够，你会一直感觉差一口气。<br />
-          - <b>末位班</b>：不是没资源，是资源要你先付出"尊严"和"风险"。
+        <div class="ClassDigestList">
+          <div class="ClassDigestItem">
+            <span class="ClassDigestLabel">本周分班变化</span>
+            <span class="ClassDigestValue">{{ classPressureDigest.weeklyClassChange }}</span>
+          </div>
+          <div class="ClassDigestItem">
+            <span class="ClassDigestLabel">下周待遇变化</span>
+            <span class="ClassDigestValue">{{ classPressureDigest.nextWeekPerks }}</span>
+          </div>
+          <div class="ClassDigestItem">
+            <span class="ClassDigestLabel">风险变化摘要</span>
+            <span class="ClassDigestValue">{{ classPressureDigest.riskShiftSummary }}</span>
+          </div>
         </div>
 
-        <Card variant="glass" padding="sm" style="margin-top: 12px">
-          <div class="Label">建议策略（仅供第一局）</div>
-          <div class="MonoSmall" style="margin-top: 8px">
-            先用"上课/吐纳"稳住分数，再用"打工"补现金缺口。等你能维持周最低还款，再考虑炼体冲分。<br />
-          </div>
-        </Card>
+        <div class="MonoSmall" style="margin-top: 12px">
+          系统仅提供制度记录，不提供最优路径。你只能在刷分与还债之间自行承担后果。
+        </div>
       </Card>
     </div>
 
@@ -386,9 +392,50 @@ watch(
   word-break: break-word;
 }
 
+.ClassDigestList {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.ClassDigestItem {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.ClassDigestLabel {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.65);
+  white-space: nowrap;
+}
+
+.ClassDigestValue {
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.88);
+  text-align: right;
+}
+
 @media (max-width: 740px) {
   .ActionGrid {
     grid-template-columns: 1fr;
+  }
+
+  .ClassDigestItem {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ClassDigestLabel,
+  .ClassDigestValue {
+    white-space: normal;
+    text-align: left;
   }
 }
 </style>

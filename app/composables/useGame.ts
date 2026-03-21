@@ -355,6 +355,18 @@ export function useGame() {
 
   const accumulatedMinPayment = computed(() => Engine.calculateAccumulatedMinPayment(game.value))
 
+  const classPressureDigest = computed(() => {
+    const g = game.value
+    const latestWeeklyReport = g.logs.find((log) => log.title.includes('周结算通报'))
+    const tierDebtProfile = Engine.debtProfileForTier(g.school.classTier)
+    const weeklyChangeMatch = latestWeeklyReport?.detail.match(/分班变化：([^；]+)；/)
+    return {
+      weeklyClassChange: weeklyChangeMatch?.[1] ?? '等待首轮周结算',
+      nextWeekPerks: `餐补¥${g.school.perks.mealSubsidy}/天，专注加成${g.school.perks.focusBonus >= 0 ? '+' : ''}${g.school.perks.focusBonus}`,
+      riskShiftSummary: `利率×${tierDebtProfile.dailyRateMultiplier.toFixed(2)}，最低周还款×${tierDebtProfile.minWeeklyPaymentMultiplier.toFixed(2)}，催收权重×${tierDebtProfile.collectionRiskWeight.toFixed(2)}`
+    }
+  })
+
   const reset = () => {
     game.value = defaultState()
     if (!import.meta.server) {
@@ -813,6 +825,7 @@ export function useGame() {
     totalDebt,
     minPayment,
     accumulatedMinPayment,
+    classPressureDigest,
     creditLimit,
     nextLabel,
     remainingSlots,
