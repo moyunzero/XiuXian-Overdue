@@ -78,4 +78,21 @@ describe('LOOP 时间循环闭环', () => {
     expect(game.value.school.day).toBe(6)
     expect(game.value.school.slot).toBe('morning')
   })
+
+  it('LOOP-03: 超过 day30 后满足状态条件可触发情节结局事件，且不依赖固定天数硬截断', () => {
+    const { game, act } = useGame()
+    game.value = defaultState()
+    game.value.started = true
+    game.value.school.day = 31
+    game.value.school.slot = 'morning'
+    game.value.stats.fatigue = 95
+    game.value.stats.focus = 8
+    game.value.econ.delinquency = 4
+    game.value.econ.lastPaymentDay = 1
+
+    act('study')
+
+    expect(game.value.pendingEvent?.title).toContain('情节结局')
+    expect(game.value.school.day).toBe(31)
+  })
 })
