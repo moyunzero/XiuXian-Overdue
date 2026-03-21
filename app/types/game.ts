@@ -83,6 +83,10 @@ export interface BodyPartConfig {
 
 export type EventTone = 'info' | 'warn' | 'danger' | 'ok'
 
+/** EVT-03：内嵌「社交 / 试功 / 法赛」族名，与 data/events.json 的 family 一致 */
+export const EVT03_EVENT_FAMILIES = ['社交', '试功', '法赛'] as const
+export type Evt03EventFamily = (typeof EVT03_EVENT_FAMILIES)[number]
+
 export type EventPhase = 'afterAction' | 'endOfDay'
 
 export interface EventTrigger {
