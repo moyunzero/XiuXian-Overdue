@@ -37,7 +37,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **EVT-01**: 系统可以基于玩家状态触发随机事件，并避免短周期内重复刷同类事件
 - [x] **EVT-02**: 每次关键事件会同时提供叙事反馈与系统反馈，让玩家理解“发生了什么、为什么发生”
-- [ ] **EVT-03**: 社交、试功、法赛等内容在 v1 以内嵌事件方式出现，而非独立行动系统
+- [x] **EVT-03**: 社交、试功、法赛等内容在 v1 以内嵌事件方式出现，而非独立行动系统
 
 ### Psychological Defeat Expression
 
@@ -101,7 +101,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CLASS-03 | Phase 2 | Complete |
 | EVT-01 | Phase 3 | Complete |
 | EVT-02 | Phase 3 | Complete |
-| EVT-03 | Phase 3 | Pending |
+| EVT-03 | Phase 3 | Complete |
 | PSY-01 | Phase 4 | Pending |
 | PSY-02 | Phase 4 | Pending |
 | PSY-03 | Phase 4 | Pending |
