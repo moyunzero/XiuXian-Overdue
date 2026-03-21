@@ -35,6 +35,15 @@ describe('ACT-01~ACT-05 行为矩阵', () => {
     game.value = defaultState()
     game.value.started = true
     game.value.school.day = 31
+    game.value.econ.lastPaymentDay = 31
+    game.value.bodyPartRepayment = {
+      LeftPalm: true,
+      RightPalm: true,
+      LeftArm: true,
+      RightArm: true,
+      LeftLeg: true,
+      RightLeg: true
+    }
     game.value.stats.fatigue = 80
 
     const faLiBefore = game.value.stats.faLi
@@ -62,7 +71,7 @@ describe('ACT-01~ACT-05 行为矩阵', () => {
     act('study')
 
     expect(game.value.stats.faLi).toBeGreaterThan(faLiBefore)
-    expect(game.value.school.day).toBe(8)
+    expect(game.value.school.day).toBe(36)
     expect(game.value.school.lastExamScore).not.toBe(scoreBefore)
   })
 

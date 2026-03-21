@@ -88,7 +88,15 @@ describe('LOOP 时间循环闭环', () => {
     game.value.stats.fatigue = 95
     game.value.stats.focus = 8
     game.value.econ.delinquency = 4
-    game.value.econ.lastPaymentDay = 1
+    game.value.econ.lastPaymentDay = 31
+    game.value.bodyPartRepayment = {
+      LeftPalm: true,
+      RightPalm: true,
+      LeftArm: true,
+      RightArm: true,
+      LeftLeg: true,
+      RightLeg: true
+    }
 
     act('study')
 

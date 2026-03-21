@@ -527,6 +527,8 @@ export function useGame() {
       g.contract.progress = clamp(g.contract.progress + 4, 0, 100)
       g.econ.debtInterestAccrued = round1(g.econ.debtInterestAccrued + 120)
       addLog('契约反噬·硬抗代价', '你硬扛了这次命令。代价马上到账：更累、更乱、更贵。', 'danger')
+    } else if (optionId === 'ending_continue') {
+      addLog('情节结局：麻木化时刻', '你没有被强制结束。你只是把麻木当成了新的日常，然后继续推进下一天。', 'warn')
     } else if (event.eventId) {
       const definition = ALL_EVENTS.find(def => def.id === event.eventId)
       if (!definition) {
@@ -700,7 +702,13 @@ export function useGame() {
 
       if (g.school.slot === 'morning') g.econ.cash += g.school.perks.mealSubsidy
 
-      g.pendingEvent = randomEventAfterAction(g, rand)
+      const endingAlreadySeen = g.logs.some((log) => log.title === '情节结局：麻木化时刻')
+      const shouldShowEnding = !endingAlreadySeen && Engine.shouldTriggerNarrativeEnding(g)
+      if (shouldShowEnding) {
+        g.pendingEvent = Engine.makeNarrativeEndingEvent()
+      } else {
+        g.pendingEvent = randomEventAfterAction(g, rand)
+      }
 
       const idx = Engine.slotOrder().indexOf(g.school.slot)
       const nextSlot = Engine.slotOrder()[idx + 1]
