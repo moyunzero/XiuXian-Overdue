@@ -15,6 +15,10 @@ export function slotOrder(): SlotId[] {
   return ['morning', 'afternoon', 'night']
 }
 
+export function maxGameDays(): number {
+  return 30
+}
+
 export function describeSlot(slot: SlotId) {
   if (slot === 'morning') return '清晨'
   if (slot === 'afternoon') return '午后'

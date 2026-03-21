@@ -585,6 +585,7 @@ export function useGame() {
   const act = (action: ActionId) => {
       const g = game.value
       if (!g.started || g.pendingEvent) return
+      if (g.school.day >= Engine.maxGameDays()) return
 
       const rand = mulberry32(g.seed + g.school.day * 31 + Engine.slotOrder().indexOf(g.school.slot) * 997)
 
@@ -637,6 +638,11 @@ export function useGame() {
 
   const endDay = () => {
     const g = game.value
+    if (g.school.day >= Engine.maxGameDays()) {
+      g.school.day = Engine.maxGameDays()
+      g.school.slot = 'morning'
+      return
+    }
     g.buyDebasement = Math.max(0, (g.buyDebasement ?? 0) - 0.2)
     g.school.day += 1
     g.school.slot = 'morning'
@@ -646,6 +652,9 @@ export function useGame() {
     applyNarrativeDelays(g)
 
     if ((g.school.day - 1) % 7 === 0) {
+      const settledDay = g.school.day - 1
+      const previousTier = g.school.classTier
+      const previousPerks = { ...g.school.perks }
       const rand = mulberry32(g.seed + g.school.week * 777)
       applyWeeklyExam(g, rand)
       const weeklyFee = applyWeeklyCollectionFee(g)
@@ -664,6 +673,26 @@ export function useGame() {
         })
         if (g.logs.length > 120) g.logs.pop()
       }
+
+      const debtPressure = g.econ.delinquency >= 4
+        ? '极高'
+        : g.econ.delinquency >= 2
+          ? '高'
+          : g.econ.delinquency >= 1
+            ? '中'
+            : '低'
+      const tierChange = previousTier === g.school.classTier ? '维持不变' : `${previousTier}→${g.school.classTier}`
+      const perkChange = previousPerks.mealSubsidy === g.school.perks.mealSubsidy && previousPerks.focusBonus === g.school.perks.focusBonus
+        ? `下周待遇变化：维持（餐补¥${g.school.perks.mealSubsidy}/日，专注加成${g.school.perks.focusBonus}）`
+        : `下周待遇变化：餐补¥${previousPerks.mealSubsidy}→¥${g.school.perks.mealSubsidy}/日，专注加成${previousPerks.focusBonus}→${g.school.perks.focusBonus}`
+      g.logs.unshift({
+        id: uid('log'),
+        day: settledDay,
+        title: `周结算通报（第${g.school.week}周）`,
+        detail: `分数：${g.school.lastExamScore}；分班变化：${tierChange}；债务压力：${debtPressure}；${perkChange}。本通报已归档，系统将继续执行下一日流程。`,
+        tone: debtPressure === '高' || debtPressure === '极高' ? 'warn' : 'info'
+      })
+      if (g.logs.length > 120) g.logs.pop()
       g.school.week += 1
     }
   }
