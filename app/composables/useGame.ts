@@ -122,8 +122,24 @@ function applyBuyAction(g: GameState, addLog: AddLog): void {
   }
 }
 
-function applyRestAction(g: GameState, addLog: AddLog): void {
-  g.stats.focus = clamp(g.stats.focus + 6, 0, 100)
+/**
+ * PSY-01 D-06～D-07：休息先经 Engine 倍率/麻木分支，再写回 focus。
+ * 状态机：act 内先判麻木（与反噬分流）→ 再判 contractWouldTrigger → 此处 skipNumbCheck 避免二次麻木随机。
+ */
+function applyRestAction(
+  g: GameState,
+  addLog: AddLog,
+  opts: { mode: 'numb' } | { mode: 'recover'; rand: () => number }
+) {
+  if (opts.mode === 'numb') {
+    const rest = Engine.computeRestRecovery(g, { rand: () => 0, forceNumb: true })
+    g.stats.focus = clamp(g.stats.focus + rest.focusDelta, 0, 100)
+    g.numbness = clamp((g.numbness ?? 0) + 4, 0, 100)
+    addLog('休息', '制度记录：麻木休息。你几乎没拿回状态，时间照样推进。', 'warn')
+    return
+  }
+  const rest = Engine.computeRestRecovery(g, { rand: opts.rand, skipNumbCheck: true })
+  g.stats.focus = clamp(g.stats.focus + rest.focusDelta, 0, 100)
   addLog('休息', '你偷回了一点人味。', 'info')
 }
 function finalizeDayRouteStreak(g: GameState, addLog: AddLog): void {
@@ -572,13 +588,18 @@ export function useGame() {
         addLog('还款失败', '余额不足。', 'danger')
       }
     } else if (optionId === 'forced_tuna') {
+      const prevP = g.contract.progress
+      const prevV = g.contract.vigilance
       const fatigueUp = Math.round(3 * fatigueMult)
       g.stats.fatigue = clamp(g.stats.fatigue + fatigueUp, 0, 100)
       g.stats.faLi = round1(g.stats.faLi + 0.12 + (g.stats.daoXin - 1) * 0.02)
       g.stats.focus = clamp(g.stats.focus - 1, 0, 100)
       g.contract.progress = clamp(g.contract.progress + 1, 0, 100)
+      Engine.syncDomesticationWithContractProgress(g, prevP, prevV)
       addLog('契约反噬·被迫吐纳', '你被迫把呼吸压成细线。法力涨了一点，但你更像一台被驱动的机器。', 'warn')
     } else if (optionId === 'forced_study') {
+      const prevP = g.contract.progress
+      const prevV = g.contract.vigilance
       const fatigueUp = Math.round(5 * fatigueMult)
       g.stats.fatigue = clamp(g.stats.fatigue + fatigueUp, 0, 100)
       const focusFactor = (g.stats.focus + g.school.perks.focusBonus) / 100
@@ -588,12 +609,16 @@ export function useGame() {
       g.stats.faLi = round1(g.stats.faLi + faLiGain)
       g.stats.focus = clamp(g.stats.focus + 2, 0, 100)
       g.contract.progress = clamp(g.contract.progress + 1, 0, 100)
+      Engine.syncDomesticationWithContractProgress(g, prevP, prevV)
       addLog('契约反噬·被迫刷题', '你被迫低头做题。分数可能会救你一次，但它也把锁链拧得更紧。', 'warn')
     } else if (optionId === 'defy') {
+      const prevP = g.contract.progress
+      const prevV = g.contract.vigilance
       g.stats.focus = clamp(g.stats.focus - 16, 0, 100)
       g.stats.fatigue = clamp(g.stats.fatigue + 12, 0, 100)
       g.contract.vigilance = clamp(g.contract.vigilance + 10, 0, 100)
       g.contract.progress = clamp(g.contract.progress + 4, 0, 100)
+      Engine.syncDomesticationWithContractProgress(g, prevP, prevV)
       g.econ.debtInterestAccrued = round1(g.econ.debtInterestAccrued + 120)
       addLog('契约反噬·硬抗代价', '你硬扛了这次命令。代价马上到账：更累、更乱、更贵。', 'danger')
     } else if (optionId === 'ending_continue') {
@@ -657,9 +682,12 @@ export function useGame() {
           break
         }
         case 'contract': {
+          const prevP = g.contract.progress
+          const prevV = g.contract.vigilance
           if (effect.target === 'active' && effect.value !== undefined) g.contract.active = effect.value
           else if (effect.target === 'progress' && effect.delta !== undefined) g.contract.progress = clamp(g.contract.progress + effect.delta, 0, 100)
           else if (effect.target === 'vigilance' && effect.delta !== undefined) g.contract.vigilance = clamp(g.contract.vigilance + effect.delta, 0, 100)
+          Engine.syncDomesticationWithContractProgress(g, prevP, prevV)
           break
         }
         case 'school': {
@@ -724,11 +752,21 @@ export function useGame() {
       }
       const beforeLogLen = g.logs.length
 
-      if (Engine.contractWouldTrigger(g, action, rand)) {
+      /** PSY-01：rest + 签约 → 先抽麻木（D-06），再判反噬；麻木成功则不弹反噬窗 */
+      let numbRestTaken = false
+      if (action === 'rest' && g.contract.active) {
+        const rNumb = rand()
+        numbRestTaken = Engine.shouldTakeNumbRest(g, rNumb)
+      }
+
+      if (!numbRestTaken && Engine.contractWouldTrigger(g, action, rand)) {
+        const prevP = g.contract.progress
+        const prevV = g.contract.vigilance
         g.contract.lastTriggerDay = g.school.day
         g.contract.lastTriggerSlot = g.school.slot
         g.contract.progress = clamp(g.contract.progress + 2, 0, 100)
         g.contract.vigilance = clamp(g.contract.vigilance + (action === 'rest' ? 6 : 2), 0, 100)
+        Engine.syncDomesticationWithContractProgress(g, prevP, prevV)
         g.pendingEvent = Engine.makeContractBacklashEvent(g, action)
         saveToSlot(activeSlot.value)
         return
@@ -750,7 +788,10 @@ export function useGame() {
       else if (action === 'train') applyTrainAction(g, integrity, rand, addLog)
       else if (action === 'parttime') applyParttimeAction(g, integrity, rand, addLog)
       else if (action === 'buy') applyBuyAction(g, addLog)
-      else if (action === 'rest') applyRestAction(g, addLog)
+      else if (action === 'rest') {
+        if (numbRestTaken) applyRestAction(g, addLog, { mode: 'numb' })
+        else applyRestAction(g, addLog, { mode: 'recover', rand })
+      }
 
       if (!g.daySlotActions) g.daySlotActions = {}
       g.daySlotActions[slotAtStart] = action
@@ -884,6 +925,8 @@ export function useGame() {
       if (legacyState.cashDayStreak === undefined) legacyState.cashDayStreak = 0
       if (legacyState.daySlotActions === undefined) legacyState.daySlotActions = {}
       if (legacyState.familyHistory === undefined) legacyState.familyHistory = {}
+      if (typeof legacyState.domestication !== 'number' || legacyState.domestication < 0) legacyState.domestication = 0
+      if (typeof legacyState.numbness !== 'number' || legacyState.numbness < 0) legacyState.numbness = 0
       const container = { activeSlot: 'autosave' as SaveSlotId, slots: { autosave: { meta: buildMeta('autosave', '自动存档（迁移）', legacyState), state: legacyState } } }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(container))
       localStorage.removeItem(LEGACY_STORAGE_KEY)

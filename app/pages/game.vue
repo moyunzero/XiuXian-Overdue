@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useGame } from '~/composables/useGame'
+import * as Engine from '~/logic/gameEngine'
 import { navigateTo } from '#app'
 import type { ActionId } from '~/types/game'
 import StatPanel from '~/components/game/StatPanel.vue'
@@ -94,6 +95,9 @@ const contractPill = computed(() => {
   const v = Math.round(g.value.contract.vigilance)
   return `已请神 · 缠绕${p}% · 监工${v}`
 })
+
+/** PSY-01 D-08：契约旁单行副指标（驯化/麻木），不大面板 */
+const psySubsidiaryLine = computed(() => Engine.formatPsySubsidiaryLine(g.value))
 
 /** CLASS-03：仅提示制度记录的偏科趋势，不给出策略（冷反馈） */
 const routeImbalancePill = computed(() => {
@@ -212,6 +216,12 @@ watch(
         }"
       >
         {{ contractPill }}
+      </Pill>
+      <Pill
+        v-if="g.contract.active && psySubsidiaryLine"
+        :style="{ borderColor: 'rgba(255,255,255,.18)', background: 'rgba(0,0,0,.22)', fontSize: '12px' }"
+      >
+        {{ psySubsidiaryLine }}
       </Pill>
       <Pill
         v-if="routeImbalancePill"

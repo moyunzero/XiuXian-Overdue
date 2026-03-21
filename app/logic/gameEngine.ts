@@ -382,7 +382,7 @@ export function calculateDynamicValuation(partId: string, state: { faLi: number;
 
 export function contractWouldTrigger(g: GameState, action: ActionId, rand: () => number) {
   if (!g.contract.active) return false
-  if (action === 'rest') return true
+  // D-06：麻木休息在 act() 内先分流；此处「休息」不再 100% 反噬，与其他行动共用 strict 概率带
   if (action === 'parttime') return false
   if (g.stats.fatigue >= 88) return false
   const debt = fullDebt(g)
@@ -524,6 +524,8 @@ export type RestRecoveryOpts = {
   rand: () => number
   /** 测试/强制：走麻木分支 */
   forceNumb?: boolean
+  /** act 内已判定过麻木时，跳过后续麻木随机（避免二次麻木） */
+  skipNumbCheck?: boolean
 }
 
 export type RestRecoveryResult = {
@@ -543,6 +545,11 @@ export function computeRestRecovery(g: GameState, opts: RestRecoveryOpts): RestR
 
   if (opts.forceNumb) {
     return { focusDelta: 0, fatigueDelta: 0, isNumbRest: true, multiplier: mult }
+  }
+
+  if (opts.skipNumbCheck) {
+    const focusDelta = Math.round(baseFocus * mult * 10) / 10
+    return { focusDelta, fatigueDelta: 0, isNumbRest: false, multiplier: mult }
   }
 
   const pNumb = numbRestProbability(g)
@@ -568,14 +575,22 @@ export function shouldTakeNumbRest(g: GameState, roll: number): boolean {
 }
 
 /**
- * D-05：契约 progress 上升时同步驯化副指标（非递减增量）。
+ * D-05：契约 progress / vigilance 上升时同步驯化副指标（非递减增量）。
  */
-export function syncDomesticationWithContractProgress(g: GameState, prevProgress: number): void {
+export function syncDomesticationWithContractProgress(
+  g: GameState,
+  prevProgress: number,
+  prevVigilance?: number
+): void {
   if (!g.contract.active) return
-  const delta = g.contract.progress - prevProgress
-  if (delta <= 0) return
-  const cur = g.domestication ?? 0
-  g.domestication = clamp(cur + delta * 0.28, 0, 100)
+  const prevV = prevVigilance ?? g.contract.vigilance
+  const dp = g.contract.progress - prevProgress
+  const dv = g.contract.vigilance - prevV
+  let add = 0
+  if (dp > 0) add += dp * 0.28
+  if (dv > 0) add += dv * 0.12
+  if (add <= 0) return
+  g.domestication = clamp((g.domestication ?? 0) + add, 0, 100)
 }
 
 /** D-08：契约 Pill 旁单行副指标文案 */

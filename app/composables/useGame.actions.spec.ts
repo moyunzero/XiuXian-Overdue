@@ -98,6 +98,7 @@ describe('ACT-01~ACT-05 行为矩阵', () => {
     const { game, act } = useGame()
     game.value = defaultState()
     game.value.started = true
+    game.value.seed = 0
     game.value.school.day = 31
     game.value.stats.fatigue = 75
     game.value.stats.focus = 20
