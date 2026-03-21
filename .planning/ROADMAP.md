@@ -58,7 +58,7 @@ Plans:
 **Plans**: 3 plans
 Plans:
 - [x] `03-01-PLAN.md` — EVT-01：gameEngine 家族去重、短冷却下限、周结算日非强制随机降权；`gameEngine.events.spec.ts`。
-- [ ] `03-02-PLAN.md` — EVT-02：`tier`/`defaultOptionId`、EventModal 叙事+折叠系统区、resolveEvent 制度摘要日志；`useGame.events.spec.ts`。
+- [x] `03-02-PLAN.md` — EVT-02：`tier`/`defaultOptionId`、EventModal 叙事+折叠系统区、resolveEvent 制度摘要日志；`useGame.events.spec.ts`。
 - [ ] `03-03-PLAN.md` — EVT-03：`events.json` 社交/试功/法赛内容与双维度校验、`validate-events.mjs`、类型同步。
 
 ### Phase 4: 精神驯化表达与无硬失败收束
