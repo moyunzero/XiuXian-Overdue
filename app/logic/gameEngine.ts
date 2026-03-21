@@ -44,13 +44,20 @@ const DELINQUENCY_POLICIES: Record<number, DelinquencyPolicy> = {
   5: { level: 5, rateStepMultiplier: 1.3, minWeeklyPaymentMultiplier: 1.35, collectionRiskWeight: 1.7 }
 }
 
+const DEFAULT_DELINQUENCY_POLICY: DelinquencyPolicy = {
+  level: 5,
+  rateStepMultiplier: 1.3,
+  minWeeklyPaymentMultiplier: 1.35,
+  collectionRiskWeight: 1.7
+}
+
 export function normalizeDelinquencyLevel(level: number): number {
   return clamp(Math.floor(level), 0, 5)
 }
 
 export function delinquencyPolicy(level: number): DelinquencyPolicy {
   const normalized = normalizeDelinquencyLevel(level)
-  return DELINQUENCY_POLICIES[normalized]
+  return DELINQUENCY_POLICIES[normalized] ?? DEFAULT_DELINQUENCY_POLICY
 }
 
 export function nextWeeklyDelinquencyLevel(currentLevel: number, daysSinceLastPayment: number): number {
