@@ -1,4 +1,5 @@
 import type { GameState } from '~/types/game'
+import * as Engine from '~/logic/gameEngine'
 import { useGameState } from './useGameState'
 
 const STORAGE_KEY = 'kunxu_sim_save_v2'
@@ -105,6 +106,14 @@ export function useGameStorage() {
     if (!state.familyHistory || typeof state.familyHistory !== 'object') state.familyHistory = {}
     if (typeof state.domestication !== 'number' || state.domestication < 0) state.domestication = 0
     if (typeof state.numbness !== 'number' || state.numbness < 0) state.numbness = 0
+    if (typeof state.summaryUnlocked !== 'boolean') state.summaryUnlocked = false
+    if (typeof state.summarySeen !== 'boolean') state.summarySeen = false
+    if (state.summaryUnlockedAtDay !== undefined && typeof state.summaryUnlockedAtDay !== 'number') state.summaryUnlockedAtDay = undefined
+    if (state.summarySeenAtDay !== undefined && typeof state.summarySeenAtDay !== 'number') state.summarySeenAtDay = undefined
+    if (Engine.shouldUnlockSummary(state) && !state.summaryUnlocked) {
+      state.summaryUnlocked = true
+      if (state.summaryUnlockedAtDay === undefined) state.summaryUnlockedAtDay = state.school.day
+    }
 
     game.value = state
     activeSlot.value = id

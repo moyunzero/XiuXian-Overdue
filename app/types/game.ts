@@ -293,6 +293,15 @@ export interface GameState {
   collapseFirstDone?: Record<string, boolean>
   /** PSY-02 D-11：首次完整崩溃后的轻量修正（周结算日清除） */
   collapseModifierActive?: boolean
+
+  /** PSY-03 D-15：总结入口已解锁（持久化，先到条件满足后置 true） */
+  summaryUnlocked?: boolean
+  /** 首次满足解锁条件时的游戏日 */
+  summaryUnlockedAtDay?: number
+  /** PSY-03 D-16：玩家已查看过冷数据总结 */
+  summarySeen?: boolean
+  /** 查看总结时的游戏日 */
+  summarySeenAtDay?: number
 }
 
 
