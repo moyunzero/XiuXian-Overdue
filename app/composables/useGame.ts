@@ -68,14 +68,17 @@ function applyStudyAction(g: GameState, integrity: number, addLog: AddLog): void
   const palmPenalty = (g.bodyPartRepayment?.LeftPalm || g.bodyPartRepayment?.RightPalm) ? 0.95 : 1.0
   const classStudyMultiplier = Engine.debtProfileForTier(g.school.classTier).studyGainMultiplier
   const imb = Engine.studyGainImbalanceMultiplier(g)
-  const faLiGain = (0.05 + focusFactor * 0.06) * integrity * palmPenalty * classStudyMultiplier * imb
+  let faLiGain = (0.05 + focusFactor * 0.06) * integrity * palmPenalty * classStudyMultiplier * imb
+  faLiGain = Engine.applyCollapseModifierToAction(g, 'study', faLiGain)
   g.stats.faLi = round1(g.stats.faLi + faLiGain)
   g.stats.focus = clamp(g.stats.focus + 2, 0, 100)
   addLog('上课/刷题', `你把时间换成了0.1点不到的优势。对别人来说，这足够决定命运。`, 'info')
 }
 
 function applyTunaAction(g: GameState, addLog: AddLog): void {
-  g.stats.faLi = round1(g.stats.faLi + 0.12 + (g.stats.daoXin - 1) * 0.02)
+  let delta = 0.12 + (g.stats.daoXin - 1) * 0.02
+  delta = Engine.applyCollapseModifierToAction(g, 'tuna', delta)
+  g.stats.faLi = round1(g.stats.faLi + delta)
   g.stats.focus = clamp(g.stats.focus - 1, 0, 100)
   addLog('吐纳', '你把呼吸拧成一条线。法力像细流汇入气海。', 'ok')
 }
@@ -84,7 +87,8 @@ function applyTrainAction(g: GameState, integrity: number, rand: () => number, a
   const risk = clamp((g.stats.fatigue - 60) / 120, 0, 0.25)
   const baseGain = 0.06 + (g.stats.rouTi < 1.2 ? 0.02 : 0)
   const armPenalty = (g.bodyPartRepayment?.LeftArm || g.bodyPartRepayment?.RightArm) ? 0.90 : 1.0
-  const rouTiGain = baseGain * integrity * armPenalty
+  let rouTiGain = baseGain * integrity * armPenalty
+  rouTiGain = Engine.applyCollapseModifierToAction(g, 'train', rouTiGain)
   g.stats.rouTi = round1(g.stats.rouTi + rouTiGain)
   g.stats.focus = clamp(g.stats.focus - 2, 0, 100)
   if (rand() < risk) {
@@ -99,7 +103,8 @@ function applyParttimeAction(g: GameState, integrity: number, rand: () => number
   const basePay = Math.floor(260 + rand() * 260) + (g.school.classTier === '示范班' ? 120 : 0)
   const legPenalty = (g.bodyPartRepayment?.LeftLeg || g.bodyPartRepayment?.RightLeg) ? 0.90 : 1.0
   const payMult = Engine.parttimePayImbalanceMultiplier(g)
-  const pay = Math.floor(basePay * integrity * legPenalty * payMult)
+  let pay = Math.floor(basePay * integrity * legPenalty * payMult)
+  pay = Math.floor(Engine.applyCollapseModifierToAction(g, 'parttime', pay))
   g.econ.cash += pay
   g.stats.focus = clamp(g.stats.focus - 4, 0, 100)
   addLog('打工', `你赚到¥${pay}。这点钱能换来一口气，或者一针药。`, 'ok')
@@ -708,12 +713,8 @@ export function useGame() {
     }
   }
 
-  const randomEventAfterAction = (g: GameState, rand: () => number): PendingEvent | undefined => {
-    const repaymentCheck = Engine.shouldTriggerRepaymentEvent(g, rand)
-    if (repaymentCheck.trigger) {
-      return buildRepaymentEvent(g, BODY_PART_PREREQS, rand)
-    }
-
+  /** afterAction 随机池（不含还款强制、不含 collapse deck；collapse 由 tryEmitStrongCollapse 单独处理） */
+  const randomPoolAfterAction = (g: GameState, rand: () => number): PendingEvent | undefined => {
     const imbBoost = Engine.imbalanceEventProbabilityBoost(g)
     let baseP = clamp(0.04 + g.econ.delinquency * 0.04 + imbBoost, 0, 0.42)
     // D-04：周结算游玩日仅对非强制随机门降权（还款抢先已 return；此处为 afterAction 池）
@@ -722,6 +723,7 @@ export function useGame() {
 
     const pool = getEventsByPhase('afterAction')
     const candidates = pool.filter((event) => {
+      if (event.type === 'collapse') return false
       if (!Engine.eventMatchesTrigger(event, g)) return false
       if (Engine.isEventOnCooldown(g, event)) return false
       if (Engine.isFamilyOnCooldown(g, event)) return false
@@ -842,10 +844,32 @@ export function useGame() {
 
       const endingAlreadySeen = g.logs.some((log: GameState['logs'][number]) => log.title === '情节结局：麻木化时刻')
       const shouldShowEnding = !endingAlreadySeen && Engine.shouldTriggerNarrativeEnding(g)
-      if (shouldShowEnding) {
+      const repaymentCheck = Engine.shouldTriggerRepaymentEvent(g, rand)
+      if (repaymentCheck.trigger) {
+        g.pendingEvent = buildRepaymentEvent(g, BODY_PART_PREREQS, rand)
+      } else if (shouldShowEnding) {
         g.pendingEvent = Engine.makeNarrativeEndingEvent()
       } else {
-        g.pendingEvent = randomEventAfterAction(g, rand)
+        const collapse = Engine.tryEmitStrongCollapse(
+          g,
+          rand,
+          ALL_EVENTS.filter((e) => e.type === 'collapse')
+        )
+        if (collapse?.kind === 'full') {
+          g.pendingEvent = collapse.pending
+        } else {
+          if (collapse?.kind === 'echo') {
+            g.logs.unshift({
+              id: uid('log'),
+              day: g.school.day,
+              title: collapse.title,
+              detail: collapse.detail,
+              tone: 'warn'
+            })
+            if (g.logs.length > 120) g.logs.pop()
+          }
+          g.pendingEvent = randomPoolAfterAction(g, rand)
+        }
       }
 
       const idx = Engine.slotOrder().indexOf(g.school.slot)
@@ -872,6 +896,7 @@ export function useGame() {
     applyNarrativeDelays(g)
 
     if ((g.school.day - 1) % 7 === 0) {
+      Engine.clearCollapseModifierOnWeeklySettlement(g)
       const settledDay = g.school.day - 1
       const previousTier = g.school.classTier
       const previousPerks = { ...g.school.perks }
@@ -927,6 +952,7 @@ export function useGame() {
       if (legacyState.familyHistory === undefined) legacyState.familyHistory = {}
       if (typeof legacyState.domestication !== 'number' || legacyState.domestication < 0) legacyState.domestication = 0
       if (typeof legacyState.numbness !== 'number' || legacyState.numbness < 0) legacyState.numbness = 0
+      if (legacyState.collapseModifierActive === undefined) legacyState.collapseModifierActive = false
       const container = { activeSlot: 'autosave' as SaveSlotId, slots: { autosave: { meta: buildMeta('autosave', '自动存档（迁移）', legacyState), state: legacyState } } }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(container))
       localStorage.removeItem(LEGACY_STORAGE_KEY)

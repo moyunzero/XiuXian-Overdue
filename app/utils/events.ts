@@ -14,6 +14,11 @@ export function getEventsByFamily(family: string) {
   return ALL_EVENTS.filter((e) => e.family === family)
 }
 
+/** PSY-02 D-12：可配置崩溃卡组（与「麻木化时刻」等叙事节点并存，由管线单独调度） */
+export function getCollapseEventDeck() {
+  return ALL_EVENTS.filter((e) => e.type === 'collapse')
+}
+
 /** EVT-03：三类内嵌事件（family ∈ 社交|试功|法赛） */
 export function getEvt03Events() {
   const set = new Set<string>(EVT03_EVENT_FAMILIES)

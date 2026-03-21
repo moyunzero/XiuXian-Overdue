@@ -1112,5 +1112,41 @@
         ]
       }
     ]
+  },
+  {
+    "id": "psy_collapse_spiral",
+    "title": "精神崩溃：下坠螺旋",
+    "body": "你的思绪像被抽走了一条线。你不是在崩溃，你只是被系统要求更稳地继续。",
+    "type": "collapse",
+    "family": "精神崩溃",
+    "tone": "danger",
+    "phase": "afterAction",
+    "weight": 8,
+    "cooldownDays": 12,
+    "tier": "critical",
+    "trigger": {
+      "minDay": 10
+    },
+    "defaultOptionId": "collapse_ack",
+    "systemSummary": "制度记录：精神冲击事件已登记；状态与参数将按选项调整。",
+    "options": [
+      {
+        "id": "collapse_ack",
+        "label": "承受（继续）",
+        "tone": "primary",
+        "effects": [
+          {
+            "kind": "stat",
+            "target": "focus",
+            "delta": -6
+          },
+          {
+            "kind": "stat",
+            "target": "fatigue",
+            "delta": 6
+          }
+        ]
+      }
+    ]
   }
 ]
