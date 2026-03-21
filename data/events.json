@@ -689,5 +689,428 @@
         ]
       }
     ]
+  },
+  {
+    "id": "evt03_social_clique",
+    "title": "小圈子饭局",
+    "body": "有人把你拉进一个群：说是「同届互助」，实则轮流请客。今晚轮到凑份子，不去就等于不合群。",
+    "type": "social",
+    "family": "社交",
+    "tone": "warn",
+    "phase": "afterAction",
+    "weight": 4,
+    "cooldownDays": 4,
+    "tier": "normal",
+    "defaultOptionId": "decline_dinner",
+    "systemSummary": "社交支出与注意力被制度性占用；未登记合群成本。",
+    "trigger": {
+      "minDay": 4
+    },
+    "options": [
+      {
+        "id": "pay_dinner",
+        "label": "转账凑份子（别欠人情）",
+        "tone": "primary",
+        "effects": [
+          {
+            "kind": "econ",
+            "target": "cash",
+            "delta": -120
+          },
+          {
+            "kind": "stat",
+            "target": "focus",
+            "delta": -2
+          },
+          {
+            "kind": "log",
+            "title": "合群成本",
+            "detail": "钱少了，心里稍微踏实一点。你知道这踏实是买来的。",
+            "tone": "warn"
+          }
+        ]
+      },
+      {
+        "id": "decline_dinner",
+        "label": "装死不回（省点钱）",
+        "tone": "normal",
+        "effects": [
+          {
+            "kind": "stat",
+            "target": "focus",
+            "delta": -5
+          },
+          {
+            "kind": "log",
+            "title": "沉默的代价",
+            "detail": "群消息还在跳。你盯着屏幕，像盯着一张慢慢收紧的网。",
+            "tone": "danger"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "evt03_social_rumor",
+    "title": "走廊里的闲话",
+    "body": "你路过茶水间，听见有人在念你的名字。不是夸。你停了一秒，又装作没听见。",
+    "type": "social",
+    "family": "社交",
+    "tone": "info",
+    "phase": "afterAction",
+    "weight": 3,
+    "cooldownDays": 5,
+    "tier": "critical",
+    "defaultOptionId": "walk_away",
+    "systemSummary": "名誉压力登记：注意力下降；逾期相关风险未排除。",
+    "systemDetails": "focus 变动；若已有逾期，心理成本将叠加制度抽检概率（由状态机读取）。",
+    "trigger": {
+      "minDay": 6,
+      "maxDelinquency": 3
+    },
+    "options": [
+      {
+        "id": "confront",
+        "label": "进去问清楚（硬碰硬）",
+        "tone": "danger",
+        "effects": [
+          {
+            "kind": "stat",
+            "target": "focus",
+            "delta": -6
+          },
+          {
+            "kind": "econ",
+            "target": "cash",
+            "delta": -50
+          },
+          {
+            "kind": "log",
+            "title": "对峙",
+            "detail": "你问了，对方笑。笑比骂更刺。",
+            "tone": "danger"
+          }
+        ]
+      },
+      {
+        "id": "walk_away",
+        "label": "走开（当没听见）",
+        "tone": "normal",
+        "effects": [
+          {
+            "kind": "stat",
+            "target": "daoXin",
+            "delta": -1
+          },
+          {
+            "kind": "stat",
+            "target": "focus",
+            "delta": -3
+          },
+          {
+            "kind": "log",
+            "title": "走开",
+            "detail": "你走开了。闲话没有停，只是换了一个角度继续长。",
+            "tone": "warn"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "evt03_trial_screening",
+    "title": "企业试功：灵压筛查",
+    "body": "招贴写着「合规试功，补贴现结」。你排队进场，像排队签一份看不见的合同。仪器贴上来那一刻，胸口发闷。",
+    "type": "trial",
+    "family": "试功",
+    "tone": "warn",
+    "phase": "afterAction",
+    "weight": 3,
+    "cooldownDays": 6,
+    "tier": "normal",
+    "defaultOptionId": "skip_screen",
+    "systemSummary": "试功补贴与身体损耗同时入账；制度记录为一次性筛查。",
+    "trigger": {
+      "minDay": 8
+    },
+    "options": [
+      {
+        "id": "full_screen",
+        "label": "做完拿补贴（撑住）",
+        "tone": "primary",
+        "effects": [
+          {
+            "kind": "econ",
+            "target": "cash",
+            "delta": 420
+          },
+          {
+            "kind": "stat",
+            "target": "fatigue",
+            "delta": 12
+          },
+          {
+            "kind": "stat",
+            "target": "rouTi",
+            "delta": -0.05
+          },
+          {
+            "kind": "log",
+            "title": "筛查完成",
+            "detail": "钱到账了。你喉咙发干，像吞了一口铁锈。",
+            "tone": "warn"
+          }
+        ]
+      },
+      {
+        "id": "skip_screen",
+        "label": "中途退出（少拿钱）",
+        "tone": "normal",
+        "effects": [
+          {
+            "kind": "econ",
+            "target": "cash",
+            "delta": 120
+          },
+          {
+            "kind": "stat",
+            "target": "focus",
+            "delta": -4
+          },
+          {
+            "kind": "log",
+            "title": "半途退出",
+            "detail": "你走了。对方在表格上给你打了个「不配合」的记号。",
+            "tone": "info"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "evt03_trial_waiver",
+    "title": "试功弃权单",
+    "body": "班群里甩来一张「自愿弃权」：不签就不能评优。签了意味着你放弃索赔。笔悬在那里，像悬在你喉咙上。",
+    "type": "trial",
+    "family": "试功",
+    "tone": "danger",
+    "phase": "afterAction",
+    "weight": 2,
+    "cooldownDays": 7,
+    "tier": "critical",
+    "defaultOptionId": "sign_waiver",
+    "systemSummary": "弃权与债务条款绑定：签署将追加制度性本金登记。",
+    "systemDetails": "addPrincipal 模式；金额由引擎按档位解释。",
+    "trigger": {
+      "minDay": 12,
+      "minDelinquency": 1
+    },
+    "options": [
+      {
+        "id": "sign_waiver",
+        "label": "签（先过关）",
+        "tone": "danger",
+        "effects": [
+          {
+            "kind": "debt",
+            "mode": "addPrincipal",
+            "amount": 80
+          },
+          {
+            "kind": "stat",
+            "target": "focus",
+            "delta": -4
+          },
+          {
+            "kind": "log",
+            "title": "弃权已登记",
+            "detail": "纸很薄，字很重。你签下去，像给自己加了一道锁。",
+            "tone": "danger"
+          }
+        ]
+      },
+      {
+        "id": "refuse_sign",
+        "label": "拒签（承担边缘化）",
+        "tone": "primary",
+        "effects": [
+          {
+            "kind": "stat",
+            "target": "focus",
+            "delta": -7
+          },
+          {
+            "kind": "econ",
+            "target": "collectionFee",
+            "delta": 50
+          },
+          {
+            "kind": "log",
+            "title": "拒签记录",
+            "detail": "名单上多了一个红字。你知道这不是最后一次。",
+            "tone": "warn"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "evt03_spell_league",
+    "title": "法赛预选：积分换奖金",
+    "body": "公告栏贴着法赛流程：报名费不高，但想进下一轮要烧材料与时间。赢家拿钱，输家只剩一张「参与证明」。",
+    "type": "spell",
+    "family": "法赛",
+    "tone": "info",
+    "phase": "afterAction",
+    "weight": 4,
+    "cooldownDays": 5,
+    "tier": "normal",
+    "defaultOptionId": "spectate_only",
+    "systemSummary": "参赛支出与法力/疲劳联动；未参赛不计入排名池。",
+    "trigger": {
+      "minDay": 10
+    },
+    "options": [
+      {
+        "id": "enter_league",
+        "label": "报名冲刺（押一把）",
+        "tone": "primary",
+        "effects": [
+          {
+            "kind": "econ",
+            "target": "cash",
+            "delta": -200
+          },
+          {
+            "kind": "stat",
+            "target": "faLi",
+            "delta": 0.2
+          },
+          {
+            "kind": "stat",
+            "target": "fatigue",
+            "delta": 8
+          },
+          {
+            "kind": "log",
+            "title": "法赛报名",
+            "detail": "你交了钱，拿到一张编号。编号像一条新的债务编号。",
+            "tone": "ok"
+          }
+        ]
+      },
+      {
+        "id": "spectate_only",
+        "label": "只看不打（省钱）",
+        "tone": "normal",
+        "effects": [
+          {
+            "kind": "stat",
+            "target": "daoXin",
+            "delta": -1
+          },
+          {
+            "kind": "log",
+            "title": "旁观",
+            "detail": "你站在人群外。热闹是他们的，你只有安静里的刺。",
+            "tone": "info"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "evt03_spell_mock",
+    "title": "模拟法赛：对抗抽签",
+    "body": "抽签对手是熟人。裁判说「友谊第一」。你听见「友谊」两个字，就知道规则写在另一张纸上。",
+    "type": "spell",
+    "family": "法赛",
+    "tone": "warn",
+    "phase": "afterAction",
+    "weight": 3,
+    "cooldownDays": 6,
+    "tier": "critical",
+    "defaultOptionId": "yield_match",
+    "systemSummary": "模拟赛结果影响班级档位与身体消耗；制度记录一次对抗事件。",
+    "trigger": {
+      "minDay": 15,
+      "classTierIn": ["普通班", "末位班"]
+    },
+    "options": [
+      {
+        "id": "fight_match",
+        "label": "全力争胜（不留情）",
+        "tone": "danger",
+        "effects": [
+          {
+            "kind": "stat",
+            "target": "faLi",
+            "delta": 0.15
+          },
+          {
+            "kind": "stat",
+            "target": "fatigue",
+            "delta": 10
+          },
+          {
+            "kind": "school",
+            "target": "classTier",
+            "value": "示范班"
+          },
+          {
+            "kind": "log",
+            "title": "模拟赛·胜",
+            "detail": "你赢了。对方的笑僵了一下。你也僵了一下——你知道代价在后面。",
+            "tone": "ok"
+          }
+        ]
+      },
+      {
+        "id": "yield_match",
+        "label": "放水（换人情）",
+        "tone": "normal",
+        "effects": [
+          {
+            "kind": "stat",
+            "target": "focus",
+            "delta": -4
+          },
+          {
+            "kind": "econ",
+            "target": "cash",
+            "delta": 100
+          },
+          {
+            "kind": "log",
+            "title": "模拟赛·让",
+            "detail": "你输了比赛，拿到一点现金补偿。像一场体面的交易。",
+            "tone": "warn"
+          }
+        ]
+      },
+      {
+        "id": "forfeit_match",
+        "label": "弃权（保体力）",
+        "tone": "primary",
+        "effects": [
+          {
+            "kind": "stat",
+            "target": "fatigue",
+            "delta": -5
+          },
+          {
+            "kind": "stat",
+            "target": "daoXin",
+            "delta": -1
+          },
+          {
+            "kind": "log",
+            "title": "弃权",
+            "detail": "你举手弃权。裁判点头，像在登记又一次退缩。",
+            "tone": "info"
+          }
+        ]
+      }
+    ]
   }
 ]

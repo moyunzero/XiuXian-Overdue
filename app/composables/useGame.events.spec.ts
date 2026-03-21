@@ -1,8 +1,13 @@
+import { execSync } from 'node:child_process'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { computed, ref } from 'vue'
 import type { EventDefinition, GameState, PendingEvent } from '~/types/game'
 import { defaultState } from './useGameState'
 import { useGame } from './useGame'
+
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 
 const { mockEvents, criticalEvt, normalEvt, defaultEvt, CRITICAL_NARRATIVE } = vi.hoisted(() => {
   const CRITICAL_NARRATIVE = 'NARRATIVE_LONG_UNIQUE_DO_NOT_APPEAR_IN_MAIN_LOG_9931'
@@ -145,5 +150,17 @@ describe('EVT-02: tier、主日志制度摘要、defaultOptionId（Wave 0）', (
     const faLi2 = g2.stats.faLi
     expect(faLi1).toBe(faLi2)
     expect(faLi1).toBe(6)
+  })
+})
+
+describe('EVT-03: data/events.json 校验门禁（Wave 3）', () => {
+  it('node scripts/validate-events.mjs 退出码 0（D-09～D-11、D-16）', () => {
+    expect(() =>
+      execSync('node scripts/validate-events.mjs', {
+        cwd: repoRoot,
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'pipe']
+      })
+    ).not.toThrow()
   })
 })

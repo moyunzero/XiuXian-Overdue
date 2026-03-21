@@ -22,10 +22,23 @@ function readJson(filePath) {
 }
 
 const allowedTones = ['info', 'warn', 'danger', 'ok']
+const allowedTier = ['critical', 'normal']
 const allowedOptionTones = ['normal', 'primary', 'danger']
 const allowedEffectKinds = ['stat', 'econ', 'debt', 'contract', 'school', 'log']
+/** EVT-03：社交 / 试功 / 法赛 — 与 data/events.json 中 family 字段一致 */
+const EVT03_FAMILIES = ['社交', '试功', '法赛']
+/** 计「效果维度」时仅统计 gameplay 类；log 叙事不计入 D-09 双维度 */
+const GAMEPLAY_EFFECT_KINDS = ['stat', 'econ', 'debt', 'contract', 'school']
 const statTargets = ['daoXin', 'faLi', 'rouTi', 'fatigue', 'focus']
 const econTargets = ['cash', 'collectionFee', 'debtPrincipal', 'debtInterestAccrued', 'dailyRate', 'delinquency', 'lastPaymentDay']
+
+function countGameplayDimensions(effects) {
+  const kinds = new Set()
+  for (const eff of effects) {
+    if (eff && GAMEPLAY_EFFECT_KINDS.includes(eff.kind)) kinds.add(eff.kind)
+  }
+  return kinds.size
+}
 
 function validateEvent(event, index) {
   const where = `事件[${index}] id=${event.id ?? '<未填写>'}`
@@ -43,6 +56,16 @@ function validateEvent(event, index) {
     errors.push(`${where}: 缺少有效的 "type"。`)
   }
 
+  if (event.family !== undefined) {
+    if (typeof event.family !== 'string' || !event.family.trim()) {
+      errors.push(`${where}: "family" 若存在必须为非空字符串。`)
+    }
+  }
+
+  if (event.tier !== undefined && !allowedTier.includes(event.tier)) {
+    errors.push(`${where}: tier="${event.tier}" 非法，应为 ${allowedTier.join(' | ')}。`)
+  }
+
   if (event.tone && !allowedTones.includes(event.tone)) {
     errors.push(`${where}: tone="${event.tone}" 非法，应为 ${allowedTones.join(', ')} 之一。`)
   }
@@ -50,7 +73,32 @@ function validateEvent(event, index) {
   if (!Array.isArray(event.options) || event.options.length === 0) {
     errors.push(`${where}: 必须包含至少一个 "options"。`)
   } else {
+    if (event.options.length > 4) {
+      errors.push(`${where}: 选项数 ${event.options.length} 超过 D-10 上限 4。`)
+    }
+    const optionIds = new Set(event.options.map((o) => o.id).filter(Boolean))
+    if (typeof event.defaultOptionId === 'string' && event.defaultOptionId.trim()) {
+      if (!optionIds.has(event.defaultOptionId)) {
+        errors.push(`${where}: defaultOptionId="${event.defaultOptionId}" 不存在于 options[].id（D-16）。`)
+      }
+    }
     event.options.forEach((opt, optIndex) => validateOption(event, opt, index, optIndex))
+  }
+
+  // EVT-03：family 为 社交/试功/法赛 时，至少一个选项含 ≥2 个 gameplay 维度（D-09）
+  if (typeof event.family === 'string' && EVT03_FAMILIES.includes(event.family.trim())) {
+    let ok = false
+    for (const opt of event.options) {
+      if (countGameplayDimensions(opt.effects) >= 2) {
+        ok = true
+        break
+      }
+    }
+    if (!ok) {
+      errors.push(
+        `${where}: family="${event.family}" 的 EVT-03 事件须至少一个选项的 effects 覆盖 ≥2 个不同维度（stat/econ/debt/contract/school，log 不计）（D-09）。`
+      )
+    }
   }
 }
 
@@ -144,6 +192,18 @@ const events = readJson(EVENTS_PATH)
 
 if (Array.isArray(events)) {
   events.forEach((event, index) => validateEvent(event, index))
+
+  // EVT-03：社交 / 试功 / 法赛 每类至少 2 条（D-11）
+  const counts = Object.fromEntries(EVT03_FAMILIES.map((f) => [f, 0]))
+  for (const event of events) {
+    const fam = typeof event.family === 'string' ? event.family.trim() : ''
+    if (EVT03_FAMILIES.includes(fam)) counts[fam] += 1
+  }
+  for (const fam of EVT03_FAMILIES) {
+    if (counts[fam] < 2) {
+      errors.push(`EVT-03（D-11）：family="${fam}" 的事件至少需 2 条，当前 ${counts[fam]} 条。`)
+    }
+  }
 } else {
   errors.push('events.json 顶层必须是数组。')
 }
