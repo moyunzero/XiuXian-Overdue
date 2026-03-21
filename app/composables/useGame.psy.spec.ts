@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import type { EventDefinition, GameState, PendingEvent } from '~/types/game'
 import { defaultState } from './useGameState'
 import { useGame } from './useGame'
+import { useGameStorage } from './useGameStorage'
 
 const { collapseEvt, mockEvents } = vi.hoisted(() => {
   const collapseEvt: EventDefinition = {
@@ -88,5 +89,47 @@ describe('PSY-02: useGame 管线（collapse resolve / 修正）', () => {
     resolveEvent('collapse_ack')
     expect(game.value.pendingEvent).toBeUndefined()
     expect(game.value.stats.focus).toBe(before - 3)
+  })
+})
+
+describe('PSY-03: 存档旗标默认合并', () => {
+  beforeEach(() => {
+    const stateMap = new Map<string, ReturnType<typeof ref>>()
+    vi.stubGlobal('computed', computed)
+    vi.stubGlobal('useState', <T>(key: string, init: () => T) => {
+      if (!stateMap.has(key)) stateMap.set(key, ref(init()))
+      return stateMap.get(key)
+    })
+    const localStore = new Map<string, string>()
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => localStore.get(key) ?? null,
+      setItem: (key: string, value: string) => {
+        localStore.set(key, value)
+      },
+      removeItem: (key: string) => {
+        localStore.delete(key)
+      }
+    })
+  })
+
+  it('旧档缺少 summary 字段时合并为 false，并在条件已满足时解锁', () => {
+    const g = started()
+    const raw = g as GameState & { summaryUnlocked?: boolean; summarySeen?: boolean }
+    delete raw.summaryUnlocked
+    delete raw.summarySeen
+    raw.school.day = 35
+    const { buildMeta, STORAGE_KEY } = useGameStorage()
+    const meta = buildMeta('autosave', '自动存档', raw)
+    const container = {
+      activeSlot: 'autosave' as const,
+      slots: { autosave: { meta, state: raw } }
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(container))
+    const { loadFromSlot } = useGameStorage()
+    const ok = loadFromSlot('autosave')
+    expect(ok).toBe(true)
+    const { game } = useGame()
+    expect(game.value.summaryUnlocked).toBe(true)
+    expect(game.value.summarySeen).toBe(false)
   })
 })

@@ -5,7 +5,7 @@ import type {
   PendingEvent,
   StartConfig
 } from '~/types/game'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { clamp, mulberry32, round1, uid } from '~/utils/rng'
 import { ALL_EVENTS, getEventsByPhase } from '~/utils/events'
 import { buildInstitutionalEventLogDetail } from '~/logic/eventInstitutionalLog'
@@ -384,6 +384,37 @@ export function useGame() {
   const { game } = useGameState()
   const { activeSlot, saveToSlot, loadFromSlot, listSlots, buildMeta, STORAGE_KEY, LEGACY_STORAGE_KEY } = useGameStorage()
 
+  const summaryPanelOpen = ref(false)
+
+  /** PSY-03：条件先到则持久化解锁旗标 */
+  const ensureSummaryUnlock = (g: GameState) => {
+    if (g.summaryUnlocked) return
+    if (Engine.shouldUnlockSummary(g)) {
+      g.summaryUnlocked = true
+      if (g.summaryUnlockedAtDay === undefined) g.summaryUnlockedAtDay = g.school.day
+    }
+  }
+
+  const openSummaryPanel = () => {
+    const g = game.value
+    ensureSummaryUnlock(g)
+    if (!g.summaryUnlocked) return
+    summaryPanelOpen.value = true
+  }
+
+  /** D-16：确认读后状态 + 存档；不结束游戏 */
+  const acknowledgeSummaryAndContinue = () => {
+    const g = game.value
+    g.summarySeen = true
+    g.summarySeenAtDay = g.school.day
+    summaryPanelOpen.value = false
+    saveToSlot(activeSlot.value)
+  }
+
+  const closeSummaryPanelWithoutMarking = () => {
+    summaryPanelOpen.value = false
+  }
+
   const BODY_PART_LABELS: Record<string, string> = {
     LeftPalm: '左手掌',
     RightPalm: '右手掌',
@@ -627,7 +658,7 @@ export function useGame() {
       g.econ.debtInterestAccrued = round1(g.econ.debtInterestAccrued + 120)
       addLog('契约反噬·硬抗代价', '你硬扛了这次命令。代价马上到账：更累、更乱、更贵。', 'danger')
     } else if (optionId === 'ending_continue') {
-      addLog('情节结局：麻木化时刻', '你没有被强制结束。你只是把麻木当成了新的日常，然后继续推进下一天。', 'warn')
+      addLog(Engine.NARRATIVE_ENDING_LOG_TITLE, '你没有被强制结束。你只是把麻木当成了新的日常，然后继续推进下一天。', 'warn')
     } else if (event.eventId) {
       const definition = ALL_EVENTS.find(def => def.id === event.eventId)
       if (!definition) {
@@ -646,6 +677,7 @@ export function useGame() {
     }
 
     g.pendingEvent = undefined
+    ensureSummaryUnlock(g)
     saveToSlot(activeSlot.value)
   }
 
@@ -770,6 +802,7 @@ export function useGame() {
         g.contract.vigilance = clamp(g.contract.vigilance + (action === 'rest' ? 6 : 2), 0, 100)
         Engine.syncDomesticationWithContractProgress(g, prevP, prevV)
         g.pendingEvent = Engine.makeContractBacklashEvent(g, action)
+        ensureSummaryUnlock(g)
         saveToSlot(activeSlot.value)
         return
       }
@@ -842,7 +875,7 @@ export function useGame() {
 
       if (g.school.slot === 'morning') g.econ.cash += g.school.perks.mealSubsidy
 
-      const endingAlreadySeen = g.logs.some((log: GameState['logs'][number]) => log.title === '情节结局：麻木化时刻')
+      const endingAlreadySeen = g.logs.some((log: GameState['logs'][number]) => log.title === Engine.NARRATIVE_ENDING_LOG_TITLE)
       const shouldShowEnding = !endingAlreadySeen && Engine.shouldTriggerNarrativeEnding(g)
       const repaymentCheck = Engine.shouldTriggerRepaymentEvent(g, rand)
       if (repaymentCheck.trigger) {
@@ -877,6 +910,7 @@ export function useGame() {
       if (idx < Engine.slotOrder().length - 1 && nextSlot) g.school.slot = nextSlot
       else endDay()
 
+      ensureSummaryUnlock(g)
       saveToSlot(activeSlot.value)
     }
 
@@ -979,6 +1013,10 @@ export function useGame() {
     act,
     borrow,
     repay,
-    resolveEvent
+    resolveEvent,
+    summaryPanelOpen,
+    openSummaryPanel,
+    acknowledgeSummaryAndContinue,
+    closeSummaryPanelWithoutMarking
   }
 }

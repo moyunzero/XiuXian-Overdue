@@ -14,8 +14,29 @@ import Pill from '~/components/ui/Pill.vue'
 import HumanModelViewer from '~/components/game/HumanModelViewer.vue'
 import BorrowModal from '~/components/game/BorrowModal.vue'
 import RepayModal from '~/components/game/RepayModal.vue'
+import SummaryPanel from '~/components/game/SummaryPanel.vue'
 
-const { game, activeSlot, saveToSlot, totalDebt, minPayment, accumulatedMinPayment, classPressureDigest, creditLimit, nextLabel, remainingSlots, actionTrendLabel, act, borrow, repay, resolveEvent } = useGame()
+const {
+  game,
+  activeSlot,
+  saveToSlot,
+  totalDebt,
+  minPayment,
+  accumulatedMinPayment,
+  classPressureDigest,
+  creditLimit,
+  nextLabel,
+  remainingSlots,
+  actionTrendLabel,
+  act,
+  borrow,
+  repay,
+  resolveEvent,
+  summaryPanelOpen,
+  openSummaryPanel,
+  acknowledgeSummaryAndContinue,
+  closeSummaryPanelWithoutMarking
+} = useGame()
 
 /** D-16：ESC/遮罩关闭优先映射 defaultOptionId；无配置时回退末项（常见消极/拒绝），与后续 validate-events 可对齐收紧 */
 const dismissOptionId = computed(() => {
@@ -107,6 +128,23 @@ const routeImbalancePill = computed(() => {
   if (ss >= cs) return '系统记录：刷分路线偏科趋势'
   return '系统记录：打工路线偏科趋势'
 })
+
+/** PSY-03：三轨先到任一即可见入口 */
+const summaryAvailable = computed(
+  () => g.value.summaryUnlocked || Engine.shouldUnlockSummary(g.value)
+)
+const summarySnapshot = computed(() => Engine.buildSummarySnapshot(g.value))
+
+function onSummaryConfirm() {
+  acknowledgeSummaryAndContinue()
+  if (typeof window !== 'undefined') {
+    window.confirm('进度已写入当前槽位。继续下一天循环？')
+  }
+}
+
+function onSummaryDismiss() {
+  closeSummaryPanelWithoutMarking()
+}
 
 const actionEntries = computed<Array<{ id: ActionId; label: string; variant: 'primary' | 'secondary'; trend: string; note: string }>>(() => [
   { id: 'study', label: '上课/刷题', variant: 'primary', trend: actionTrendLabel('study'), note: '稳分' },
@@ -231,6 +269,15 @@ watch(
       </Pill>
       <span class="Spacer" />
       <Pill>存档：{{ activeSlot }}</Pill>
+      <Button
+        v-if="summaryAvailable"
+        size="sm"
+        variant="secondary"
+        :disabled="actionsLocked"
+        @click="openSummaryPanel"
+      >
+        总结
+      </Button>
       <Button size="sm" :disabled="actionsLocked" @click="quickSave('slot1')">存1</Button>
       <Button size="sm" :disabled="actionsLocked" @click="quickSave('slot2')">存2</Button>
       <Button size="sm" :disabled="actionsLocked" @click="quickSave('slot3')">存3</Button>
@@ -400,6 +447,13 @@ watch(
       :total-debt="modalTotalDebt"
       @resolve="resolveEvent"
       @dismiss="() => resolveEvent(dismissOptionId)"
+    />
+
+    <SummaryPanel
+      :show="summaryPanelOpen"
+      :snapshot="summarySnapshot"
+      @confirm="onSummaryConfirm"
+      @dismiss="onSummaryDismiss"
     />
   </div>
 </template>
