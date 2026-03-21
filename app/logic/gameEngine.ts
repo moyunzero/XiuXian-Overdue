@@ -483,6 +483,109 @@ export function makeNarrativeEndingEvent(): PendingEvent {
   }
 }
 
+// ========== PSY-01：中后期门闩、阶梯加压、休息倍率、副指标（D-01～D-08） ==========
+
+/** D-01：中后期 = day≥10 或 contract.progress≥50%（先到先进入） */
+export function isMidLatePhase(g: GameState): boolean {
+  return g.school.day >= 10 || g.contract.progress >= 50
+}
+
+/**
+ * D-02：冲突加压阶梯（Claude discretion：与 7 日周节律对齐）。
+ * 非中后期为 0；中后期为 (week-1) 基线 + 周结算日抬 1 档，随周次单调不减。
+ */
+export function getConflictPressureTier(g: GameState): number {
+  if (!isMidLatePhase(g)) return 0
+  const weekIdx = Math.max(0, g.school.week - 1)
+  const settlementBoost = isWeeklySettlementDay(g) ? 1 : 0
+  return weekIdx + settlementBoost
+}
+
+/**
+ * D-03：可测复合压力分数（契约缠绕 + 疲劳/道心/专注等），不引入第二套无关资源条。
+ */
+export function computePsychologicalPressureScore(g: GameState): number {
+  const c = g.contract
+  const contractPart = (c.active ? c.progress : 0) * 0.38 + (c.active ? c.vigilance : 0) * 0.22
+  const statsPart = g.stats.fatigue * 0.32 + (100 - g.stats.focus) * 0.14 + Math.max(0, g.stats.daoXin - 1) * 1.8
+  return contractPart + statsPart
+}
+
+/**
+ * D-07：契约缠绕越高，休息恢复效率越低（同一公式，D-04 无前期软保护分支）。
+ */
+export function restRecoveryMultiplier(g: GameState): number {
+  if (!g.contract.active) return 1
+  const entanglement = clamp(g.contract.progress + g.contract.vigilance * 0.18, 0, 100)
+  return clamp(1 - (entanglement / 100) * 0.58, 0.22, 1)
+}
+
+export type RestRecoveryOpts = {
+  rand: () => number
+  /** 测试/强制：走麻木分支 */
+  forceNumb?: boolean
+}
+
+export type RestRecoveryResult = {
+  focusDelta: number
+  fatigueDelta: number
+  isNumbRest: boolean
+  multiplier: number
+}
+
+/**
+ * D-06～D-07：休息结算（专注增量）；麻木分支几乎不回状态。
+ * 疲劳在行动管线中统一结算，此处 fatigueDelta 恒为 0。
+ */
+export function computeRestRecovery(g: GameState, opts: RestRecoveryOpts): RestRecoveryResult {
+  const mult = restRecoveryMultiplier(g)
+  const baseFocus = 6
+
+  if (opts.forceNumb) {
+    return { focusDelta: 0, fatigueDelta: 0, isNumbRest: true, multiplier: mult }
+  }
+
+  const pNumb = numbRestProbability(g)
+  if (g.contract.active && isMidLatePhase(g) && opts.rand() < pNumb) {
+    return { focusDelta: 0, fatigueDelta: 0, isNumbRest: true, multiplier: mult }
+  }
+
+  const focusDelta = Math.round(baseFocus * mult * 10) / 10
+  return { focusDelta, fatigueDelta: 0, isNumbRest: false, multiplier: mult }
+}
+
+/** D-06：中后期签约下麻木休息基础概率（Claude discretion） */
+export function numbRestProbability(g: GameState): number {
+  if (!g.contract.active || !isMidLatePhase(g)) return 0
+  return clamp(0.07 + (g.contract.progress / 100) * 0.45, 0, 0.55)
+}
+
+/**
+ * 单次 roll∈[0,1) 是否进入麻木休息（与 act 内第一随机点一致）。
+ */
+export function shouldTakeNumbRest(g: GameState, roll: number): boolean {
+  return roll >= 0 && roll < numbRestProbability(g)
+}
+
+/**
+ * D-05：契约 progress 上升时同步驯化副指标（非递减增量）。
+ */
+export function syncDomesticationWithContractProgress(g: GameState, prevProgress: number): void {
+  if (!g.contract.active) return
+  const delta = g.contract.progress - prevProgress
+  if (delta <= 0) return
+  const cur = g.domestication ?? 0
+  g.domestication = clamp(cur + delta * 0.28, 0, 100)
+}
+
+/** D-08：契约 Pill 旁单行副指标文案 */
+export function formatPsySubsidiaryLine(g: GameState): string {
+  if (!g.contract.active) return ''
+  const d = Math.round(g.domestication ?? 0)
+  const n = Math.round(g.numbness ?? 0)
+  return `驯化 ${d} · 麻木 ${n}`
+}
+
 export function makeContractBacklashEvent(g: GameState, intended: ActionId): PendingEvent {
   return {
     title: '反噬倒计时：不要故意拖延',

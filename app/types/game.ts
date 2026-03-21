@@ -275,6 +275,15 @@ export interface GameState {
   cashDayStreak?: number
   /** 上次输出路线失衡制度提示的游戏日（用于 2~3 日可见节律） */
   lastConflictNoticeDay?: number
+
+  /**
+   * PSY-01 D-05：驯化副指标（0~100），与契约 progress 联动，非第二套无关资源。
+   */
+  domestication?: number
+  /**
+   * PSY-01：麻木副指标（0~100），麻木休息路径累积；与契约主题一致。
+   */
+  numbness?: number
 }
 
 

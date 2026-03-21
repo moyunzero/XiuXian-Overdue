@@ -103,6 +103,8 @@ export function useGameStorage() {
     if (state.lastBodyPartDay !== undefined && typeof state.lastBodyPartDay !== 'number') state.lastBodyPartDay = undefined
     if (!Array.isArray(state.pendingNarratives)) state.pendingNarratives = []
     if (!state.familyHistory || typeof state.familyHistory !== 'object') state.familyHistory = {}
+    if (typeof state.domestication !== 'number' || state.domestication < 0) state.domestication = 0
+    if (typeof state.numbness !== 'number' || state.numbness < 0) state.numbness = 0
 
     game.value = state
     activeSlot.value = id

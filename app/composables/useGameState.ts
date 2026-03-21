@@ -51,7 +51,9 @@ export function defaultState(): GameState {
     buyDebasement: 0,
     daySlotActions: {},
     scoreDayStreak: 0,
-    cashDayStreak: 0
+    cashDayStreak: 0,
+    domestication: 0,
+    numbness: 0
   }
 }
 
