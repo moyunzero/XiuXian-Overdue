@@ -5,6 +5,7 @@ import type {
   PendingEvent,
   StartConfig
 } from '~/types/game'
+import { computed } from 'vue'
 import { clamp, mulberry32, round1, uid } from '~/utils/rng'
 import { ALL_EVENTS, getEventsByPhase } from '~/utils/events'
 import * as Engine from '~/logic/gameEngine'
@@ -357,7 +358,7 @@ export function useGame() {
 
   const classPressureDigest = computed(() => {
     const g = game.value
-    const latestWeeklyReport = g.logs.find((log) => log.title.includes('周结算通报'))
+    const latestWeeklyReport = g.logs.find((log: GameState['logs'][number]) => log.title.includes('周结算通报'))
     const tierDebtProfile = Engine.debtProfileForTier(g.school.classTier)
     const weeklyChangeMatch = latestWeeklyReport?.detail.match(/分班变化：([^；]+)；/)
     return {
@@ -731,7 +732,7 @@ export function useGame() {
 
       if (g.school.slot === 'morning') g.econ.cash += g.school.perks.mealSubsidy
 
-      const endingAlreadySeen = g.logs.some((log) => log.title === '情节结局：麻木化时刻')
+      const endingAlreadySeen = g.logs.some((log: GameState['logs'][number]) => log.title === '情节结局：麻木化时刻')
       const shouldShowEnding = !endingAlreadySeen && Engine.shouldTriggerNarrativeEnding(g)
       if (shouldShowEnding) {
         g.pendingEvent = Engine.makeNarrativeEndingEvent()
