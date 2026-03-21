@@ -5,6 +5,7 @@ import type {
   PendingEvent,
   SlotId,
 } from '~/types/game'
+import { buildInstitutionalEventLogDetail } from '~/logic/eventInstitutionalLog'
 import { clamp, uid } from '~/utils/rng'
 
 export function fullDebt(g: GameState): number {
@@ -272,7 +273,29 @@ export function pickWeightedEvent(events: EventDefinition[], rand: () => number)
   return events[events.length - 1]
 }
 
+function ensureSystemBlock(
+  def: EventDefinition,
+  tier: 'critical' | 'normal'
+): { systemSummary: string; systemDetails: string } {
+  if (def.systemSummary && def.systemDetails) {
+    return { systemSummary: def.systemSummary, systemDetails: def.systemDetails }
+  }
+  if (tier === 'critical') {
+    const fx = def.options[0]?.effects ?? []
+    return {
+      systemSummary: def.systemSummary ?? '制度性参数将按选项结果更新',
+      systemDetails: def.systemDetails ?? buildInstitutionalEventLogDetail(fx)
+    }
+  }
+  return {
+    systemSummary: def.systemSummary ?? '',
+    systemDetails: def.systemDetails ?? ''
+  }
+}
+
 export function toPendingEvent(def: EventDefinition): PendingEvent {
+  const tier = def.tier ?? 'normal'
+  const sys = ensureSystemBlock(def, tier)
   return {
     eventId: def.id,
     title: def.title,
@@ -281,7 +304,12 @@ export function toPendingEvent(def: EventDefinition): PendingEvent {
       id: opt.id,
       label: opt.label,
       tone: opt.tone
-    }))
+    })),
+    tier,
+    systemSummary: sys.systemSummary,
+    systemDetails: sys.systemDetails,
+    defaultOptionId: def.defaultOptionId,
+    mandatory: def.mandatory ?? false
   }
 }
 

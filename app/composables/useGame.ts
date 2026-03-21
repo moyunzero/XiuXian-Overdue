@@ -8,6 +8,7 @@ import type {
 import { computed } from 'vue'
 import { clamp, mulberry32, round1, uid } from '~/utils/rng'
 import { ALL_EVENTS, getEventsByPhase } from '~/utils/events'
+import { buildInstitutionalEventLogDetail } from '~/logic/eventInstitutionalLog'
 import * as Engine from '~/logic/gameEngine'
 import { useGameState, defaultState } from './useGameState'
 import { useGameStorage, type SaveSlotId } from './useGameStorage'
@@ -317,7 +318,8 @@ export const __test__ = {
   weeklySystemFee,
   applyWeeklyCollectionFee,
   applyRepaymentByPriority,
-  executeImmediatePayment
+  executeImmediatePayment,
+  buildInstitutionalEventLogDetail
 }
 
 function buildRepaymentEvent(
@@ -344,7 +346,17 @@ function buildRepaymentEvent(
   const body = mandatory
     ? '你已经没有选择的余地。催收人员站在你面前，合同已经签好。偿还后的身体部位无法恢复。这不是游戏机制，这是你的选择。'
     : '债务压垮了你的最后一道防线。他们提出了一个"解决方案"。偿还后的身体部位无法恢复。这不是游戏机制，这是你的选择。'
-  return { title, body, options, mandatory }
+  return {
+    title,
+    body,
+    options,
+    mandatory,
+    /** D-16：非强制时 ESC/遮罩等价拒绝 */
+    defaultOptionId: mandatory ? undefined : 'refuse',
+    tier: 'critical',
+    systemSummary: '身体部位偿还按动态估值冲减滚动债；核心债不因日常路径直接清零。',
+    systemDetails: '具体冲减分项以结算执行结果为准；本区不提供策略建议。'
+  }
 }
 
 export function useGame() {
@@ -593,7 +605,13 @@ export function useGame() {
       } else {
         const option = definition.options.find(opt => opt.id === optionId)
         if (!option) addLog('事件配置异常', `事件 ${event.eventId} 未找到选项 ${optionId}。`, 'warn')
-        else applyEventEffects(g, option.effects)
+        else {
+          // EVT-02：弹窗正文不进主日志；主通道仅一条冷制度摘要（D-06）。log 类 effect 合并进 suppress，避免叙事重复刷屏。
+          applyEventEffects(g, option.effects, { suppressLogEffects: true })
+          const t = definition.tone
+          const logTone = t === 'danger' ? 'danger' : t === 'warn' ? 'warn' : t === 'ok' ? 'ok' : 'info'
+          addLog(`制度记录：${definition.title}`, buildInstitutionalEventLogDetail(option.effects), logTone)
+        }
       }
     }
 
@@ -601,7 +619,11 @@ export function useGame() {
     saveToSlot(activeSlot.value)
   }
 
-  const applyEventEffects = (g: GameState, effects: EventEffect[]) => {
+  const applyEventEffects = (
+    g: GameState,
+    effects: EventEffect[],
+    opts?: { suppressLogEffects?: boolean }
+  ) => {
     const addLog = (title: string, detail: string, tone: 'info' | 'warn' | 'danger' | 'ok' = 'info') => {
       g.logs.unshift({ id: uid('log'), day: g.school.day, title, detail, tone })
       if (g.logs.length > 120) g.logs.pop()
@@ -648,6 +670,7 @@ export function useGame() {
           break
         }
         case 'log': {
+          if (opts?.suppressLogEffects) break
           addLog(effect.title, effect.detail, effect.tone)
           break
         }

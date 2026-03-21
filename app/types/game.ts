@@ -172,6 +172,16 @@ export interface EventDefinition {
   cooldownDays?: number
   maxTimes?: number
   trigger?: EventTrigger
+  /** EVT-02：关键事件双反馈层级（D-07） */
+  tier?: 'critical' | 'normal'
+  /** EVT-02：ESC/遮罩关闭等价选项（D-16） */
+  defaultOptionId?: string
+  /** 弹窗折叠区短摘要（critical 建议配置） */
+  systemSummary?: string
+  /** 弹窗折叠区量化明细 */
+  systemDetails?: string
+  /** 未在 JSON 出现则视为 false（03-RESEARCH） */
+  mandatory?: boolean
   options: EventOptionDefinition[]
 }
 
@@ -186,6 +196,10 @@ export interface PendingEvent {
     tone?: 'normal' | 'danger' | 'primary'
   }>
   mandatory?: boolean
+  tier?: 'critical' | 'normal'
+  systemSummary?: string
+  systemDetails?: string
+  defaultOptionId?: string
 }
 
 export interface GameState {
@@ -280,6 +294,10 @@ export interface EventModalPayload {
   options: EventOptionDisplay[]
   mandatory?: boolean
   type?: string
+  tier?: 'critical' | 'normal'
+  systemSummary?: string
+  systemDetails?: string
+  defaultOptionId?: string
 }
 
 /** LogPanel 展示用的日志条目类型（tone 为必填，与 LogEntry 的可选 tone 区分） */

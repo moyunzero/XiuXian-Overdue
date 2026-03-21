@@ -11,7 +11,8 @@ import {
   isWeeklySettlementDay,
   isWeeklySettlementDayAfterDayRoll,
   pickWeightedEvent,
-  recordEventTrigger
+  recordEventTrigger,
+  toPendingEvent
 } from '~/logic/gameEngine'
 
 function baseGame(overrides: Partial<GameState> = {}): GameState {
@@ -171,5 +172,53 @@ describe('EVT-01: 仅 afterAction 候选池，无第二套主池 (D-01)', () => 
     ]
     const r = mulberry32(7)
     expect(pickWeightedEvent(pool, r)).toBeDefined()
+  })
+})
+
+describe('EVT-02: toPendingEvent 载荷（tier、系统块、defaultOptionId）', () => {
+  it('传递 tier、defaultOptionId、mandatory 默认 false', () => {
+    const def: EventDefinition = {
+      id: 'evt_payload',
+      title: 'T',
+      body: 'B',
+      type: 't',
+      tier: 'critical',
+      defaultOptionId: 'opt_a',
+      systemSummary: '摘要',
+      systemDetails: '明细',
+      options: [{ id: 'opt_a', label: 'A', effects: [{ kind: 'stat', target: 'focus', delta: -1 }] }]
+    }
+    const p = toPendingEvent(def)
+    expect(p.tier).toBe('critical')
+    expect(p.defaultOptionId).toBe('opt_a')
+    expect(p.mandatory).toBe(false)
+    expect(p.systemSummary).toBe('摘要')
+    expect(p.systemDetails).toBe('明细')
+  })
+
+  it('未标注 tier 时视为 normal', () => {
+    const def: EventDefinition = {
+      id: 'evt_norm',
+      title: 'T',
+      body: 'B',
+      type: 't',
+      options: [{ id: 'x', label: 'L', effects: [] }]
+    }
+    const p = toPendingEvent(def)
+    expect(p.tier).toBe('normal')
+  })
+
+  it('critical 且未配系统字段时补齐制度块（D-07）', () => {
+    const def: EventDefinition = {
+      id: 'evt_crit_derive',
+      title: 'T',
+      body: 'B',
+      type: 't',
+      tier: 'critical',
+      options: [{ id: 'a', label: 'L', effects: [{ kind: 'stat', target: 'faLi', delta: 1 }] }]
+    }
+    const p = toPendingEvent(def)
+    expect(p.systemSummary).toBeTruthy()
+    expect(p.systemDetails).toBeTruthy()
   })
 })
