@@ -693,7 +693,7 @@
   {
     "id": "evt03_social_clique",
     "title": "小圈子饭局",
-    "body": "有人把你拉进一个群：说是「同届互助」，实则轮流请客。今晚轮到凑份子，不去就等于不合群。",
+    "body": "有人把你拉进一个群：说是「同届互助」，实则轮流请客。今晚轮到凑份子；不去的人，会在另一个群里被写成「难相处」。你看着红包数字，像看着一根慢慢勒紧的线。",
     "type": "social",
     "family": "社交",
     "tone": "warn",
@@ -702,7 +702,7 @@
     "cooldownDays": 4,
     "tier": "normal",
     "defaultOptionId": "decline_dinner",
-    "systemSummary": "社交支出与注意力被制度性占用；未登记合群成本。",
+    "systemSummary": "制度记录：非教学性社交支出发生；注意力指标下调。合群成本未单列科目。",
     "trigger": {
       "minDay": 4
     },
@@ -753,7 +753,7 @@
   {
     "id": "evt03_social_rumor",
     "title": "走廊里的闲话",
-    "body": "你路过茶水间，听见有人在念你的名字。不是夸。你停了一秒，又装作没听见。",
+    "body": "你路过茶水间，听见有人在念你的名字。不是夸。笑声贴着瓷砖反弹，像细小的玻璃碴。你停了一秒，又装作没听见——可你已经听见了。",
     "type": "social",
     "family": "社交",
     "tone": "info",
@@ -762,8 +762,8 @@
     "cooldownDays": 5,
     "tier": "critical",
     "defaultOptionId": "walk_away",
-    "systemSummary": "名誉压力登记：注意力下降；逾期相关风险未排除。",
-    "systemDetails": "focus 变动；若已有逾期，心理成本将叠加制度抽检概率（由状态机读取）。",
+    "systemSummary": "制度记录：声誉冲突事件登记；注意力与现金流可能同时受损。",
+    "systemDetails": "字段：focus、cash；逾期状态下冲突成本上浮（由状态机解释，不在此展开叙事）。",
     "trigger": {
       "minDay": 6,
       "maxDelinquency": 3
@@ -820,7 +820,7 @@
   {
     "id": "evt03_trial_screening",
     "title": "企业试功：灵压筛查",
-    "body": "招贴写着「合规试功，补贴现结」。你排队进场，像排队签一份看不见的合同。仪器贴上来那一刻，胸口发闷。",
+    "body": "招贴写着「合规试功，补贴现结」。你排队进场，像排队签一份看不见的合同。仪器贴上来那一刻，胸口发闷；你听见自己的心跳被机器读成一行数字。",
     "type": "trial",
     "family": "试功",
     "tone": "warn",
@@ -829,7 +829,7 @@
     "cooldownDays": 6,
     "tier": "normal",
     "defaultOptionId": "skip_screen",
-    "systemSummary": "试功补贴与身体损耗同时入账；制度记录为一次性筛查。",
+    "systemSummary": "制度记录：试功补贴发放；肉体/疲劳指标调整。筛查为单次事件，不承诺后续救济。",
     "trigger": {
       "minDay": 8
     },
@@ -890,7 +890,7 @@
   {
     "id": "evt03_trial_waiver",
     "title": "试功弃权单",
-    "body": "班群里甩来一张「自愿弃权」：不签就不能评优。签了意味着你放弃索赔。笔悬在那里，像悬在你喉咙上。",
+    "body": "班群里甩来一张「自愿弃权」：不签就不能评优。签了意味着你放弃索赔，也把下一次追责写进默认同意。笔悬在那里，像悬在你喉咙上。",
     "type": "trial",
     "family": "试功",
     "tone": "danger",
@@ -899,8 +899,8 @@
     "cooldownDays": 7,
     "tier": "critical",
     "defaultOptionId": "sign_waiver",
-    "systemSummary": "弃权与债务条款绑定：签署将追加制度性本金登记。",
-    "systemDetails": "addPrincipal 模式；金额由引擎按档位解释。",
+    "systemSummary": "制度记录：弃权条款与本金追加绑定；费用项可能同步上调。",
+    "systemDetails": "debt.mode=addPrincipal；collectionFee 可能叠加；具体数额以结算为准。",
     "trigger": {
       "minDay": 12,
       "minDelinquency": 1
@@ -957,7 +957,7 @@
   {
     "id": "evt03_spell_league",
     "title": "法赛预选：积分换奖金",
-    "body": "公告栏贴着法赛流程：报名费不高，但想进下一轮要烧材料与时间。赢家拿钱，输家只剩一张「参与证明」。",
+    "body": "公告栏贴着法赛流程：报名费不高，但想进下一轮要烧材料与时间。赢家拿钱，输家只剩一张「参与证明」——像一枚安慰章，盖在空钱包上。",
     "type": "spell",
     "family": "法赛",
     "tone": "info",
@@ -966,7 +966,7 @@
     "cooldownDays": 5,
     "tier": "normal",
     "defaultOptionId": "spectate_only",
-    "systemSummary": "参赛支出与法力/疲劳联动；未参赛不计入排名池。",
+    "systemSummary": "制度记录：法赛报名费用发生；法力与疲劳同步调整。未参赛者不进入排名池。",
     "trigger": {
       "minDay": 10
     },
@@ -1022,7 +1022,7 @@
   {
     "id": "evt03_spell_mock",
     "title": "模拟法赛：对抗抽签",
-    "body": "抽签对手是熟人。裁判说「友谊第一」。你听见「友谊」两个字，就知道规则写在另一张纸上。",
+    "body": "抽签对手是熟人。裁判说「友谊第一」。你听见「友谊」两个字，就知道规则写在另一张纸上——而那张纸从不发给你。",
     "type": "spell",
     "family": "法赛",
     "tone": "warn",
@@ -1031,7 +1031,7 @@
     "cooldownDays": 6,
     "tier": "critical",
     "defaultOptionId": "yield_match",
-    "systemSummary": "模拟赛结果影响班级档位与身体消耗；制度记录一次对抗事件。",
+    "systemSummary": "制度记录：模拟法赛对抗完成；班级档位与资源消耗可能同时变动。",
     "trigger": {
       "minDay": 15,
       "classTierIn": ["普通班", "末位班"]
