@@ -102,6 +102,7 @@ export function useGameStorage() {
     if (typeof state.econ.initialCoreDebt !== 'number' || state.econ.initialCoreDebt < 0) state.econ.initialCoreDebt = state.econ.coreDebt
     if (state.lastBodyPartDay !== undefined && typeof state.lastBodyPartDay !== 'number') state.lastBodyPartDay = undefined
     if (!Array.isArray(state.pendingNarratives)) state.pendingNarratives = []
+    if (!state.familyHistory || typeof state.familyHistory !== 'object') state.familyHistory = {}
 
     game.value = state
     activeSlot.value = id

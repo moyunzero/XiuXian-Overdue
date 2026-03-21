@@ -194,10 +194,9 @@ export const MIN_EVENT_COOLDOWN_DAYS = 3
 export const WEEKLY_RANDOM_DOWNWEIGHT_K = 0.65
 
 export function effectiveEventCooldownDays(event: EventDefinition): number {
-  // Task 0 RED：未与 MIN 取 max（Task 1 修正）
   const raw = event.cooldownDays
   if (raw === undefined || raw <= 0) return 0
-  return raw
+  return Math.max(raw, MIN_EVENT_COOLDOWN_DAYS)
 }
 
 /**
@@ -209,27 +208,39 @@ export function isWeeklySettlementDayAfterDayRoll(day: number): boolean {
 
 /**
  * 当前游玩日是否处于「下一次 endDay 将跑周结算」的周界日前段（D-04）。
- * 等价于 day 自增后满足 isWeeklySettlementDayAfterDayRoll。
+ * 与 endDay 中 day+=1 后的周块条件一致：下一日 D 满足 (D-1)%7===0 ⇔ 当前日 %7===0。
  */
 export function isWeeklySettlementDay(g: GameState): boolean {
-  // Task 0 RED stub
-  return false
+  const d = g.school.day
+  return d > 0 && d % 7 === 0
 }
 
+/** 非 mandatory 的 afterAction 随机门概率乘数（D-04）；仅作用于 baseP，不禁止随机 */
 export function applyWeeklyRandomDownweightToProbability(baseP: number, g: GameState): number {
-  // Task 0 RED stub
-  return baseP
+  if (!isWeeklySettlementDay(g)) return baseP
+  return baseP * WEEKLY_RANDOM_DOWNWEIGHT_K
 }
 
+/** 同 family 短周期互斥（D-02），窗口长度与 MIN_EVENT_COOLDOWN_DAYS 一致 */
 export function isFamilyOnCooldown(g: GameState, event: EventDefinition): boolean {
-  // Task 0 RED stub
-  return false
+  const fam = event.family
+  if (!fam) return false
+  const hist = g.familyHistory?.[fam]
+  if (!hist) return false
+  return g.school.day - hist.lastDay < MIN_EVENT_COOLDOWN_DAYS
 }
 
+/** 选中随机事件后写入 id 与 family 时间戳（D-02、D-03） */
 export function recordEventTrigger(g: GameState, event: EventDefinition): void {
-  // Task 0 RED stub
-  void g
-  void event
+  if (!g.eventHistory) g.eventHistory = {}
+  const entry = g.eventHistory[event.id] || { lastDay: 0, times: 0 }
+  entry.lastDay = g.school.day
+  entry.times += 1
+  g.eventHistory[event.id] = entry
+  if (event.family) {
+    if (!g.familyHistory) g.familyHistory = {}
+    g.familyHistory[event.family] = { lastDay: g.school.day }
+  }
 }
 
 export function isEventOnCooldown(g: GameState, event: EventDefinition) {

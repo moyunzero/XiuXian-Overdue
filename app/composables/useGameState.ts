@@ -44,6 +44,7 @@ export function defaultState(): GameState {
     },
     logs: [],
     eventHistory: {},
+    familyHistory: {},
     bodyPartRepayment: {},
     bodyIntegrity: 1.0,
     bodyReputation: 'clean',
