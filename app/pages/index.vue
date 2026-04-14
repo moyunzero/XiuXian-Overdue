@@ -80,7 +80,7 @@ const slotData = computed(() =>
 <template>
   <div class="IndexPage">
     <ParticleBackground />
-    <div class="IndexPage__container">
+    <div class="Container">
       <HeroSection />
 
       <IdentitySelector
@@ -186,12 +186,6 @@ const slotData = computed(() =>
 .IndexPage {
   width: 100%;
   min-height: 100vh;
-}
-
-.IndexPage__container {
-  width: 100%;
-  max-width: 100%;
-  padding: 0 24px 48px;
 }
 
 .IndexPage__identity {
