@@ -15,6 +15,9 @@ import HumanModelViewer from '~/components/game/HumanModelViewer.vue'
 import BorrowModal from '~/components/game/BorrowModal.vue'
 import RepayModal from '~/components/game/RepayModal.vue'
 import SummaryPanel from '~/components/game/SummaryPanel.vue'
+import MobileToolbar from '~/components/game/MobileToolbar.vue'
+import MobileActionGrid from '~/components/game/MobileActionGrid.vue'
+import LogDrawer from '~/components/game/LogDrawer.vue'
 
 const {
   game,
@@ -27,7 +30,6 @@ const {
   creditLimit,
   nextLabel,
   remainingSlots,
-  actionTrendLabel,
   act,
   borrow,
   repay,
@@ -58,15 +60,33 @@ const syncModelDetailsOpen = () => {
   if (!el || !mq) return
   el.open = mq.matches
 }
+
+/* Mobile detection */
+const isMobile = ref(false)
+let mobileMq: MediaQueryList | null = null
+const syncMobile = () => {
+  if (!mobileMq) return
+  isMobile.value = mobileMq.matches
+}
+
+/* Mobile drawer state */
+const logDrawerOpen = ref(false)
+
 onMounted(async () => {
   if (import.meta.server) return
   await nextTick()
   modelMq = window.matchMedia('(min-width: 640px)')
   syncModelDetailsOpen()
   modelMq.addEventListener('change', syncModelDetailsOpen)
+
+  mobileMq = window.matchMedia('(max-width: 767px)')
+  syncMobile()
+  mobileMq.addEventListener('change', syncMobile)
+  isMobile.value = mobileMq.matches
 })
 onUnmounted(() => {
   modelMq?.removeEventListener('change', syncModelDetailsOpen)
+  mobileMq?.removeEventListener('change', syncMobile)
 })
 
 const g = computed(() => game.value)
@@ -137,9 +157,6 @@ const contractPill = computed(() => {
   return `已请神 · 缠绕${p}% · 监工${v}`
 })
 
-/** PSY-01 D-08：契约旁单行副指标（驯化/麻木），不大面板 */
-const psySubsidiaryLine = computed(() => Engine.formatPsySubsidiaryLine(g.value))
-
 /** CLASS-03：仅提示制度记录的偏科趋势，不给出策略（冷反馈） */
 const routeImbalancePill = computed(() => {
   const ss = g.value.scoreDayStreak ?? 0
@@ -166,20 +183,14 @@ function onSummaryDismiss() {
   closeSummaryPanelWithoutMarking()
 }
 
-const actionEntries = computed<Array<{ id: ActionId; label: string; variant: 'primary' | 'secondary'; trend: string; note: string }>>(() => [
-  { id: 'study', label: '上课/刷题', variant: 'primary', trend: actionTrendLabel('study'), note: '稳分' },
-  { id: 'tuna', label: '吐纳', variant: 'primary', trend: actionTrendLabel('tuna'), note: '养气' },
-  { id: 'train', label: '炼体', variant: 'primary', trend: actionTrendLabel('train'), note: '冲体' },
-  { id: 'parttime', label: '打工', variant: 'secondary', trend: actionTrendLabel('parttime'), note: '补现' },
-  { id: 'rest', label: '休息', variant: 'secondary', trend: actionTrendLabel('rest'), note: '回稳' },
-  { id: 'buy', label: '买补给', variant: 'secondary', trend: actionTrendLabel('buy'), note: '短撑' }
+const actionEntries = computed<Array<{ id: ActionId; label: string; variant: 'primary' | 'secondary'; description?: string }>>(() => [
+  { id: 'study', label: '上课/刷题', variant: 'primary', description: '提升分数' },
+  { id: 'tuna', label: '吐纳', variant: 'primary', description: '恢复法力' },
+  { id: 'train', label: '炼体', variant: 'primary', description: '增强体质' },
+  { id: 'parttime', label: '打工', variant: 'secondary', description: '赚取现金' },
+  { id: 'rest', label: '休息', variant: 'secondary', description: '恢复疲劳' },
+  { id: 'buy', label: '买补给', variant: 'secondary', description: '消耗品' }
 ])
-
-function actionCopyForTrend(trend: string) {
-  if (trend === '稳健') return '稳健'
-  if (trend === '冒险') return '冒险'
-  return '透支'
-}
 
 // Event for EventModal
 const eventForModal = computed(() => {
@@ -235,16 +246,24 @@ function quickSave(slot: 'slot1' | 'slot2' | 'slot3') {
   activeSlot.value = slot
 }
 
+function onMobileShare() {
+  if (navigator.share) {
+    navigator.share({
+      title: '修仙欠费中',
+      text: `我在修仙欠费中的第${g.value.school.day}天，总债务${totalDebt.value}！`,
+      url: window.location.href
+    })
+  }
+}
+
 watch(
-  logsForPanel,
-  (logs) => {
+  [logsForPanel, () => g.value.school.day],
+  ([logs]) => {
     if (!logs.length) {
       selectedLogId.value = null
       return
     }
-    if (!selectedLogId.value || !logs.find((l) => l.id === selectedLogId.value)) {
-      selectedLogId.value = logs[0].id
-    }
+    selectedLogId.value = logs[0].id
   },
   { immediate: true }
 )
@@ -274,12 +293,6 @@ watch(
         }"
       >
         {{ contractPill }}
-      </Pill>
-      <Pill
-        v-if="g.contract.active && psySubsidiaryLine"
-        :style="{ borderColor: 'rgba(255,255,255,.18)', background: 'rgba(0,0,0,.22)', fontSize: '12px' }"
-      >
-        {{ psySubsidiaryLine }}
       </Pill>
       <Pill
         v-if="routeImbalancePill"
@@ -354,48 +367,57 @@ watch(
       <Card class="GamePage__actions" padding="md">
         <div class="Row" style="margin-bottom: 12px">
           <Pill>行动</Pill>
-          <span class="Spacer" />
           <Pill>
             上次月考：{{ g.school.lastExamScore || '未结算' }} ·
             排名：{{ g.school.lastRank === 999 ? '—' : `约第${g.school.lastRank}名` }}
           </Pill>
+          <span class="Spacer" />
+          <Pill>剩余时段：{{ remainingSlots }}</Pill>
         </div>
 
-        <div class="ActionGrid">
-          <div
+        <!-- Desktop: ActionGrid -->
+        <div v-if="!isMobile" class="ActionGrid">
+          <Button
             v-for="entry in actionEntries"
             :key="entry.id"
-            class="ActionItem"
+            :variant="entry.variant"
+            :disabled="actionsLocked"
+            class="ActionButton"
+            @click="act(entry.id)"
           >
-            <Button
-              :variant="entry.variant"
-              :disabled="actionsLocked"
-              class="ActionButton"
-              @click="act(entry.id)"
-            >
-              {{ entry.label }}
-            </Button>
-            <div class="ActionPreview">
-              趋势：{{ actionCopyForTrend(entry.trend) }}（{{ entry.note }}） · 剩余时段：{{ remainingSlots }}
-            </div>
-          </div>
+            {{ entry.label }}
+          </Button>
         </div>
-
-        <div class="MonoSmall" style="margin-top: 10px">
-          预览仅展示趋势（稳健 / 冒险 / 透支），不展示具体计算细节。行动结果会统一进入主日志。
-        </div>
+        <!-- Mobile: MobileActionGrid -->
+        <MobileActionGrid
+          v-else
+          :actions="actionEntries"
+          :disabled="actionsLocked"
+          @action="act"
+        />
       </Card>
 
       <Card class="GamePage__logs" padding="md">
         <div class="Row">
           <Pill>日志</Pill>
-          <Pill>最近 30 条</Pill>
+          <Pill v-if="!isMobile">最近 30 条</Pill>
         </div>
+        <!-- Desktop: LogPanel inline -->
         <LogPanel
+          v-if="!isMobile"
           :logs="logsForPanel"
           :selected-id="selectedLogId"
           @select="(id) => selectedLogId = id"
         />
+        <!-- Mobile: Button to open drawer -->
+        <Button
+          v-else
+          variant="secondary"
+          class="LogDrawerTrigger"
+          @click="logDrawerOpen = true"
+        >
+          查看日志 ({{ logsForPanel.length }})
+        </Button>
       </Card>
 
       <Card class="GamePage__perks" padding="md">
@@ -466,6 +488,22 @@ watch(
       :snapshot="summarySnapshot"
       @confirm="onSummaryConfirm"
       @dismiss="onSummaryDismiss"
+    />
+
+    <!-- Mobile: Log Drawer -->
+    <LogDrawer
+      :show="logDrawerOpen"
+      :logs="logsForPanel"
+      :selected-id="selectedLogId"
+      @close="logDrawerOpen = false"
+      @select="(id) => selectedLogId = id"
+    />
+
+    <!-- Mobile: Bottom Toolbar -->
+    <MobileToolbar
+      :show="isMobile"
+      @share="onMobileShare"
+      @save="quickSave('slot1')"
     />
   </div>
 </template>
@@ -557,15 +595,8 @@ watch(
 
 .ActionGrid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
-}
-
-.ActionItem {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
 }
 
 .ActionButton {
@@ -573,11 +604,10 @@ watch(
   white-space: normal;
 }
 
-.ActionPreview {
-  font-size: 12px;
-  line-height: 1.4;
-  color: rgba(255, 255, 255, 0.76);
-  word-break: break-word;
+@media (max-width: 900px) {
+  .ActionGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .ClassDigestList {
@@ -625,5 +655,10 @@ watch(
     white-space: normal;
     text-align: left;
   }
+}
+
+.LogDrawerTrigger {
+  width: 100%;
+  margin-top: 8px;
 }
 </style>
