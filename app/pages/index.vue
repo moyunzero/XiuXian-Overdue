@@ -80,7 +80,7 @@ const slotData = computed(() =>
 <template>
   <div class="IndexPage">
     <ParticleBackground />
-    <div class="Container">
+    <div class="IndexPage__container">
       <HeroSection />
 
       <IdentitySelector
@@ -186,6 +186,13 @@ const slotData = computed(() =>
 .IndexPage {
   min-height: 100vh;
   padding-bottom: 48px;
+}
+
+.IndexPage__container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 24px;
 }
 
 .IndexPage__identity {
@@ -350,6 +357,10 @@ const slotData = computed(() =>
 }
 
 @media (max-width: 640px) {
+  .IndexPage__container {
+    padding: 0 16px;
+  }
+
   .IndexPage__advanced-grid {
     grid-template-columns: 1fr;
   }
@@ -357,6 +368,12 @@ const slotData = computed(() =>
   .IndexPage__footer {
     flex-direction: column;
     gap: 12px;
+  }
+}
+
+@media (min-width: 1600px) {
+  .IndexPage__container {
+    max-width: 1600px;
   }
 }
 </style>
