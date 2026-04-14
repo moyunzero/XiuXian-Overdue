@@ -185,14 +185,7 @@ const slotData = computed(() =>
 <style scoped>
 .IndexPage {
   min-height: 100vh;
-  padding-bottom: 48px;
-}
-
-.IndexPage__container {
-  width: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 24px 48px;
 }
 
 .IndexPage__identity {
@@ -240,7 +233,7 @@ const slotData = computed(() =>
 
 .IndexPage__advanced-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 16px;
 }
 
@@ -356,9 +349,15 @@ const slotData = computed(() =>
   background: var(--neon-cyan);
 }
 
+@media (max-width: 1024px) {
+  .IndexPage__advanced-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 640px) {
-  .IndexPage__container {
-    padding: 0 16px;
+  .IndexPage {
+    padding: 0 16px 32px;
   }
 
   .IndexPage__advanced-grid {
@@ -368,12 +367,6 @@ const slotData = computed(() =>
   .IndexPage__footer {
     flex-direction: column;
     gap: 12px;
-  }
-}
-
-@media (min-width: 1600px) {
-  .IndexPage__container {
-    max-width: 1600px;
   }
 }
 </style>

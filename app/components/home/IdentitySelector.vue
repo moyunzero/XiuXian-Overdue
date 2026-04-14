@@ -149,6 +149,8 @@ defineExpose({
 .IdentityCard {
   scroll-snap-align: center;
   position: relative;
+  width: 100%;
+  min-width: 0;
   border-radius: 16px;
   border: 1px solid var(--border-default);
   background: linear-gradient(
