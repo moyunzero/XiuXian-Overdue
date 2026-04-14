@@ -185,6 +185,11 @@ const slotData = computed(() =>
 <style scoped>
 .IndexPage {
   min-height: 100vh;
+}
+
+.IndexPage__container {
+  width: 100%;
+  max-width: 100%;
   padding: 0 24px 48px;
 }
 
