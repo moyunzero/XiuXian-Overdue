@@ -140,23 +140,13 @@ defineExpose({
 }
 
 .IdentitySelector__scroll {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 12px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scroll-behavior: smooth;
-  padding: 8px 4px 16px;
-  margin: -8px -4px -16px;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-
-.IdentitySelector__scroll::-webkit-scrollbar {
-  display: none;
+  padding: 8px 0 16px;
 }
 
 .IdentityCard {
-  flex: 0 0 85%;
   scroll-snap-align: center;
   position: relative;
   border-radius: 16px;
@@ -288,7 +278,7 @@ defineExpose({
 }
 
 .IdentitySelector__dots {
-  display: flex;
+  display: none;
   justify-content: center;
   gap: 6px;
 }
@@ -306,9 +296,28 @@ defineExpose({
   transform: scale(1.2);
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
+  .IdentitySelector__scroll {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    padding: 8px 4px 16px;
+    margin: -8px -4px -16px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .IdentitySelector__scroll::-webkit-scrollbar {
+    display: none;
+  }
+
   .IdentityCard {
     flex: 0 0 80%;
+  }
+
+  .IdentitySelector__dots {
+    display: flex;
   }
 
   .IdentityCard__name {
