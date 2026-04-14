@@ -23,8 +23,9 @@
       <Button variant="danger" size="sm" @click="emit('repay')">还款</Button>
       <Button variant="ghost" size="sm" @click="emit('borrow')">借贷</Button>
       <span class="Spacer" />
-      <button class="ExpandToggle" @click="expanded = !expanded">
-        {{ expanded ? '收起详情 ▲' : '展开详情 ▼' }}
+      <button class="ExpandToggle" :class="{ 'ExpandToggle--active': expanded }" @click="expanded = !expanded">
+        <span class="ExpandToggle__text">{{ expanded ? '收起详情' : '展开详情' }}</span>
+        <span class="ExpandToggle__arrow" :class="{ 'ExpandToggle__arrow--up': expanded }">▼</span>
       </button>
     </div>
 
@@ -179,18 +180,39 @@ const delinquencyClasses = computed(() => ({
 }
 
 .ExpandToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   background: none;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--muted);
   font-size: var(--text-xs);
   cursor: pointer;
-  padding: 2px 6px;
-  border-radius: 4px;
-  transition: color 0.15s, background 0.15s;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: color 0.15s, background 0.15s, border-color 0.15s, transform 0.1s;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 44px;
 }
 .ExpandToggle:hover {
   color: var(--text);
   background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+.ExpandToggle:active {
+  transform: scale(0.97);
+}
+.ExpandToggle--active {
+  color: var(--neon-cyan);
+  border-color: rgba(0, 255, 255, 0.3);
+  background: rgba(0, 255, 255, 0.05);
+}
+.ExpandToggle__arrow {
+  transition: transform 0.2s ease;
+}
+.ExpandToggle__arrow--up {
+  transform: rotate(180deg);
 }
 
 .DebtDetail {

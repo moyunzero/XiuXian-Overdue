@@ -4,15 +4,24 @@
     :disabled="disabled || loading"
     :aria-label="ariaLabel"
     @click="handleClick"
+    @pointerdown="handlePointerDown"
   >
     <span v-if="loading" class="ButtonSpinner"></span>
     <span v-if="icon && !loading" class="ButtonIcon">{{ icon }}</span>
     <slot />
+    <span v-if="ripples.length" class="ButtonRipples">
+      <span
+        v-for="ripple in ripples"
+        :key="ripple.id"
+        class="ButtonRipple"
+        :style="ripple.style"
+      />
+    </span>
   </button>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 interface ButtonProps {
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost'
@@ -36,6 +45,14 @@ const emit = defineEmits<{
   click: []
 }>()
 
+interface Ripple {
+  id: number
+  style: string
+}
+
+const ripples = ref<Ripple[]>([])
+let rippleId = 0
+
 const buttonClasses = computed(() => [
   'Button',
   `Button--${props.variant}`,
@@ -46,6 +63,25 @@ const buttonClasses = computed(() => [
   }
 ])
 
+const handlePointerDown = (e: PointerEvent) => {
+  if (props.disabled || props.loading) return
+  const target = e.currentTarget as HTMLElement
+  const rect = target.getBoundingClientRect()
+  const size = Math.max(rect.width, rect.height)
+  const x = e.clientX - rect.left - size / 2
+  const y = e.clientY - rect.top - size / 2
+
+  const id = ++rippleId
+  ripples.value.push({
+    id,
+    style: `width:${size}px;height:${size}px;left:${x}px;top:${y}px`
+  })
+
+  setTimeout(() => {
+    ripples.value = ripples.value.filter(r => r.id !== id)
+  }, 600)
+}
+
 const handleClick = () => {
   if (!props.disabled && !props.loading) {
     emit('click')
@@ -55,6 +91,7 @@ const handleClick = () => {
 
 <style scoped>
 .Button {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -66,6 +103,8 @@ const handleClick = () => {
   cursor: pointer;
   transition: transform 0.08s ease, border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
   outline: none;
+  overflow: hidden;
+  touch-action: manipulation;
 }
 
 .Button:focus-visible {
@@ -166,6 +205,30 @@ const handleClick = () => {
 .ButtonIcon {
   display: inline-flex;
   font-size: 1.1em;
+}
+
+/* Ripple Effect */
+.ButtonRipples {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.ButtonRipple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(0);
+  animation: ripple 0.6s ease-out forwards;
+}
+
+@keyframes ripple {
+  to {
+    transform: scale(2.5);
+    opacity: 0;
+  }
 }
 
 /* Mobile Responsive Adjustments */
