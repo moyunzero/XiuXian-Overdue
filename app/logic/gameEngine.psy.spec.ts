@@ -9,7 +9,6 @@ import {
   computeNextStrongCollapseEarliestDay,
   computePsychologicalPressureScore,
   computeRestRecovery,
-  formatPsySubsidiaryLine,
   getConflictPressureTier,
   hasMetSummarySubsidiaryThreshold,
   isMidLatePhase,
@@ -168,15 +167,6 @@ describe('PSY-01 D-06 D-07: computeRestRecovery 缠绕降恢复 / 麻木近零�
     const r = computeRestRecovery(g, { rand: () => 0.5, forceNumb: true })
     expect(r.isNumbRest).toBe(true)
     expect(r.focusDelta).toBeLessThanOrEqual(1)
-  })
-})
-
-describe('PSY-01 D-08: formatPsySubsidiaryLine 单行展示', () => {
-  it('输出单行副指标摘要', () => {
-    const g = baseGame({ domestication: 12, numbness: 3, contract: { ...baseGame().contract, active: true, progress: 44 } })
-    const line = formatPsySubsidiaryLine(g)
-    expect(line.length).toBeGreaterThan(0)
-    expect(line).not.toContain('\n')
   })
 })
 

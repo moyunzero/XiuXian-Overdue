@@ -29,7 +29,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import type { LogEntryDisplay } from '~/types/game'
 
 interface LogPanelProps {
@@ -49,6 +49,10 @@ const emit = defineEmits<{
 }>()
 
 const internalSelectedId = ref(props.selectedId || (props.logs[0]?.id || ''))
+
+watch(() => props.selectedId, (newId) => {
+  if (newId) internalSelectedId.value = newId
+})
 
 const filteredLogs = computed(() => {
   let logs = props.logs

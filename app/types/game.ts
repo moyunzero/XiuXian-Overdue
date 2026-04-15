@@ -33,9 +33,7 @@ export interface PlayerStats {
 
 export interface EconomyState {
   cash: number
-  collectionFee: number // 系统费用池（学籍维护费、风控费、催收服务费）
-  coreDebt: number // 核心债（制度性债务，不可被常规还款直接清零）
-  initialCoreDebt: number // 开局核心债快照，用于计算核心债下限
+  collectionFee: number // 系统费用池（学籍维护费、风控费、催收服务费、五险一金）
   debtPrincipal: number
   debtInterestAccrued: number
   dailyRate: number // 日利率（例如 0.008）

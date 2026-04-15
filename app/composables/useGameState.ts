@@ -14,8 +14,6 @@ export function defaultState(): GameState {
     econ: {
       cash: 1200,
       collectionFee: 0,
-      coreDebt: 0,
-      initialCoreDebt: 0,
       debtPrincipal: 0,
       debtInterestAccrued: 0,
       dailyRate: 0.008,

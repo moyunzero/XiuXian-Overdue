@@ -20,8 +20,6 @@ function seedPlayableDebtState() {
     RightLeg: true
   }
   g.econ.cash = 40_000
-  g.econ.coreDebt = 7_000
-  g.econ.initialCoreDebt = 7_000
   g.econ.collectionFee = 400
   g.econ.debtInterestAccrued = 800
   g.econ.debtPrincipal = 12_000
@@ -64,14 +62,12 @@ describe('DEBT-01~DEBT-03 Wave 0 回归', () => {
     const g = seedPlayableDebtState()
     const r = __test__.applyRepaymentByPriority(g, 1_000)
 
-    // 锁定 D-05：固定优先级 contract
     expect(r.interestPaid).toBe(800)
     expect(r.feePaid).toBe(200)
     expect(r.principalPaid).toBe(0)
     expect(r.totalPaid).toBe(1_000)
     expect(g.econ.collectionFee).toBe(200)
     expect(g.econ.debtPrincipal).toBe(12_000)
-    expect(g.econ.coreDebt).toBe(7_000)
   })
 
   it('D-03/DEBT-02: 首次逾期仅警告缓冲，不立即上浮利率', () => {
@@ -92,7 +88,6 @@ describe('DEBT-01~DEBT-03 Wave 0 回归', () => {
 
     advanceDaysByNightRest(84, act, game)
 
-    // 锁定 D-02：最高 5 级（当前实现若越界应在后续任务修复）
     expect(game.value.econ.delinquency).toBe(5)
   })
 
@@ -122,6 +117,6 @@ describe('DEBT-01~DEBT-03 Wave 0 回归', () => {
     expect(top.detail).toContain('费用¥')
     expect(top.detail).toContain('利息¥')
     expect(top.detail).toContain('本金¥')
-    expect(top.detail).toContain('核心债维持')
+    expect(top.detail).toContain('剩余债务')
   })
 })

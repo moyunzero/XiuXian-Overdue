@@ -39,8 +39,6 @@ function makeSeededGame(seed = 20260321) {
   g.school.slot = 'morning'
   g.econ.lastPaymentDay = 1
   g.econ.cash = 3000
-  g.econ.coreDebt = 12000
-  g.econ.initialCoreDebt = 12000
   g.econ.debtPrincipal = 9000
   g.econ.debtInterestAccrued = 500
   g.econ.collectionFee = 0
@@ -62,7 +60,6 @@ function setTierProfile(gameRef: { value: ReturnType<typeof defaultState> }, pro
     g.stats.rouTi = 4
     g.stats.focus = 95
     g.stats.fatigue = 8
-    g.econ.coreDebt = 3000
     g.econ.debtPrincipal = 500
     g.econ.debtInterestAccrued = 50
     g.econ.collectionFee = 0
@@ -72,7 +69,6 @@ function setTierProfile(gameRef: { value: ReturnType<typeof defaultState> }, pro
     g.stats.rouTi = 1.4
     g.stats.focus = 55
     g.stats.fatigue = 30
-    g.econ.coreDebt = 12000
     g.econ.debtPrincipal = 7000
     g.econ.debtInterestAccrued = 800
     g.econ.collectionFee = 200
@@ -82,7 +78,6 @@ function setTierProfile(gameRef: { value: ReturnType<typeof defaultState> }, pro
     g.stats.rouTi = 0.2
     g.stats.focus = 10
     g.stats.fatigue = 95
-    g.econ.coreDebt = 60000
     g.econ.debtPrincipal = 55000
     g.econ.debtInterestAccrued = 4000
     g.econ.collectionFee = 3000
@@ -166,7 +161,7 @@ describe('CLASS-01/02 Wave 0 分班制度测试', () => {
     expect(game.value.school.classTier).toBe('末位班')
     expect(game.value.econ.dailyRate).toBeGreaterThan(policyOnlyRate)
     const policyOnlyMinPayment = calculateWeeklyMinPayment(
-      game.value.econ.coreDebt + game.value.econ.collectionFee + game.value.econ.debtPrincipal + game.value.econ.debtInterestAccrued,
+      game.value.econ.collectionFee + game.value.econ.debtPrincipal + game.value.econ.debtInterestAccrued,
       game.value.econ.delinquency
     )
     expect(minPayment.value).toBeGreaterThan(policyOnlyMinPayment)

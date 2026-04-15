@@ -8,12 +8,13 @@
 
 让玩家在完整一局后切身感受到：在某些系统面前，“努力”也可能只是更高级的自我奴役。
 
-## Current State（v1.0 shipped）
+## Current State（v1.0 shipped + 经济系统重构 v1.1）
 
-- **版本：** v1.0（2026-03-21）
+- **版本：** v1.0（2026-03-21）+ 经济系统重构 v1.1（2026-04-14）
 - **范围：** 纯单机、localStorage 存档、无限天沙盒、无硬 Game Over、精神驯化主题、Web 响应式主流程可用
 - **代码规模（约）：** `app/` 下 Vue/TS 约 9k+ 行（不含依赖）；测试以 Vitest 为主
 - **规划归档：** 路线图与 23 条需求见 `.planning/milestones/v1.0-ROADMAP.md`、`.planning/milestones/v1.0-REQUIREMENTS.md`
+- **最新更新：** 经济系统重构（删除核心债、改用五险一金+复利机制）、分班系统调整（消除马太效应）
 
 ## Next Milestone Goals（待 `/gsd-new-milestone`）
 
@@ -32,7 +33,11 @@
 
 ### Active
 
-（下一里程碑在 `/gsd-new-milestone` 中定义；当前无未结案的产品级 Active 条目。）
+- **经济系统重构 v1.1**: 删除"核心债"概念，改用"五险一金+复利"机制，使玩家无论如何都还不完债
+  - 打工收入 20% 作为"五险一金"进入费用池
+  - 债务每周复利 1.5% 增长
+  - 测试验证全部通过（87 tests passed）
+  - 状态：**✅ 已完成**
 
 ### Out of Scope
 
@@ -79,4 +84,4 @@ This document evolves at phase transitions and milestone boundaries.
 
 ---
 
-*Last updated: 2026-03-21 after v1.0 milestone completion*
+*Last updated: 2026-04-14 after 经济系统重构 v1.1*

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useGame } from '~/composables/useGame'
+import { useGameTutorial } from '~/composables/useGameTutorial'
 import * as Engine from '~/logic/gameEngine'
 import { navigateTo } from '#app'
 import type { ActionId } from '~/types/game'
@@ -18,6 +19,7 @@ import SummaryPanel from '~/components/game/SummaryPanel.vue'
 import MobileToolbar from '~/components/game/MobileToolbar.vue'
 import MobileActionGrid from '~/components/game/MobileActionGrid.vue'
 import LogDrawer from '~/components/game/LogDrawer.vue'
+import TutorialModal from '~/components/game/TutorialModal.vue'
 
 const {
   game,
@@ -39,6 +41,8 @@ const {
   acknowledgeSummaryAndContinue,
   closeSummaryPanelWithoutMarking
 } = useGame()
+
+const tutorial = useGameTutorial()
 
 /** D-16：ESC/遮罩关闭优先映射 defaultOptionId；无配置时回退末项（常见消极/拒绝），与后续 validate-events 可对齐收紧 */
 const dismissOptionId = computed(() => {
@@ -83,6 +87,8 @@ onMounted(async () => {
   syncMobile()
   mobileMq.addEventListener('change', syncMobile)
   isMobile.value = mobileMq.matches
+
+  tutorial.start()
 })
 onUnmounted(() => {
   modelMq?.removeEventListener('change', syncModelDetailsOpen)
@@ -504,6 +510,18 @@ watch(
       :show="isMobile"
       @share="onMobileShare"
       @save="quickSave('slot1')"
+    />
+
+    <!-- Tutorial Modal -->
+    <TutorialModal
+      :is-open="tutorial.isActive.value"
+      :current-step="tutorial.currentStep.value"
+      :current-index="tutorial.currentStepIndex.value"
+      :total-steps="tutorial.totalSteps.value"
+      :progress="tutorial.progress.value"
+      @next="tutorial.next"
+      @prev="tutorial.prev"
+      @skip="tutorial.skip"
     />
   </div>
 </template>

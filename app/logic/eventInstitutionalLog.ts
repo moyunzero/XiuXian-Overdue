@@ -47,7 +47,6 @@ function statLabel(k: keyof PlayerStats): string {
 
 function econLabel(k: keyof EconomyState): string {
   if (k === 'cash') return '现金'
-  if (k === 'coreDebt') return '核心债'
   if (k === 'debtPrincipal') return '本金'
   if (k === 'debtInterestAccrued') return '利息池'
   if (k === 'collectionFee') return '费用池'

@@ -9,7 +9,7 @@ import { buildInstitutionalEventLogDetail } from '~/logic/eventInstitutionalLog'
 import { clamp, uid } from '~/utils/rng'
 
 export function fullDebt(g: GameState): number {
-  return Math.max(0, g.econ.coreDebt + g.econ.collectionFee + g.econ.debtPrincipal + g.econ.debtInterestAccrued)
+  return Math.max(0, g.econ.collectionFee + g.econ.debtPrincipal + g.econ.debtInterestAccrued)
 }
 
 export function slotOrder(): SlotId[] {
@@ -131,21 +131,21 @@ export function describePerkChange(
 
 export function scoreForExam(g: GameState, rand: () => number) {
   const { daoXin, faLi, rouTi, focus, fatigue } = g.stats
-  const tier = g.school.classTier
-  const tierBoost = tier === '示范班' ? 10 : tier === '普通班' ? 0 : -8
-  const debtPenalty = Math.min(18, Math.log10(1 + fullDebt(g) / 1000) * 6)
+  const cashStreak = g.cashDayStreak ?? 0
+  const workAcademicPenalty = cashStreak >= 2 ? Math.min(cashStreak * 2, 20) : 0
+  const debtPenalty = Math.min(45, Math.log10(1 + fullDebt(g) / 500) * 8)
   const fatiguePenalty = Math.max(0, (fatigue - 55) * 0.25)
   const focusBonus = (focus + g.school.perks.focusBonus) * 0.05
 
   const base =
-    520 +
+    400 +
     daoXin * 8 +
     faLi * 6.5 +
     rouTi * 35 +
-    tierBoost +
     focusBonus -
     debtPenalty -
-    fatiguePenalty
+    fatiguePenalty -
+    workAcademicPenalty
 
   const noise = (rand() - 0.5) * 14
   return Math.round(base + noise)
@@ -450,20 +450,6 @@ export function imbalanceEventProbabilityBoost(g: GameState): number {
   return m >= 2 ? 0.08 : 0
 }
 
-export function actionTrendLabel(g: GameState, action: ActionId): '稳健' | '冒险' | '透支' {
-  const highFatigue = g.stats.fatigue >= 75
-  const mediumFatigue = g.stats.fatigue >= 55
-  const debtStress = g.econ.delinquency >= 2
-  const cashTight = g.econ.cash < 260
-
-  if (action === 'rest') return highFatigue || mediumFatigue ? '稳健' : '冒险'
-  if (action === 'buy') return cashTight ? '透支' : mediumFatigue ? '稳健' : '冒险'
-  if (action === 'parttime') return highFatigue ? '透支' : debtStress ? '稳健' : '冒险'
-  if (action === 'train') return highFatigue ? '透支' : mediumFatigue ? '冒险' : '稳健'
-  if (action === 'study') return highFatigue ? '透支' : debtStress ? '稳健' : '冒险'
-  return highFatigue ? '冒险' : '稳健'
-}
-
 /**
  * D-15：叙事「麻木化时刻」与总结解锁轨③（累计日≥30）语义分离 — 叙事不再用「day>30」门闩。
  * 仍以高疲劳/低专注/高逾期表达麻木化，可在任意游戏日触发（先到先感知）。
@@ -517,7 +503,6 @@ export type SummarySnapshot = {
   schoolWeek: number
   totalDebt: number
   collectionFee: number
-  coreDebt: number
   debtPrincipal: number
   debtInterestAccrued: number
   delinquency: number
@@ -541,7 +526,6 @@ export function buildSummarySnapshot(g: GameState): SummarySnapshot {
     schoolWeek: g.school.week,
     totalDebt: fullDebt(g),
     collectionFee: g.econ.collectionFee,
-    coreDebt: g.econ.coreDebt,
     debtPrincipal: g.econ.debtPrincipal,
     debtInterestAccrued: g.econ.debtInterestAccrued,
     delinquency: g.econ.delinquency,
@@ -677,14 +661,6 @@ export function syncDomesticationWithContractProgress(
   if (dv > 0) add += dv * 0.12
   if (add <= 0) return
   g.domestication = clamp((g.domestication ?? 0) + add, 0, 100)
-}
-
-/** D-08：契约 Pill 旁单行副指标文案 */
-export function formatPsySubsidiaryLine(g: GameState): string {
-  if (!g.contract.active) return ''
-  const d = Math.round(g.domestication ?? 0)
-  const n = Math.round(g.numbness ?? 0)
-  return `驯化 ${d} · 麻木 ${n}`
 }
 
 export function makeContractBacklashEvent(g: GameState, intended: ActionId): PendingEvent {
