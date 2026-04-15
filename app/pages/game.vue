@@ -19,7 +19,6 @@ import SummaryPanel from '~/components/game/SummaryPanel.vue'
 import MobileToolbar from '~/components/game/MobileToolbar.vue'
 import MobileActionGrid from '~/components/game/MobileActionGrid.vue'
 import LogDrawer from '~/components/game/LogDrawer.vue'
-import TutorialModal from '~/components/game/TutorialModal.vue'
 
 const {
   game,
@@ -510,18 +509,6 @@ watch(
       :show="isMobile"
       @share="onMobileShare"
       @save="quickSave('slot1')"
-    />
-
-    <!-- Tutorial Modal -->
-    <TutorialModal
-      :is-open="tutorial.isActive.value"
-      :current-step="tutorial.currentStep.value"
-      :current-index="tutorial.currentStepIndex.value"
-      :total-steps="tutorial.totalSteps.value"
-      :progress="tutorial.progress.value"
-      @next="tutorial.next"
-      @prev="tutorial.prev"
-      @skip="tutorial.skip"
     />
   </div>
 </template>
