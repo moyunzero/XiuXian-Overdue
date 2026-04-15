@@ -502,33 +502,6 @@
     which "^5.0.0"
     ws "^8.19.0"
 
-"@nuxt/kit@^3.15.0":
-  version "3.21.2"
-  resolved "https://registry.npmjs.org/@nuxt/kit/-/kit-3.21.2.tgz"
-  integrity sha512-Bd6m6mrDrqpBEbX+g0rc66/ALd1sxlgdx5nfK9MAYO0yKLTOSK7McSYz1KcOYn3LQFCXOWfvXwaqih/b+REI1g==
-  dependencies:
-    c12 "^3.3.3"
-    consola "^3.4.2"
-    defu "^6.1.4"
-    destr "^2.0.5"
-    errx "^0.1.0"
-    exsolve "^1.0.8"
-    ignore "^7.0.5"
-    jiti "^2.6.1"
-    klona "^2.0.6"
-    knitwork "^1.3.0"
-    mlly "^1.8.1"
-    ohash "^2.0.11"
-    pathe "^2.0.3"
-    pkg-types "^2.3.0"
-    rc9 "^3.0.0"
-    scule "^1.3.0"
-    semver "^7.7.4"
-    tinyglobby "^0.2.15"
-    ufo "^1.6.3"
-    unctx "^2.5.0"
-    untyped "^2.0.0"
-
 "@nuxt/kit@^4.2.2", "@nuxt/kit@^4.3.1", "@nuxt/kit@>=3.0.0", "@nuxt/kit@4.3.1":
   version "4.3.1"
   resolved "https://registry.npmmirror.com/@nuxt/kit/-/kit-4.3.1.tgz"
@@ -1904,11 +1877,6 @@ dotenv@^17.2.3:
   resolved "https://registry.npmmirror.com/dotenv/-/dotenv-17.3.1.tgz"
   integrity sha512-IO8C/dzEb6O3F9/twg6ZLXz164a2fhTnEWb95H23Dm4OuN+92NmEAlTrupP9VW6Jm3sO26tQlqyvyi4CsnY9GA==
 
-driver.js@^1.3.1:
-  version "1.4.0"
-  resolved "https://registry.npmjs.org/driver.js/-/driver.js-1.4.0.tgz"
-  integrity sha512-Gm64jm6PmcU+si21sQhBrTAM1JvUrR0QhNmjkprNLxohOBzul9+pNHXgQaT9lW84gwg9GMLB3NZGuGolsz5uew==
-
 duplexer@^0.1.2:
   version "0.1.2"
   resolved "https://registry.npmmirror.com/duplexer/-/duplexer-0.1.2.tgz"
@@ -2763,7 +2731,7 @@ minizlib@^3.1.0:
   dependencies:
     minipass "^7.1.2"
 
-mlly@^1.7.1, mlly@^1.7.2, mlly@^1.7.4, mlly@^1.8.0, mlly@^1.8.1:
+mlly@^1.7.1, mlly@^1.7.2, mlly@^1.7.4, mlly@^1.8.0:
   version "1.8.1"
   resolved "https://registry.npmmirror.com/mlly/-/mlly-1.8.1.tgz"
   integrity sha512-SnL6sNutTwRWWR/vcmCYHSADjiEesp5TGQQ0pXyLhW5IoeibRlF/CbSLailbB3CNqJUk9cVJ9dUDnbD7GrcHBQ==
@@ -2952,14 +2920,6 @@ nth-check@^2.0.1:
   integrity sha512-lqjrjmaOoAnWfMmBPL+XNnynZh2+swxiX3WUE0s4yEHI6m+AwrK2UZOimIRl3X/4QctVqS8AiZjFqyOGrMXb/w==
   dependencies:
     boolbase "^1.0.0"
-
-nuxt-driver.js@^0.0.24:
-  version "0.0.24"
-  resolved "https://registry.npmjs.org/nuxt-driver.js/-/nuxt-driver.js-0.0.24.tgz"
-  integrity sha512-cSB0Qj6YHykSBkdRu0TxnMBTXQf2dRwCWgrR+fjbiqMxpM09ijp6F2uFt8wP+EIau/U/e5Mr+ZN4US5W9wruWA==
-  dependencies:
-    "@nuxt/kit" "^3.15.0"
-    driver.js "^1.3.1"
 
 nuxt@^4.3.1, nuxt@4.3.1:
   version "4.3.1"
