@@ -92,6 +92,9 @@ onMounted(async () => {
 onUnmounted(() => {
   modelMq?.removeEventListener('change', syncModelDetailsOpen)
   mobileMq?.removeEventListener('change', syncMobile)
+  if (tutorial.isActive()) {
+    tutorial.reset()
+  }
 })
 
 const g = computed(() => game.value)
