@@ -3,7 +3,7 @@ import { driver as Driver } from 'driver.js'
 const TUTORIAL_STORAGE_KEY = 'xiuxian-tutorial-completed'
 const TUTORIAL_VERSION = 1
 
-let driverInstance: InstanceType<typeof Driver> | null = null
+let driverInstance: ReturnType<typeof Driver> | null = null
 
 export function useGameTutorial() {
   function checkShouldShow(): boolean {
@@ -28,7 +28,7 @@ export function useGameTutorial() {
       driverInstance.destroy()
     }
 
-    driverInstance = new Driver({
+    driverInstance = Driver({
       animate: true,
       opacity: 0.75,
       padding: 10,
