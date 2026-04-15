@@ -1,3 +1,5 @@
+@import 'driver.js/dist/driver.css';
+
 :root{
   /* ========================================
      背景色系统 (Background Colors)
@@ -957,5 +959,3 @@ video {
     transform: none;
   }
 }
-
-@import 'driver.js/dist/driver.css';

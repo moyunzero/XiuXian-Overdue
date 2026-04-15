@@ -101,7 +101,7 @@ export function useGameTutorial() {
       }
     })
 
-    driverInstance.start()
+    driverInstance.drive()
   }
 
   function complete() {
