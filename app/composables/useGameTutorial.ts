@@ -1,4 +1,4 @@
-import Driver from 'driver.js'
+import { driver as Driver } from 'driver.js'
 
 const TUTORIAL_STORAGE_KEY = 'xiuxian-tutorial-completed'
 const TUTORIAL_VERSION = 1
