@@ -2,10 +2,7 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
-  css: [
-    '~/assets/css/main.css',
-    'driver.js/dist/driver.css'
-  ],
+  css: ['~/assets/css/main.css'],
   vite: {
     server: {
       allowedHosts: ['.monkeycode-ai.online']
