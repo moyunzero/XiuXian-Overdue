@@ -1,4 +1,4 @@
-import { driver as Driver } from 'driver.js'
+import { driver } from 'driver.js'
 import type { Driver, DriveStep } from 'driver.js'
 
 const TUTORIAL_STORAGE_KEY = 'xiuxian-tutorial-completed'
@@ -105,10 +105,10 @@ export function useGameTutorial() {
       driverInstance.value = null
     }
 
-    driverInstance.value = Driver({
+    driverInstance.value = driver({
       animate: true,
-      opacity: 0.75,
-      padding: 10,
+      overlayOpacity: 0.75,
+      stagePadding: 10,
       allowClose: true,
       stageRadius: 8,
       showProgress: true,
