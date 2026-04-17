@@ -234,7 +234,7 @@ const modalCurrentCash = computed(() =>
 
 const modalTotalDebt = computed(() =>
   isRepaymentModal.value
-    ? (g.value.econ.coreDebt + g.value.econ.collectionFee + g.value.econ.debtPrincipal + g.value.econ.debtInterestAccrued)
+    ? (g.value.econ.collectionFee + g.value.econ.debtPrincipal + g.value.econ.debtInterestAccrued)
     : undefined
 )
 
@@ -360,7 +360,6 @@ watch(
 
       <DebtDashboard
         class="GamePage__debt"
-        :core-debt="g.econ.coreDebt || 0"
         :collection-fee="g.econ.collectionFee || 0"
         :principal="g.econ.debtPrincipal || 0"
         :interest="g.econ.debtInterestAccrued || 0"

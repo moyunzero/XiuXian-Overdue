@@ -163,7 +163,7 @@ export function endDay(
     const perkChange = Engine.describePerkChange(previousPerks, g.school.perks)
     const tierDebtProfile = Engine.debtProfileForTier(g.school.classTier)
     const riskSummary = `风险倍率：利率×${tierDebtProfile.dailyRateMultiplier.toFixed(2)}，最低周还款×${tierDebtProfile.minWeeklyPaymentMultiplier.toFixed(2)}，催收权重×${tierDebtProfile.collectionRiskWeight.toFixed(2)}`
-    const currentTotalDebt = g.econ.coreDebt + g.econ.collectionFee + g.econ.debtPrincipal + g.econ.debtInterestAccrued
+    const currentTotalDebt = g.econ.collectionFee + g.econ.debtPrincipal + g.econ.debtInterestAccrued
     g.logs.unshift({
       id: uid('log'),
       day: settledDay,

@@ -32,12 +32,8 @@
     <Transition name="detail">
       <div v-if="expanded" class="DebtDetail">
         <div class="DebtDetailRow">
-          <span class="DebtDetailLabel" :title="TOOLTIPS.coreLoan">制度欠款</span>
-          <span class="DebtDetailValue">¥{{ coreDebt.toFixed(2) }}</span>
-        </div>
-        <div class="DebtDetailRow">
-          <span class="DebtDetailLabel" :title="TOOLTIPS.rollingDebt">可偿还债务</span>
-          <span class="DebtDetailValue">¥{{ rollingDebt.toFixed(2) }}</span>
+          <span class="DebtDetailLabel">债务明细</span>
+          <span class="DebtDetailValue">¥{{ totalDebt.toFixed(2) }}</span>
         </div>
         <div class="DebtDetailRow DebtDetailRow--sub">
           <span class="DebtDetailLabel">┗ 管理费</span>
@@ -71,7 +67,6 @@ import Button from '../ui/Button.vue'
 import ProgressBar from '../ui/ProgressBar.vue'
 
 interface DebtDashboardProps {
-  coreDebt?: number
   collectionFee?: number
   principal?: number
   interest?: number
@@ -81,13 +76,7 @@ interface DebtDashboardProps {
   cash?: number
 }
 
-const TOOLTIPS = {
-  coreLoan: '学籍许可费、授信保留金等制度性费用，无法直接偿还',
-  rollingDebt: '管理费 + 利息 + 本金，可通过日常还款或身体偿还减少'
-}
-
 const props = withDefaults(defineProps<DebtDashboardProps>(), {
-  coreDebt: 0,
   collectionFee: 0,
   principal: 0,
   interest: 0,
@@ -104,8 +93,7 @@ const emit = defineEmits<{
 
 const expanded = ref(false)
 
-const rollingDebt = computed(() => props.collectionFee + props.principal + props.interest)
-const totalDebt = computed(() => props.coreDebt + rollingDebt.value)
+const totalDebt = computed(() => props.collectionFee + props.principal + props.interest)
 
 const debtPressure = computed(() => {
   const ratio = totalDebt.value / Math.max(props.cash, 1)

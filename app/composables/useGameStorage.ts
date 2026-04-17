@@ -1,4 +1,5 @@
 import type { GameState } from '~/types/game'
+import { ref } from 'vue'
 import * as Engine from '~/logic/gameEngine'
 import { useGameState } from './useGameState'
 import {
@@ -34,6 +35,8 @@ export interface SaveContainer {
   slots: Partial<Record<SaveSlotId, { meta: SaveSlotMeta; state: GameState }>>
 }
 
+const storageVersion = ref(0)
+
 /** 未落盘的合并容器（防抖期间优先于磁盘） */
 let pendingMerge: SaveContainer | null = null
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
@@ -47,6 +50,7 @@ export function resetModuleStorageState() {
     debounceTimer = null
   }
   pendingMerge = null
+  storageVersion.value = storageVersion.value + 1
   if (import.meta.server) return
   try {
     localStorage.removeItem(STORAGE_KEY)
@@ -69,7 +73,7 @@ export function useGameStorage() {
   }
 
   const buildMeta = (id: SaveSlotId, label: string, g: GameState): SaveSlotMeta => {
-    const debt = Math.max(0, g.econ.coreDebt + g.econ.collectionFee + g.econ.debtPrincipal + g.econ.debtInterestAccrued)
+    const debt = Math.max(0, g.econ.collectionFee + g.econ.debtPrincipal + g.econ.debtInterestAccrued)
     return {
       id,
       label,
@@ -220,10 +224,6 @@ export function useGameStorage() {
     if (typeof state.bodyIntegrity !== 'number' || state.bodyIntegrity < 0 || state.bodyIntegrity > 1.0) state.bodyIntegrity = 1.0
     if (state.bodyReputation !== 'clean' && state.bodyReputation !== 'marked') state.bodyReputation = 'clean'
     if (typeof state.buyDebasement !== 'number' || state.buyDebasement < 0) state.buyDebasement = 0
-    if (typeof state.econ.coreDebt !== 'number' || state.econ.coreDebt < 0) state.econ.coreDebt = 0
-    if (typeof state.econ.initialCoreDebt !== 'number' || state.econ.initialCoreDebt < 0) {
-      state.econ.initialCoreDebt = state.econ.coreDebt
-    }
     if (typeof state.econ.collectionFee !== 'number' || state.econ.collectionFee < 0) state.econ.collectionFee = 0
     if (state.lastBodyPartDay !== undefined && typeof state.lastBodyPartDay !== 'number') state.lastBodyPartDay = undefined
     if (!Array.isArray(state.pendingNarratives)) state.pendingNarratives = []
@@ -245,6 +245,7 @@ export function useGameStorage() {
   }
 
   const listSlots = computed(() => {
+    storageVersion.value
     const container = getWorkingContainer()
     const ids: SaveSlotId[] = ['autosave', 'slot1', 'slot2', 'slot3']
     return ids.map((sid) => container?.slots?.[sid]?.meta ?? null)

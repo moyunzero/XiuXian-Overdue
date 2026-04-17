@@ -55,7 +55,7 @@ export function buildRepaymentEvent(
     mandatory,
     defaultOptionId: mandatory ? undefined : 'refuse',
     tier: 'critical',
-    systemSummary: '身体部位偿还按动态估值冲减滚动债；核心债不因日常路径直接清零。',
+    systemSummary: '身体部位偿还按动态估值冲减滚动债。',
     systemDetails: '具体冲减分项以结算执行结果为准；本区不提供策略建议。'
   }
 }
@@ -103,7 +103,7 @@ export function executeBodyPartRepayment(
     id: `log_${Date.now()}`,
     day: g.school.day,
     title: '身体部位偿还',
-    detail: `你偿还了${label}，减免滚动债¥${repayment.totalPaid.toLocaleString()}（费用¥${repayment.feePaid.toLocaleString()}、利息¥${repayment.interestPaid.toLocaleString()}、本金¥${repayment.principalPaid.toLocaleString()}）。核心债仍保留。`,
+    detail: `你偿还了${label}，减免滚动债¥${repayment.totalPaid.toLocaleString()}（费用¥${repayment.feePaid.toLocaleString()}、利息¥${repayment.interestPaid.toLocaleString()}、本金¥${repayment.principalPaid.toLocaleString()}）。`,
     tone: 'danger'
   })
   if (g.logs.length > 120) g.logs.pop()

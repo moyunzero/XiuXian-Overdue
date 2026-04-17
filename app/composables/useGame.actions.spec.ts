@@ -132,24 +132,6 @@ describe('ACT-01~ACT-05 行为矩阵', () => {
     expect(game.value.buyDebasement).toBeGreaterThan(debaseBefore)
     expect(game.value.econ.cash).toBeLessThan(cashBefore)
   })
-
-  it('ACT-06: 开局后保持 debt > cash，避免出现可一次性还清窗口', () => {
-    const { game, startNew } = useGame()
-    startNew({
-      playerName: '测试',
-      background: '富户',
-      talent: '天灵根',
-      initialDebt: 5_000,
-      startingCity: '天枢城'
-    })
-
-    const totalDebt =
-      game.value.econ.coreDebt +
-      game.value.econ.collectionFee +
-      game.value.econ.debtInterestAccrued +
-      game.value.econ.debtPrincipal
-    expect(totalDebt).toBeGreaterThan(game.value.econ.cash)
-  })
 })
 
 describe('D-13~D-16 首周压力基线', () => {

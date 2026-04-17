@@ -29,7 +29,6 @@ import {
   splitInitialDebtForGame,
   weeklySystemFee,
   applyWeeklyCollectionFee,
-  enforceDebtDominance,
   applyRepaymentByPriority,
   executeImmediatePayment
 } from './useGame.economy'
@@ -83,8 +82,7 @@ export function useGame() {
   const totalDebt = computed(() =>
     Math.max(
       0,
-      game.value.econ.coreDebt +
-        game.value.econ.collectionFee +
+      game.value.econ.collectionFee +
         game.value.econ.debtPrincipal +
         game.value.econ.debtInterestAccrued
     )
@@ -134,8 +132,6 @@ export function useGame() {
     const tFocus = cfg.talent === '无灵根' ? 52 : cfg.talent === '伪灵根' ? 58 : 64
 
     g.econ.cash = bgCash
-    g.econ.coreDebt = 0
-    g.econ.initialCoreDebt = 0
     g.econ.collectionFee = 0
     g.econ.dailyRate = bgRate
     cfg.initialDebt = Math.max(5000, cfg.initialDebt)
@@ -160,8 +156,6 @@ export function useGame() {
         tone: 'info'
       }
     ]
-
-    enforceDebtDominance(g)
 
     game.value = g
   }
@@ -193,7 +187,6 @@ export function useGame() {
         : `你借到¥${a.toLocaleString()}。利息不会因为你的梦想而心软。`
     g.logs.unshift({ id: uid('log'), day: g.school.day, title: '借贷到账', detail: logDetail, tone: 'warn' })
     if (g.logs.length > 120) g.logs.pop()
-    enforceDebtDominance(g)
     saveToSlot(activeSlot.value)
   }
 
@@ -209,7 +202,7 @@ export function useGame() {
         id: uid('log'),
         day: g.school.day,
         title: '还款未记账',
-        detail: '当前仅剩核心债。核心债不会被日常还款直接冲减，系统将在周结算中执行重估。',
+        detail: '无可还债务或余额不足。',
         tone: 'warn'
       })
       if (g.logs.length > 120) g.logs.pop()
@@ -217,7 +210,6 @@ export function useGame() {
       return
     }
     g.econ.cash -= repayment.totalPaid
-    const dominance = enforceDebtDominance(g)
     g.econ.lastPaymentDay = g.school.day
     let delinquencyNote = ''
     if (repayment.totalPaid >= minPayment.value && g.econ.delinquency > 0) {
@@ -228,7 +220,7 @@ export function useGame() {
       id: uid('log'),
       day: g.school.day,
       title: '还款',
-      detail: `系统已记账：¥${repayment.totalPaid.toLocaleString()}（利息¥${repayment.interestPaid.toLocaleString()}、费用¥${repayment.feePaid.toLocaleString()}、本金¥${repayment.principalPaid.toLocaleString()}）。${delinquencyNote}${dominance.injectedCoreDebt > 0 ? ` 制度保留债上调¥${dominance.injectedCoreDebt.toLocaleString()}。` : ''}剩余债务：¥${(g.econ.coreDebt + g.econ.debtPrincipal + g.econ.collectionFee + g.econ.debtInterestAccrued).toLocaleString()}。`,
+      detail: `系统已记账：¥${repayment.totalPaid.toLocaleString()}（利息¥${repayment.interestPaid.toLocaleString()}、费用¥${repayment.feePaid.toLocaleString()}、本金¥${repayment.principalPaid.toLocaleString()}）。${delinquencyNote}剩余债务：¥${(g.econ.debtPrincipal + g.econ.collectionFee + g.econ.debtInterestAccrued).toLocaleString()}。`,
       tone: 'ok'
     })
     if (g.logs.length > 120) g.logs.pop()
@@ -262,7 +254,7 @@ export function useGame() {
       const pay = accumulatedMinPayment.value
       if (g.econ.cash >= pay) {
         const result = executeImmediatePayment(g, pay)
-        if (!result.success) addLog('还款失败', '当前仅剩核心债，系统最低还款不会直接冲减核心债。', 'danger')
+        if (!result.success) addLog('还款失败', '余额不足以进行最低还款。', 'danger')
         else {
           addLog('还款记账完成', `系统已扣款¥${result.paid.toLocaleString()}，并将逾期等级下调 1 级。`, 'ok')
         }
@@ -326,7 +318,6 @@ export function useGame() {
     }
 
     g.pendingEvent = undefined
-    enforceDebtDominance(g)
     ensureSummaryUnlock(g)
     saveToSlot(activeSlot.value)
   }
@@ -510,8 +501,6 @@ export function useGame() {
 
     if (g.school.slot === 'morning') g.econ.cash += g.school.perks.mealSubsidy
 
-    enforceDebtDominance(g)
-
     const endingAlreadySeen = g.logs.some(
       (log: GameState['logs'][number]) => log.title === Engine.NARRATIVE_ENDING_LOG_TITLE
     )
@@ -581,7 +570,6 @@ export const __test__ = {
   splitInitialDebtForGame,
   weeklySystemFee,
   applyWeeklyCollectionFee,
-  enforceDebtDominance,
   applyRepaymentByPriority,
   executeImmediatePayment
 }

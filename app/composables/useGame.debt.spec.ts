@@ -119,48 +119,4 @@ describe('DEBT-01~DEBT-03 Wave 0 回归', () => {
     expect(top.detail).toContain('本金¥')
     expect(top.detail).toContain('剩余债务')
   })
-
-  it('DEBT-LOCK-01: 现金偿还后仍保持 debt > cash（不可现金清债）', () => {
-    const { game, repay } = useGame()
-    game.value = seedPlayableDebtState()
-    game.value.econ.cash = 50_000
-    game.value.econ.collectionFee = 200
-    game.value.econ.debtInterestAccrued = 300
-    game.value.econ.debtPrincipal = 500
-
-    repay(999_999)
-
-    const totalDebt =
-      game.value.econ.coreDebt +
-      game.value.econ.collectionFee +
-      game.value.econ.debtInterestAccrued +
-      game.value.econ.debtPrincipal
-    expect(totalDebt).toBeGreaterThan(game.value.econ.cash)
-  })
-
-  it('DEBT-LOCK-02: 身体偿还后仍保持 debt > cash（不可用身体直接出清）', () => {
-    const { game, resolveEvent } = useGame()
-    game.value = seedPlayableDebtState()
-    game.value.econ.cash = 30_000
-    game.value.econ.collectionFee = 150
-    game.value.econ.debtInterestAccrued = 150
-    game.value.econ.debtPrincipal = 200
-    game.value.pendingEvent = {
-      title: '最后的选择：用身体偿还',
-      body: 'test',
-      options: [
-        { id: 'immediate_payment', label: '立即还款', tone: 'primary' },
-        { id: 'repay_leftpalm', label: '左手掌（减免）', tone: 'danger' }
-      ]
-    }
-
-    resolveEvent('repay_leftpalm')
-
-    const totalDebt =
-      game.value.econ.coreDebt +
-      game.value.econ.collectionFee +
-      game.value.econ.debtInterestAccrued +
-      game.value.econ.debtPrincipal
-    expect(totalDebt).toBeGreaterThan(game.value.econ.cash)
-  })
 })

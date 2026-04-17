@@ -15,35 +15,6 @@ export function applyWeeklyCollectionFee(g: GameState): number {
   return fee
 }
 
-export function enforceDebtDominance(g: GameState): {
-  injectedCoreDebt: number
-  targetDebt: number
-  currentDebt: number
-} {
-  const coreDebt = Math.max(0, g.econ.coreDebt ?? 0)
-  const currentDebt = Math.max(0, coreDebt + g.econ.collectionFee + g.econ.debtPrincipal + g.econ.debtInterestAccrued)
-  const minGap = Math.max(600, Math.floor(Math.max(0, g.econ.cash) * 0.12))
-  const targetDebt = Math.max(600, Math.floor(Math.max(0, g.econ.cash)) + minGap)
-  if (currentDebt >= targetDebt) {
-    return {
-      injectedCoreDebt: 0,
-      targetDebt,
-      currentDebt
-    }
-  }
-
-  const injectedCoreDebt = targetDebt - currentDebt
-  g.econ.coreDebt = Math.max(0, coreDebt + injectedCoreDebt)
-  if (!Number.isFinite(g.econ.initialCoreDebt) || g.econ.initialCoreDebt <= 0) {
-    g.econ.initialCoreDebt = g.econ.coreDebt
-  }
-  return {
-    injectedCoreDebt,
-    targetDebt,
-    currentDebt: targetDebt
-  }
-}
-
 export function applyRepaymentByPriority(g: GameState, budget: number): {
   feePaid: number
   interestPaid: number
@@ -93,7 +64,6 @@ export const __test__economy = {
   splitInitialDebtForGame,
   weeklySystemFee,
   applyWeeklyCollectionFee,
-  enforceDebtDominance,
   applyRepaymentByPriority,
   executeImmediatePayment
 }

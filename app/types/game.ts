@@ -33,8 +33,6 @@ export interface PlayerStats {
 
 export interface EconomyState {
   cash: number
-  coreDebt: number
-  initialCoreDebt: number
   collectionFee: number // 系统费用池（学籍维护费、风控费、催收服务费、五险一金）
   debtPrincipal: number
   debtInterestAccrued: number
