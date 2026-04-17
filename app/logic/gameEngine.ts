@@ -9,7 +9,7 @@ import { buildInstitutionalEventLogDetail } from '~/logic/eventInstitutionalLog'
 import { clamp, uid } from '~/utils/rng'
 
 export function fullDebt(g: GameState): number {
-  return Math.max(0, g.econ.collectionFee + g.econ.debtPrincipal + g.econ.debtInterestAccrued)
+  return Math.max(0, g.econ.coreDebt + g.econ.collectionFee + g.econ.debtPrincipal + g.econ.debtInterestAccrued)
 }
 
 export function slotOrder(): SlotId[] {
@@ -502,6 +502,7 @@ export type SummarySnapshot = {
   schoolDay: number
   schoolWeek: number
   totalDebt: number
+  coreDebt: number
   collectionFee: number
   debtPrincipal: number
   debtInterestAccrued: number
@@ -525,6 +526,7 @@ export function buildSummarySnapshot(g: GameState): SummarySnapshot {
     schoolDay: g.school.day,
     schoolWeek: g.school.week,
     totalDebt: fullDebt(g),
+    coreDebt: g.econ.coreDebt,
     collectionFee: g.econ.collectionFee,
     debtPrincipal: g.econ.debtPrincipal,
     debtInterestAccrued: g.econ.debtInterestAccrued,
