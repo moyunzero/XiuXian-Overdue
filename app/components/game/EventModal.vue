@@ -4,7 +4,6 @@
       <div
         v-if="event"
         class="EventModalBackdrop"
-        @click.self="handleDismiss"
       >
         <div
           ref="modalRef"
