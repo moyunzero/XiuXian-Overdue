@@ -1,4 +1,5 @@
 import type { GameState } from '~/types/game'
+import { ref } from 'vue'
 import * as Engine from '~/logic/gameEngine'
 import { useGameState } from './useGameState'
 import {
@@ -34,6 +35,8 @@ export interface SaveContainer {
   slots: Partial<Record<SaveSlotId, { meta: SaveSlotMeta; state: GameState }>>
 }
 
+const storageVersion = ref(0)
+
 /** 未落盘的合并容器（防抖期间优先于磁盘） */
 let pendingMerge: SaveContainer | null = null
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
@@ -47,6 +50,7 @@ export function resetModuleStorageState() {
     debounceTimer = null
   }
   pendingMerge = null
+  storageVersion.value = storageVersion.value + 1
   if (import.meta.server) return
   try {
     localStorage.removeItem(STORAGE_KEY)
@@ -241,6 +245,7 @@ export function useGameStorage() {
   }
 
   const listSlots = computed(() => {
+    storageVersion.value
     const container = getWorkingContainer()
     const ids: SaveSlotId[] = ['autosave', 'slot1', 'slot2', 'slot3']
     return ids.map((sid) => container?.slots?.[sid]?.meta ?? null)

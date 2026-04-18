@@ -18,7 +18,7 @@ const defaultSteps: TutorialStep[] = [
     id: 'debt-intro',
     element: '.GamePage__debt',
     title: '债务压力',
-    description: '这是你的债务面板。总债务 = 本金 + 利息 + 系统费池。每周复利1.5%，打工收入的20%直接进入费用池。',
+    description: '这是你的债务面板。总债务 = 制度欠款 + 本金 + 利息 + 系统费池。每周复利1.5%，打工收入的20%直接进入费用池。',
     side: 'left',
     align: 'center'
   },

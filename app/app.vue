@@ -17,7 +17,6 @@
 
 <script setup lang="ts">
 import { useGameStorage } from '~/composables/useGameStorage'
-import 'driver.js/dist/driver.css'
 
 const { storageError, storageCorrupt, clearStorageError, clearStorageCorrupt } = useGameStorage()
 </script>
@@ -55,3 +54,5 @@ const { storageError, storageCorrupt, clearStorageError, clearStorageCorrupt } =
   font-size: var(--font-meta, 12px);
 }
 </style>
+
+

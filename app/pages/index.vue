@@ -34,7 +34,7 @@ const showAdvanced = ref(false)
 
 const canContinue = computed(() => game.value.started)
 
-function onStart() {
+async function onStart() {
   const cfg: StartConfig = {
     playerName: playerName.value.trim() || '无名氏',
     background: background.value,
@@ -47,12 +47,12 @@ function onStart() {
   const n = slot.slice(-1)
   saveToSlot(slot, `第${n}局·${cfg.playerName}`)
   activeSlot.value = slot
-  navigateTo('/game')
+  await navigateTo('/game')
 }
 
-function resume(slotId: SaveSlotId) {
+async function resume(slotId: SaveSlotId) {
   const ok = loadFromSlot(slotId)
-  if (ok) navigateTo('/game')
+  if (ok) await navigateTo('/game')
 }
 
 function onClearSaves() {
@@ -79,7 +79,9 @@ const slotData = computed(() =>
 
 <template>
   <div class="IndexPage">
-    <ParticleBackground />
+    <ClientOnly>
+      <ParticleBackground />
+    </ClientOnly>
     <div class="Container">
       <HeroSection />
 

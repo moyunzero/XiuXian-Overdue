@@ -36,12 +36,10 @@
                   <tr>
                     <th scope="row">分项</th>
                     <td>
-                      核心债 ¥{{ snapshot.coreDebt.toLocaleString() }} · 费用 ¥{{
-                        snapshot.collectionFee.toLocaleString()
+                      费用 ¥{{ snapshot.collectionFee.toLocaleString() }} · 本金 ¥{{
+                        snapshot.debtPrincipal.toLocaleString()
                       }}
-                      · 本金 ¥{{ snapshot.debtPrincipal.toLocaleString() }} · 利息 ¥{{
-                        snapshot.debtInterestAccrued.toLocaleString()
-                      }}
+                      · 利息 ¥{{ snapshot.debtInterestAccrued.toLocaleString() }}
                     </td>
                   </tr>
                   <tr>

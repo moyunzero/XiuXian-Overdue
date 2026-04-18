@@ -38,8 +38,6 @@ function baseGame(overrides: Partial<GameState> = {}): GameState {
     econ: {
       cash: 2000,
       collectionFee: 0,
-      coreDebt: 5000,
-      initialCoreDebt: 5000,
       debtPrincipal: 2000,
       debtInterestAccrued: 0,
       dailyRate: 0.008,

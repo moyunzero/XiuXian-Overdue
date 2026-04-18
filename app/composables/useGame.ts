@@ -202,7 +202,7 @@ export function useGame() {
         id: uid('log'),
         day: g.school.day,
         title: '还款未记账',
-        detail: '当前仅剩核心债。核心债不会被日常还款直接冲减，系统将在周结算中执行重估。',
+        detail: '无可还债务或余额不足。',
         tone: 'warn'
       })
       if (g.logs.length > 120) g.logs.pop()
@@ -254,7 +254,7 @@ export function useGame() {
       const pay = accumulatedMinPayment.value
       if (g.econ.cash >= pay) {
         const result = executeImmediatePayment(g, pay)
-        if (!result.success) addLog('还款失败', '当前仅剩核心债，系统最低还款不会直接冲减核心债。', 'danger')
+        if (!result.success) addLog('还款失败', '余额不足以进行最低还款。', 'danger')
         else {
           addLog('还款记账完成', `系统已扣款¥${result.paid.toLocaleString()}，并将逾期等级下调 1 级。`, 'ok')
         }
