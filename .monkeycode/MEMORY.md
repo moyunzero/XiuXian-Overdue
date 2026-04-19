@@ -38,3 +38,27 @@ Agent 在任务执行过程中发现的条目应遵循以下格式：
 - Instructions:
   - 项目将“债务压迫”作为核心体验，玩家可缓解压力但不应出现现金覆盖总债务的可出清窗口。
   - 债务相关主逻辑集中在 `app/composables/useGame.ts`（流程编排）与 `app/composables/useGame.economy.ts`（结算规则）。
+
+[游戏核心架构拆分]
+- Date: 2026-04-19
+- Context: Agent 在执行“分析现有项目逻辑”任务时发现
+- Category: 代码结构
+- Instructions:
+  - 项目是 Nuxt 4 单页游戏，页面入口主要为 `app/pages/index.vue`（开局与存档）和 `app/pages/game.vue`（主循环界面）。
+  - 运行时状态集中在 `app/composables/useGame.ts`，但已按职责拆分到 `useGame.actions.ts`、`useGame.dayCycle.ts`、`useGame.economy.ts`、`useGame.events.ts`。
+  - `app/logic/gameEngine.ts` 主要承载纯函数规则，例如分班、最低还款、事件冷却、心理压力、崩溃机制与总结快照。
+  - 随机事件采用 `data/events.json` 数据驱动，`app/utils/events.ts` 负责统一加载与按 phase/family 筛选。
+
+[测试覆盖重点]
+- Date: 2026-04-19
+- Context: Agent 在执行“分析现有项目逻辑”任务时发现
+- Category: 测试方法
+- Instructions:
+  - 项目使用 Vitest，测试主要围绕 `app/composables/*.spec.ts` 与 `app/logic/*.spec.ts`，重点覆盖债务、时间循环、事件、分班、心理系统与存档规则。
+
+[文档任务执行偏好]
+- Date: 2026-04-19
+- Context: 用户在提出“方案 A 的系统设计稿，补充到 memory、docs 和 specs 中，注意不进行代码修改”时明确要求
+- Instructions:
+  - 当用户要求产出方案或设计文档时，应同时把结论同步到 `.monkeycode/MEMORY.md`、`.monkeycode/docs/` 与 `.monkeycode/specs/`，方便后续延续开发。
+  - 此类任务默认只修改文档，不改动业务代码、配置或测试文件，除非用户另行明确要求。
