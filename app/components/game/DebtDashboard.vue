@@ -56,6 +56,19 @@
           <span class="DebtDetailLabel">逾期等级</span>
           <span :class="delinquencyClasses">{{ delinquency }} / 5</span>
         </div>
+        <div v-if="profilePrimaryLabel" class="DebtDetailSep" />
+        <div v-if="profilePrimaryLabel" class="DebtDetailRow">
+          <span class="DebtDetailLabel">制度画像</span>
+          <span :class="profileClasses">{{ profilePrimaryLabel }}</span>
+        </div>
+        <div v-if="profileTagsSummary" class="DebtDetailRow DebtDetailRow--sub">
+          <span class="DebtDetailLabel">┗ 主要标签</span>
+          <span class="DebtDetailValue DebtDetailValue--muted">{{ profileTagsSummary }}</span>
+        </div>
+        <div v-if="profileVersion > 0" class="DebtDetailRow DebtDetailRow--sub">
+          <span class="DebtDetailLabel">┗ 更新版本</span>
+          <span class="DebtDetailValue DebtDetailValue--muted">v{{ profileVersion }}（第{{ profileUpdateDay }}天）</span>
+        </div>
       </div>
     </Transition>
   </div>
@@ -74,6 +87,11 @@ interface DebtDashboardProps {
   delinquency?: number
   minPayment?: number
   cash?: number
+  profilePrimaryLabel?: string
+  profileTagsSummary?: string
+  profileVersion?: number
+  profileUpdateDay?: number
+  profileFinancialRisk?: string
 }
 
 const props = withDefaults(defineProps<DebtDashboardProps>(), {
@@ -83,7 +101,12 @@ const props = withDefaults(defineProps<DebtDashboardProps>(), {
   dailyRate: 0,
   delinquency: 0,
   minPayment: 0,
-  cash: 0
+  cash: 0,
+  profilePrimaryLabel: '',
+  profileTagsSummary: '',
+  profileVersion: 0,
+  profileUpdateDay: 0,
+  profileFinancialRisk: 'low'
 })
 
 const emit = defineEmits<{
@@ -104,6 +127,12 @@ const delinquencyClasses = computed(() => ({
   'DebtDetailValue': true,
   'DebtDetailValue--danger': props.delinquency >= 2,
   'DebtDetailValue--warning': props.delinquency === 1
+}))
+
+const profileClasses = computed(() => ({
+  'DebtDetailValue': true,
+  'DebtDetailValue--danger': props.profileFinancialRisk === 'extreme' || props.profileFinancialRisk === 'high',
+  'DebtDetailValue--warning': props.profileFinancialRisk === 'medium'
 }))
 </script>
 
@@ -246,6 +275,11 @@ const delinquencyClasses = computed(() => ({
 .DebtDetailValue--danger {
   color: var(--danger);
   animation: pulse 2s ease-in-out infinite;
+}
+
+.DebtDetailValue--muted {
+  color: var(--muted);
+  font-size: var(--text-xs);
 }
 
 .DebtDetailSep {

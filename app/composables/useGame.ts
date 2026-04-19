@@ -101,6 +101,23 @@ export function useGame() {
 
   const accumulatedMinPayment = computed(() => Engine.calculateAccumulatedMinPayment(game.value))
 
+  const profileSnapshot = computed(() => Engine.buildSocialProfile(game.value))
+
+  const prevProfile = computed(() => game.value.profileSnapshot?.profile)
+
+  const profileDigest = computed(() => Engine.buildProfileDigest(game.value, prevProfile.value))
+
+  const refreshProfileSnapshot = () => {
+    const g = game.value
+    const currentProfile = Engine.buildSocialProfile(g)
+    const version = (g.profileSnapshot?.profileVersion ?? 0) + 1
+    g.profileSnapshot = {
+      profile: currentProfile,
+      lastProfileUpdateDay: g.school.day,
+      profileVersion: version
+    }
+  }
+
   const classPressureDigest = computed(() => {
     const g = game.value
     const latestWeeklyReport = g.logs.find((log: GameState['logs'][number]) => log.title.includes('周结算通报'))
@@ -157,6 +174,13 @@ export function useGame() {
       }
     ]
 
+    const initialProfile = Engine.buildSocialProfile(g)
+    g.profileSnapshot = {
+      profile: initialProfile,
+      lastProfileUpdateDay: 1,
+      profileVersion: 1
+    }
+
     game.value = g
   }
 
@@ -187,6 +211,7 @@ export function useGame() {
         : `你借到¥${a.toLocaleString()}。利息不会因为你的梦想而心软。`
     g.logs.unshift({ id: uid('log'), day: g.school.day, title: '借贷到账', detail: logDetail, tone: 'warn' })
     if (g.logs.length > 120) g.logs.pop()
+    refreshProfileSnapshot()
     saveToSlot(activeSlot.value)
   }
 
@@ -195,6 +220,21 @@ export function useGame() {
     const a = Math.max(0, Math.floor(amount))
     if (a <= 0) return
     if (g.econ.cash <= 0) return
+
+    // 方案 A：锁定债务不能用现金偿还
+    if (Engine.isDebtLocked(g)) {
+      g.logs.unshift({
+        id: uid('log'),
+        day: g.school.day,
+        title: '还款被拒绝',
+        detail: '该债务已被系统锁定，必须通过身体抵押方式偿还。现金无法直接抵扣。',
+        tone: 'warn'
+      })
+      if (g.logs.length > 120) g.logs.pop()
+      saveToSlot(activeSlot.value)
+      return
+    }
+
     const budget = Math.min(a, g.econ.cash, totalDebt.value)
     const repayment = applyRepaymentByPriority(g, budget)
     if (repayment.totalPaid <= 0) {
@@ -224,6 +264,7 @@ export function useGame() {
       tone: 'ok'
     })
     if (g.logs.length > 120) g.logs.pop()
+    refreshProfileSnapshot()
     saveToSlot(activeSlot.value)
   }
 
@@ -251,15 +292,20 @@ export function useGame() {
       const actualPartId = partIdMap[partIdStr]
       if (actualPartId) doExecuteBodyPartRepayment(g, actualPartId)
     } else if (optionId === 'immediate_payment') {
-      const pay = accumulatedMinPayment.value
-      if (g.econ.cash >= pay) {
-        const result = executeImmediatePayment(g, pay)
-        if (!result.success) addLog('还款失败', '余额不足以进行最低还款。', 'danger')
-        else {
-          addLog('还款记账完成', `系统已扣款¥${result.paid.toLocaleString()}，并将逾期等级下调 1 级。`, 'ok')
-        }
+      // 方案 A：锁定债务不能用现金偿还
+      if (Engine.isDebtLocked(g)) {
+        addLog('还款被拒绝', '该债务已被系统锁定，必须通过身体抵押方式偿还。', 'warn')
       } else {
-        addLog('还款失败', '余额不足。', 'danger')
+        const pay = accumulatedMinPayment.value
+        if (g.econ.cash >= pay) {
+          const result = executeImmediatePayment(g, pay)
+          if (!result.success) addLog('还款失败', '余额不足以进行最低还款。', 'danger')
+          else {
+            addLog('还款记账完成', `系统已扣款¥${result.paid.toLocaleString()}，并将逾期等级下调 1 级。`, 'ok')
+          }
+        } else {
+          addLog('还款失败', '余额不足。', 'danger')
+        }
       }
     } else if (optionId === 'forced_tuna') {
       const prevP = g.contract.progress
@@ -295,6 +341,10 @@ export function useGame() {
       Engine.syncDomesticationWithContractProgress(g, prevP, prevV)
       g.econ.debtInterestAccrued = round1(g.econ.debtInterestAccrued + 120)
       addLog('契约反噬·硬抗代价', '你硬扛了这次命令。代价马上到账：更累、更乱、更贵。', 'danger')
+    } else if (optionId === 'adjust_behavior') {
+      Engine.applyAntiProfileConsequence(g, 'adjust')
+    } else if (optionId === 'maintain_resistance') {
+      Engine.applyAntiProfileConsequence(g, 'maintain')
     } else if (optionId === 'ending_continue') {
       addLog(
         Engine.NARRATIVE_ENDING_LOG_TITLE,
@@ -319,6 +369,7 @@ export function useGame() {
 
     g.pendingEvent = undefined
     ensureSummaryUnlock(g)
+    refreshProfileSnapshot()
     saveToSlot(activeSlot.value)
   }
 
@@ -501,12 +552,19 @@ export function useGame() {
 
     if (g.school.slot === 'morning') g.econ.cash += g.school.perks.mealSubsidy
 
+    const isAnti = Engine.isAntiProfileAction(action, g)
+    Engine.updateAntiProfileStreak(g, isAnti)
+
     const endingAlreadySeen = g.logs.some(
       (log: GameState['logs'][number]) => log.title === Engine.NARRATIVE_ENDING_LOG_TITLE
     )
     const shouldShowEnding = !endingAlreadySeen && Engine.shouldTriggerNarrativeEnding(g)
+
+    const antiProfileCheck = Engine.shouldTriggerAntiProfileRiskEvent(g, rand)
     const repaymentCheck = Engine.shouldTriggerRepaymentEvent(g, rand)
-    if (repaymentCheck.trigger) {
+    if (antiProfileCheck) {
+      g.pendingEvent = Engine.buildAntiProfileRiskEvent(g)
+    } else if (repaymentCheck.trigger) {
       g.pendingEvent = buildRepaymentEvent(g, rand)
     } else if (shouldShowEnding) {
       g.pendingEvent = Engine.makeNarrativeEndingEvent()
@@ -537,6 +595,7 @@ export function useGame() {
     }
 
     ensureSummaryUnlock(g)
+    refreshProfileSnapshot()
     saveToSlot(activeSlot.value)
   }
 
@@ -562,7 +621,9 @@ export function useGame() {
     summaryPanelOpen,
     openSummaryPanel,
     acknowledgeSummaryAndContinue,
-    closeSummaryPanelWithoutMarking
+    closeSummaryPanelWithoutMarking,
+    profileSnapshot,
+    profileDigest
   }
 }
 

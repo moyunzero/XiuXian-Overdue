@@ -1,4 +1,5 @@
 import type { GameState, SlotId } from '~/types/game'
+import type { SocialProfile, ProfileDigest } from '~/types/game'
 import { clamp, mulberry32, round1, uid } from '~/utils/rng'
 import * as Engine from '~/logic/gameEngine'
 import type { AddLog } from './useGame.actions'
@@ -137,6 +138,7 @@ export function endDay(
 
   if ((g.school.day - 1) % 7 === 0) {
     Engine.clearCollapseModifierOnWeeklySettlement(g)
+    Engine.clearAntiProfileStreakOnWeeklySettlement(g)
     const settledDay = g.school.day - 1
     const previousTier = g.school.classTier
     const previousPerks = { ...g.school.perks }
@@ -164,13 +166,29 @@ export function endDay(
     const tierDebtProfile = Engine.debtProfileForTier(g.school.classTier)
     const riskSummary = `风险倍率：利率×${tierDebtProfile.dailyRateMultiplier.toFixed(2)}，最低周还款×${tierDebtProfile.minWeeklyPaymentMultiplier.toFixed(2)}，催收权重×${tierDebtProfile.collectionRiskWeight.toFixed(2)}`
     const currentTotalDebt = g.econ.collectionFee + g.econ.debtPrincipal + g.econ.debtInterestAccrued
+
+    const prevProfile = g.profileSnapshot?.profile
+    const currentProfile = Engine.buildSocialProfile(g)
+    const profileDigest = Engine.buildProfileDigest(g, prevProfile)
+    let profileChangeNote = ''
+    if (profileDigest.recentChanges.length > 0) {
+      profileChangeNote = `；制度画像变动：${profileDigest.recentChanges.join('；')}`
+    }
+    const profileStatusNote = `当前画像：${profileDigest.primaryLabel}`
+
     g.logs.unshift({
       id: uid('log'),
       day: settledDay,
       title: `周结算通报（第${g.school.week}周）`,
-      detail: `分数：${g.school.lastExamScore}；分班变化：${tierChange}；债务压力：${debtPressure}；当前总债务：¥${currentTotalDebt.toLocaleString()}；${riskSummary}。`,
+      detail: `分数：${g.school.lastExamScore}；分班变化：${tierChange}；债务压力：${debtPressure}；当前总债务：¥${currentTotalDebt.toLocaleString()}；${riskSummary}；${profileStatusNote}${profileChangeNote}。`,
       tone: debtPressure === '高' || debtPressure === '极高' ? 'warn' : 'info'
     })
+
+    g.profileSnapshot = {
+      profile: currentProfile,
+      lastProfileUpdateDay: g.school.day,
+      profileVersion: (g.profileSnapshot?.profileVersion ?? 0) + 1
+    }
     if (g.logs.length > 120) g.logs.pop()
     g.school.week += 1
   }

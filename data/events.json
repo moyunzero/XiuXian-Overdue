@@ -10,7 +10,8 @@
     "cooldownDays": 1,
     "trigger": {
       "minDelinquency": 0,
-      "maxDelinquency": 1
+      "maxDelinquency": 1,
+      "financialRiskIn": ["low", "medium"]
     },
     "options": [
       {
@@ -66,7 +67,8 @@
     "weight": 8,
     "cooldownDays": 1,
     "trigger": {
-      "minDelinquency": 2
+      "minDelinquency": 2,
+      "financialRiskIn": ["high", "extreme"]
     },
     "options": [
       {
@@ -122,7 +124,8 @@
     "weight": 3,
     "cooldownDays": 7,
     "trigger": {
-      "minDelinquency": 2
+      "minDelinquency": 2,
+      "profileTagIn": ["可重组对象"]
     },
     "options": [
       {
@@ -293,7 +296,8 @@
     "weight": 2,
     "cooldownDays": 7,
     "trigger": {
-      "minDay": 8
+      "minDay": 8,
+      "complianceIn": ["resistant", "softened"]
     },
     "options": [
       {
@@ -415,7 +419,8 @@
     "weight": 3,
     "cooldownDays": 4,
     "trigger": {
-      "minDay": 10
+      "minDay": 10,
+      "bodyAssetIn": ["intact", "marked"]
     },
     "options": [
       {
@@ -471,7 +476,8 @@
     "weight": 2,
     "cooldownDays": 7,
     "trigger": {
-      "minDay": 14
+      "minDay": 14,
+      "bodyAssetIn": ["intact"]
     },
     "options": [
       {
@@ -583,7 +589,8 @@
     "weight": 5,
     "cooldownDays": 5,
     "trigger": {
-      "classTierIn": ["末位班"]
+      "classTierIn": ["末位班"],
+      "complianceIn": ["resistant", "softened"]
     },
     "options": [
       {
@@ -644,7 +651,8 @@
     "weight": 3,
     "cooldownDays": 7,
     "trigger": {
-      "minDay": 21
+      "minDay": 21,
+      "complianceIn": ["softened", "obedient", "domesticated"]
     },
     "options": [
       {
@@ -1144,6 +1152,484 @@
             "kind": "stat",
             "target": "fatigue",
             "delta": 6
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "planA_profile_targeted_recruitment",
+    "title": "定向招募通知",
+    "body": "系统弹出消息：经评估，您的画像符合「高服从度人才库」入库条件。入库者将获得稀缺修炼资源推荐权限，同时接受定期画像更新核查。这是奖励，还是另一种锁定？",
+    "type": "system",
+    "tone": "info",
+    "phase": "afterAction",
+    "weight": 2,
+    "cooldownDays": 14,
+    "trigger": {
+      "minDay": 15,
+      "profileTagIn": ["高服从度人才"]
+    },
+    "options": [
+      {
+        "id": "accept_recruitment",
+        "label": "入库（接受资源倾斜）",
+        "tone": "primary",
+        "effects": [
+          {
+            "kind": "stat",
+            "target": "focus",
+            "delta": 8
+          },
+          {
+            "kind": "stat",
+            "target": "fatigue",
+            "delta": -3
+          },
+          {
+            "kind": "log",
+            "title": "入库成功",
+            "detail": "你进入了人才库。资源变多，选择变少。",
+            "tone": "ok"
+          }
+        ]
+      },
+      {
+        "id": "decline_recruitment",
+        "label": "拒绝（保持独立档案）",
+        "tone": "normal",
+        "effects": [
+          {
+            "kind": "stat",
+            "target": "focus",
+            "delta": -2
+          },
+          {
+            "kind": "log",
+            "title": "拒绝入库",
+            "detail": "你保持了独立。系统默默记下了这个选择。",
+            "tone": "warn"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "planA_mortgage_followup",
+    "title": "资产处置跟踪",
+    "body": "抵押物核查通知：您已登记的身体资产出现「估值波动」。根据合同条款，波动超过阈值将触发二次评估。届时可能需要追加抵押或调整还款计划。",
+    "type": "collection",
+    "tone": "warn",
+    "phase": "afterAction",
+    "weight": 4,
+    "cooldownDays": 10,
+    "trigger": {
+      "minDay": 8,
+      "bodyAssetIn": ["mortgaged", "depleted"]
+    },
+    "options": [
+      {
+        "id": "accept_review",
+        "label": "接受二次评估",
+        "tone": "primary",
+        "effects": [
+          {
+            "kind": "stat",
+            "target": "fatigue",
+            "delta": 5
+          },
+          {
+            "kind": "log",
+            "title": "评估完成",
+            "detail": "评估员记录了数据。你不知道这些数据会被怎么用。",
+            "tone": "info"
+          }
+        ]
+      },
+      {
+        "id": "postpone_review",
+        "label": "申请延期（附加费用）",
+        "tone": "danger",
+        "effects": [
+          {
+            "kind": "debt",
+            "mode": "addInterest",
+            "amount": 0
+          },
+          {
+            "kind": "stat",
+            "target": "focus",
+            "delta": -4
+          },
+          {
+            "kind": "log",
+            "title": "延期申请已受理",
+            "detail": "你延了时间，但债没延。利息在累积。",
+            "tone": "warn"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "planA_obedient_training",
+    "title": "规训课程通知",
+    "body": "系统提示：您已被列入「重点规训对象」。特此安排免费课程，助您提升制度适应度。课程内容：高效还款路径模拟、压力管理与服从度测试。出席率将录入画像档案。",
+    "type": "system",
+    "tone": "warn",
+    "phase": "afterAction",
+    "weight": 3,
+    "cooldownDays": 12,
+    "trigger": {
+      "minDay": 10,
+      "profileTagIn": ["可规训对象"]
+    },
+    "options": [
+      {
+        "id": "attend_training",
+        "label": "参加课程（提升顺从度）",
+        "tone": "primary",
+        "effects": [
+          {
+            "kind": "stat",
+            "target": "fatigue",
+            "delta": 8
+          },
+          {
+            "kind": "log",
+            "title": "课程完成",
+            "detail": "你学到了怎么更好地还债。这算是一种进步吗？",
+            "tone": "info"
+          }
+        ]
+      },
+      {
+        "id": "skip_training",
+        "label": "缺席（记录在案）",
+        "tone": "danger",
+        "effects": [
+          {
+            "kind": "stat",
+            "target": "focus",
+            "delta": -5
+          },
+          {
+            "kind": "log",
+            "title": "缺席记录",
+            "detail": "缺席不会消失。它会在某个时候回来。",
+            "tone": "warn"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "planA_deep_processing",
+    "title": "深度处理候选通知",
+    "body": "经系统扫描，您的身体资产完整性已达到「深度拆解候选」标准。下一阶段将进入「高价值资源回收流程」。这是您最后的机会窗口期，届时可选择提前终止合作或继续推进。",
+    "type": "collection",
+    "tone": "danger",
+    "phase": "afterAction",
+    "weight": 2,
+    "cooldownDays": 15,
+    "trigger": {
+      "minDay": 20,
+      "profileTagIn": ["深度拆解候选"]
+    },
+    "options": [
+      {
+        "id": "accept_deep_processing",
+        "label": "接受深度处理",
+        "tone": "danger",
+        "effects": [
+          {
+            "kind": "stat",
+            "target": "fatigue",
+            "delta": 15
+          },
+          {
+            "kind": "stat",
+            "target": "faLi",
+            "delta": 0.5
+          },
+          {
+            "kind": "log",
+            "title": "深度处理完成",
+            "detail": "你失去了一些东西。得到了另一些东西。它们等值吗？",
+            "tone": "danger"
+          }
+        ]
+      },
+      {
+        "id": "negotiate_exit",
+        "label": "谈判退出（高额赎金）",
+        "tone": "primary",
+        "effects": [
+          {
+            "kind": "econ",
+            "target": "cash",
+            "delta": -50000
+          },
+          {
+            "kind": "log",
+            "title": "谈判成功",
+            "detail": "你花了巨款买回了自己。这笔账会记在别的地方。",
+            "tone": "warn"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "planA_stable_domestication",
+    "title": "稳定驯化评估",
+    "body": "画像更新：您已进入「稳定驯化区」。系统评估认为您已具备高服从度特质，将被纳入核心培养计划。相应地，资源倾斜会加大，但监控密度也会同步提升。",
+    "type": "system",
+    "tone": "info",
+    "phase": "afterAction",
+    "weight": 3,
+    "cooldownDays": 14,
+    "trigger": {
+      "minDay": 25,
+      "profileTagIn": ["已进入稳定驯化区"]
+    },
+    "options": [
+      {
+        "id": "embrace_domestication",
+        "label": "拥抱驯化（获取更多资源）",
+        "tone": "primary",
+        "effects": [
+          {
+            "kind": "stat",
+            "target": "fatigue",
+            "delta": 6
+          },
+          {
+            "kind": "log",
+            "title": "驯化深化",
+            "detail": "你变得更稳定了。这是好事还是坏事，系统不关心。",
+            "tone": "ok"
+          }
+        ]
+      },
+      {
+        "id": "resist_domestication",
+        "label": "抵抗（维持现状）",
+        "tone": "normal",
+        "effects": [
+          {
+            "kind": "stat",
+            "target": "focus",
+            "delta": -3
+          },
+          {
+            "kind": "log",
+            "title": "抵抗被记录",
+            "detail": "你的抵抗被记录了。它会影响下一次的画像评估。",
+            "tone": "warn"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "planA_investable_upgrade",
+    "title": "可投资身份升级",
+    "body": "恭喜！您的画像已达到「可投资优等生」标准。系统将为您提供稀缺修炼资源推荐，但这意味着更严格的画像监控和更高的期望值。投资有风险，选择需谨慎。",
+    "type": "system",
+    "tone": "ok",
+    "phase": "afterAction",
+    "weight": 2,
+    "cooldownDays": 14,
+    "trigger": {
+      "minDay": 15,
+      "profileTagIn": ["可投资优等生"]
+    },
+    "options": [
+      {
+        "id": "upgrade_investable",
+        "label": "接受升级（获取资源）",
+        "tone": "primary",
+        "effects": [
+          {
+            "kind": "stat",
+            "target": "faLi",
+            "delta": 0.2
+          },
+          {
+            "kind": "stat",
+            "target": "focus",
+            "delta": 5
+          },
+          {
+            "kind": "log",
+            "title": "升级完成",
+            "detail": "你升入了更高的位置。看得更远，但也看得更清楚。",
+            "tone": "ok"
+          }
+        ]
+      },
+      {
+        "id": "decline_upgrade",
+        "label": "保持现状",
+        "tone": "normal",
+        "effects": [
+          {
+            "kind": "log",
+            "title": "已拒绝",
+            "detail": "你没有变。系统把你的选择记了下来。",
+            "tone": "info"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "anti_profile_defiance_event",
+    "title": "系统误判：异常记录",
+    "body": "你的某次行为被系统标记为「异常」，但仔细核查后发现是误判。系统是否可以出错？还是这只是另一种测试？你不知道。但记录已经产生了。",
+    "type": "system",
+    "tone": "info",
+    "phase": "afterAction",
+    "weight": 2,
+    "cooldownDays": 10,
+    "trigger": {
+      "minDay": 5,
+      "complianceIn": ["resistant"]
+    },
+    "options": [
+      {
+        "id": "exploit_misclassification",
+        "label": "利用误判（伪装抵抗）",
+        "tone": "primary",
+        "effects": [
+          {
+            "kind": "stat",
+            "target": "focus",
+            "delta": 3
+          },
+          {
+            "kind": "log",
+            "title": "伪装成功",
+            "detail": "你在系统的缝隙里找到了一点空间。这空间能持续多久？",
+            "tone": "ok"
+          }
+        ]
+      },
+      {
+        "id": "report_error",
+        "label": "上报错误（留下记录）",
+        "tone": "normal",
+        "effects": [
+          {
+            "kind": "log",
+            "title": "上报已受理",
+            "detail": "你的上报被记录了。系统感谢你的配合。",
+            "tone": "info"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "body_mortgage_access_event",
+    "title": "准入型抵押通道",
+    "body": "特殊通道开启：经评估，您符合「准入型身体抵押」条件。此类型抵押不直接减债，但可解锁特定修炼场所、试炼或资源的访问权限。代价是身体完整度的永久性消耗。",
+    "type": "ritual",
+    "tone": "warn",
+    "phase": "afterAction",
+    "weight": 2,
+    "cooldownDays": 12,
+    "trigger": {
+      "minDay": 10,
+      "bodyAssetIn": ["marked", "mortgaged"]
+    },
+    "options": [
+      {
+        "id": "mortgage_for_access",
+        "label": "抵押换取准入（解锁资源）",
+        "tone": "primary",
+        "effects": [
+          {
+            "kind": "stat",
+            "target": "faLi",
+            "delta": 0.25
+          },
+          {
+            "kind": "stat",
+            "target": "rouTi",
+            "delta": 0.2
+          },
+          {
+            "kind": "log",
+            "title": "准入抵押完成",
+            "detail": "你用身体换了一把钥匙。门开了，但你失去了一部分自己。",
+            "tone": "warn"
+          }
+        ]
+      },
+      {
+        "id": "skip_access_mortgage",
+        "label": "不参与",
+        "tone": "normal",
+        "effects": [
+          {
+            "kind": "log",
+            "title": "保持完整",
+            "detail": "你选择了完整。系统把这也记下来了。",
+            "tone": "info"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "body_mortgage_cultivation_event",
+    "title": "修行加速型抵押",
+    "body": "加速通道开放：您可以抵押身体完整性以获得短期的修炼加速。此类抵押不可逆，且加速效果随抵押次数递减。系统建议：谨慎评估长期影响后再做决定。",
+    "type": "ritual",
+    "tone": "warn",
+    "phase": "afterAction",
+    "weight": 2,
+    "cooldownDays": 10,
+    "trigger": {
+      "minDay": 12,
+      "bodyAssetIn": ["intact", "marked"]
+    },
+    "options": [
+      {
+        "id": "mortgage_for_speed",
+        "label": "抵押加速（短期爆发）",
+        "tone": "primary",
+        "effects": [
+          {
+            "kind": "stat",
+            "target": "faLi",
+            "delta": 0.4
+          },
+          {
+            "kind": "stat",
+            "target": "fatigue",
+            "delta": 12
+          },
+          {
+            "kind": "log",
+            "title": "加速抵押完成",
+            "detail": "你跑得更快了。但身体在抗议。这种加速能持续多久？",
+            "tone": "ok"
+          }
+        ]
+      },
+      {
+        "id": "decline_speed_mortgage",
+        "label": "稳步修行",
+        "tone": "normal",
+        "effects": [
+          {
+            "kind": "log",
+            "title": "稳步前进",
+            "detail": "你选择了慢一点的路。系统没有评价。",
+            "tone": "info"
           }
         ]
       }

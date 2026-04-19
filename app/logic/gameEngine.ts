@@ -4,6 +4,13 @@ import type {
   GameState,
   PendingEvent,
   SlotId,
+  SocialProfile,
+  ProfileTagId,
+  FinancialRiskLevel,
+  EducationCreditLevel,
+  ComplianceLevel,
+  BodyAssetLevel,
+  ProfileDigest,
 } from '~/types/game'
 import { buildInstitutionalEventLogDetail } from '~/logic/eventInstitutionalLog'
 import { clamp, uid } from '~/utils/rng'
@@ -185,6 +192,28 @@ export function eventMatchesTrigger(event: EventDefinition, g: GameState) {
   if (t.classTierIn && t.classTierIn.length && !t.classTierIn.includes(tier)) return false
   if (t.contractActive !== undefined && contractActive !== t.contractActive) return false
 
+  if (t.financialRiskIn && t.financialRiskIn.length) {
+    const profile = buildSocialProfile(g)
+    if (!t.financialRiskIn.includes(profile.financialRisk)) return false
+  }
+  if (t.educationCreditIn && t.educationCreditIn.length) {
+    const profile = buildSocialProfile(g)
+    if (!t.educationCreditIn.includes(profile.educationCredit)) return false
+  }
+  if (t.complianceIn && t.complianceIn.length) {
+    const profile = buildSocialProfile(g)
+    if (!t.complianceIn.includes(profile.compliance)) return false
+  }
+  if (t.bodyAssetIn && t.bodyAssetIn.length) {
+    const profile = buildSocialProfile(g)
+    if (!t.bodyAssetIn.includes(profile.bodyAsset)) return false
+  }
+  if (t.profileTagIn && t.profileTagIn.length) {
+    const profile = buildSocialProfile(g)
+    const hasTag = t.profileTagIn.some(tag => profile.tags.includes(tag))
+    if (!hasTag) return false
+  }
+
   return true
 }
 
@@ -342,6 +371,10 @@ export function shouldTriggerRepaymentEvent(g: GameState, rand: () => number): {
     if (daysSinceRepayment < 7) return { trigger: false, mandatory: false }
   }
 
+  // 方案 A：身体抵押必须在走投无路时才能触发
+  // 只有现金不足以覆盖最低还款 × 2，或逾期等级 >= 3 时，才能触发身体抵押事件
+  if (!canTriggerBodyMortgage(g)) return { trigger: false, mandatory: false }
+
   const daysSincePay = g.school.day - g.econ.lastPaymentDay
   if (daysSincePay >= 28) return { trigger: true, mandatory: true }
 
@@ -378,6 +411,157 @@ export function calculateDynamicValuation(partId: string, state: { faLi: number;
   )
   const minValue = Math.floor(basePrice * 0.2)
   return Math.max(raw, minValue)
+}
+
+// ========== 方案 A：身体抵押增强系统 ==========
+
+export type BodyMortgageType = 'debt_reduction' | 'access_grant' | 'cultivation_boost'
+
+export type BodyMortgageResult = {
+  type: BodyMortgageType
+  debtReduction: number
+  accessGained: string[]
+  cultivationBonus: { faLi: number; rouTi: number }
+  narrative: string
+}
+
+export function determineMortgageType(g: GameState): BodyMortgageType {
+  const profile = buildSocialProfile(g)
+  const debt = fullDebt(g)
+  const faLi = g.stats.faLi
+  const rouTi = g.stats.rouTi
+
+  if (debt > 50000 && profile.financialRisk === 'extreme') return 'debt_reduction'
+  if (debt > 30000 && profile.bodyAsset === 'mortgaged') return 'debt_reduction'
+  if (faLi < 1 && rouTi < 3) return 'cultivation_boost'
+  if (profile.bodyAsset === 'marked') return 'access_grant'
+
+  return Math.random() < 0.5 ? 'debt_reduction' : 'cultivation_boost'
+}
+
+export function calculateBodyMortgageBenefits(
+  partId: string,
+  mortgageType: BodyMortgageType,
+  g: GameState
+): BodyMortgageResult {
+  const baseValue = calculateDynamicValuation(partId, {
+    faLi: g.stats.faLi,
+    rouTi: g.stats.rouTi,
+    fatigue: g.stats.fatigue,
+    buyDebasement: g.buyDebasement ?? 0
+  })
+
+  const multiplier = mortgageType === 'cultivation_boost' ? 1.3 : mortgageType === 'access_grant' ? 1.1 : 1.0
+  const adjustedValue = Math.floor(baseValue * multiplier)
+
+  switch (mortgageType) {
+    case 'debt_reduction':
+      return {
+        type: 'debt_reduction',
+        debtReduction: adjustedValue,
+        accessGained: [],
+        cultivationBonus: { faLi: 0, rouTi: 0 },
+        narrative: `你用身体换取了债务减免。身体的一部分不再属于你，但债也少了。`
+      }
+    case 'access_grant':
+      return {
+        type: 'access_grant',
+        debtReduction: 0,
+        accessGained: ['稀缺试炼入场资格', '高级资源购买权限'],
+        cultivationBonus: { faLi: 0.15, rouTi: 0.1 },
+        narrative: `你抵押的身体换取了资源和准入资格。身体不再完整，但你获得了新的机会。`
+      }
+    case 'cultivation_boost':
+      return {
+        type: 'cultivation_boost',
+        debtReduction: 0,
+        accessGained: [],
+        cultivationBonus: { faLi: 0.25, rouTi: 0.15 },
+        narrative: `你消耗身体完整性换取修行加速。修为上去了，但身体在抗议。`
+      }
+  }
+}
+
+export function applyBodyMortgageEffect(
+  g: GameState,
+  result: BodyMortgageResult
+): void {
+  g.bodyIntegrity = (g.bodyIntegrity ?? 1.0) * 0.8
+  g.bodyReputation = 'marked'
+
+  if (result.debtReduction > 0) {
+    const rollingDebt = g.econ.collectionFee + g.econ.debtPrincipal + g.econ.debtInterestAccrued
+    const reduction = Math.min(result.debtReduction, rollingDebt)
+    const ratio = reduction / rollingDebt
+    g.econ.collectionFee = Math.floor(g.econ.collectionFee * (1 - ratio))
+    g.econ.debtPrincipal = Math.floor(g.econ.debtPrincipal * (1 - ratio))
+    g.econ.debtInterestAccrued = Math.floor(g.econ.debtInterestAccrued * (1 - ratio))
+
+    // 方案 A：锁定债务 - 选择减债型身体抵押后，债务被锁定
+    g.econ.debtLock = 'bodyLocked'
+    g.econ.lockedDebtAmount = reduction
+  }
+
+  if (result.cultivationBonus.faLi > 0) {
+    g.stats.faLi += result.cultivationBonus.faLi
+  }
+  if (result.cultivationBonus.rouTi > 0) {
+    g.stats.rouTi += result.cultivationBonus.rouTi
+  }
+
+  g.logs.unshift({
+    id: `log_${Date.now()}`,
+    day: g.school.day,
+    title: `身体抵押完成（${result.type === 'debt_reduction' ? '减债型' : result.type === 'access_grant' ? '准入型' : '修行加速型'}）`,
+    detail: result.narrative,
+    tone: 'warn'
+  })
+  if (g.logs.length > 120) g.logs.pop()
+}
+
+/**
+ * 方案 A：检查是否可以触发身体抵押
+ * 触发条件：现金不足以覆盖最低还款 × 2，或逾期等级 >= 3
+ */
+export function canTriggerBodyMortgage(g: GameState): boolean {
+  const cash = g.econ.cash
+  const totalDebt = fullDebt(g)
+  const delinquency = g.econ.delinquency
+  const tier = g.school.classTier
+
+  // 逾期等级 >= 3 时，风险极高，触发身体抵押通道
+  if (delinquency >= 3) return true
+
+  // 计算最低周还款
+  const minWeeklyPayment = calculateTierAdjustedMinPayment(totalDebt, delinquency, tier)
+
+  // 现金不足以覆盖最低还款 × 2 时，走投无路
+  if (minWeeklyPayment > 0 && cash < minWeeklyPayment * 2) return true
+
+  return false
+}
+
+/**
+ * 方案 A：检查债务是否处于锁定状态
+ * 锁定债务只能用身体偿还，不能用现金
+ */
+export function isDebtLocked(g: GameState): boolean {
+  return g.econ.debtLock === 'bodyLocked'
+}
+
+/**
+ * 方案 A：检查现金还款是否被禁止
+ * 当债务锁定时，现金还款只能用于非锁定债务
+ */
+export function isCashRepayBlocked(g: GameState): boolean {
+  return isDebtLocked(g)
+}
+
+/**
+ * 方案 A：获取锁定债务金额
+ */
+export function getLockedDebtAmount(g: GameState): number {
+  return g.econ.lockedDebtAmount ?? 0
 }
 
 export function contractWouldTrigger(g: GameState, action: ActionId, rand: () => number) {
@@ -517,10 +701,15 @@ export type SummarySnapshot = {
   /** 已走过完整后果的崩溃种类数（collapseFirstDone 键数） */
   fullCollapseKinds: number
   lastStrongCollapseDay: number | undefined
+  /** 方案 A：画像快照数据 */
+  profile: SocialProfile
+  profileDigest: ProfileDigest
 }
 
 /** D-14：冷数据表用快照（无煽情字段） */
 export function buildSummarySnapshot(g: GameState): SummarySnapshot {
+  const profile = buildSocialProfile(g)
+  const profileDigest = buildProfileDigest(g)
   return {
     schoolDay: g.school.day,
     schoolWeek: g.school.week,
@@ -538,7 +727,9 @@ export function buildSummarySnapshot(g: GameState): SummarySnapshot {
     domestication: Math.round(g.domestication ?? 0),
     numbness: Math.round(g.numbness ?? 0),
     fullCollapseKinds: g.collapseFirstDone ? Object.keys(g.collapseFirstDone).length : 0,
-    lastStrongCollapseDay: g.lastStrongCollapseDay
+    lastStrongCollapseDay: g.lastStrongCollapseDay,
+    profile,
+    profileDigest
   }
 }
 
@@ -777,5 +968,269 @@ export function tryEmitStrongCollapse(
     kind: 'echo',
     title: '精神回声',
     detail: `旧伤未愈：${picked.title}。系统只登记完整后果一次，其余以回声归档。`
+  }
+}
+
+// ========== 方案 A：社会画像系统 ==========
+
+export function deriveFinancialRiskLevel(g: GameState): FinancialRiskLevel {
+  const debt = fullDebt(g)
+  const delinquency = g.econ.delinquency
+  const daysSincePay = g.school.day - g.econ.lastPaymentDay
+
+  if (delinquency >= 4 || (debt > 100000 && delinquency >= 2)) return 'extreme'
+  if (delinquency >= 2 || debt > 80000) return 'high'
+  if (delinquency >= 1 || debt > 40000) return 'medium'
+  if (daysSincePay > 14) return 'medium'
+  return 'low'
+}
+
+export function deriveEducationCreditLevel(g: GameState): EducationCreditLevel {
+  const tier = g.school.classTier
+  const score = g.school.lastExamScore
+  const scoreStreak = g.scoreDayStreak ?? 0
+  const cashStreak = g.cashDayStreak ?? 0
+
+  if (cashStreak >= 3) return 'discarded'
+  if (scoreStreak >= 3) return 'unstable'
+  if (tier === '示范班' && score >= 650) return 'preferred'
+  if (tier === '示范班') return 'investable'
+  if (tier === '普通班' && score >= 580) return 'investable'
+  if (tier === '普通班') return 'unstable'
+  if (tier === '末位班') return 'discarded'
+  return 'discarded'
+}
+
+export function deriveComplianceLevel(g: GameState): ComplianceLevel {
+  const domestication = g.domestication ?? 0
+  const numbness = g.numbness ?? 0
+  const contractProgress = g.contract.active ? g.contract.progress : 0
+
+  if (domestication >= 70 || numbness >= 70) return 'domesticated'
+  if (domestication >= 45 || contractProgress >= 60) return 'obedient'
+  if (domestication >= 20 || contractProgress >= 30) return 'softened'
+  return 'resistant'
+}
+
+export function deriveBodyAssetLevel(g: GameState): BodyAssetLevel {
+  const integrity = g.bodyIntegrity ?? 1.0
+  const reputation = g.bodyReputation ?? 'clean'
+  const repaidParts = g.bodyPartRepayment
+  const repaidCount = repaidParts ? Object.values(repaidParts).filter(Boolean).length : 0
+
+  if (integrity <= 0.2 || repaidCount >= 4) return 'depleted'
+  if (repaidCount >= 2 || reputation === 'marked') return 'mortgaged'
+  if (repaidCount >= 1) return 'marked'
+  return 'intact'
+}
+
+export function deriveProfileTags(g: GameState): ProfileTagId[] {
+  const tags: ProfileTagId[] = []
+  const debt = fullDebt(g)
+  const delinquency = g.econ.delinquency
+  const domestication = g.domestication ?? 0
+  const numbness = g.numbness ?? 0
+  const tier = g.school.classTier
+  const score = g.school.lastExamScore
+  const integrity = g.bodyIntegrity ?? 1.0
+  const reputation = g.bodyReputation ?? 'clean'
+  const repaidCount = g.bodyPartRepayment ? Object.values(g.bodyPartRepayment).filter(Boolean).length : 0
+
+  if (deriveFinancialRiskLevel(g) === 'extreme') tags.push('高风险修士')
+  if (deriveFinancialRiskLevel(g) === 'high') tags.push('催收优先级上升')
+  if (debt > 60000 && delinquency >= 2) tags.push('可重组对象')
+  if (debt > 30000 && delinquency >= 1) tags.push('低偿付能力')
+
+  if (tier === '示范班' && score >= 600) tags.push('可投资优等生')
+  if ((g.scoreDayStreak ?? 0) >= 3) tags.push('偏科执行体')
+  if (tier === '末位班' && (g.cashDayStreak ?? 0) >= 2) tags.push('末位淘汰预备对象')
+
+  if (domestication >= 50) tags.push('已进入稳定驯化区')
+  if (domestication >= 30) tags.push('可规训对象')
+  if (domestication >= 20 || numbness >= 30) tags.push('高服从度人才')
+  if (numbness >= 40) tags.push('低反抗样本')
+
+  if (repaidCount >= 1) tags.push('已标记资产')
+  if (integrity < 0.8) tags.push('身体估值下降')
+  if (repaidCount >= 2 || reputation === 'marked') tags.push('可抵押体质')
+  if (repaidCount >= 3) tags.push('深度拆解候选')
+
+  return [...new Set(tags)]
+}
+
+export function buildSocialProfile(g: GameState): SocialProfile {
+  return {
+    financialRisk: deriveFinancialRiskLevel(g),
+    educationCredit: deriveEducationCreditLevel(g),
+    compliance: deriveComplianceLevel(g),
+    bodyAsset: deriveBodyAssetLevel(g),
+    tags: deriveProfileTags(g)
+  }
+}
+
+export function buildProfileDigest(g: GameState, prevProfile?: SocialProfile): ProfileDigest {
+  const current = buildSocialProfile(g)
+
+  const levelOrder: Record<string, number> = {
+    financialRisk: 1,
+    educationCredit: 2,
+    compliance: 3,
+    bodyAsset: 4
+  }
+
+  const primaryDimension = Object.entries({
+    financialRisk: current.financialRisk,
+    educationCredit: current.educationCredit,
+    compliance: current.compliance,
+    bodyAsset: current.bodyAsset
+  }).sort((a, b) => {
+    const riskOrder = ['extreme', 'high', 'medium', 'low', 'depleted', 'mortgaged', 'marked', 'intact', 'domesticated', 'obedient', 'softened', 'resistant', 'discarded', 'unstable', 'investable', 'preferred']
+    return (riskOrder.indexOf(a[1]) - riskOrder.indexOf(b[1]))
+  })[0]
+
+  const dimensionLabels: Record<string, string> = {
+    financialRisk: '财务风险',
+    educationCredit: '教育信用',
+    compliance: '制度顺从',
+    bodyAsset: '身体资产'
+  }
+
+  const levelLabels: Record<string, string> = {
+    low: '低风险',
+    medium: '中风险',
+    high: '高风险',
+    extreme: '极高风险',
+    discarded: '已放弃',
+    unstable: '不稳定',
+    investable: '可投资',
+    preferred: '优选',
+    resistant: '抵抗',
+    softened: '软化',
+    obedient: '顺从',
+    domesticated: '驯化',
+    intact: '完整',
+    marked: '已标记',
+    mortgaged: '已抵押',
+    depleted: '枯竭'
+  }
+
+  const recentChanges: string[] = []
+  if (prevProfile) {
+    if (prevProfile.financialRisk !== current.financialRisk) {
+      recentChanges.push(`财务风险：${levelLabels[prevProfile.financialRisk]} → ${levelLabels[current.financialRisk]}`)
+    }
+    if (prevProfile.educationCredit !== current.educationCredit) {
+      recentChanges.push(`教育信用：${levelLabels[prevProfile.educationCredit]} → ${levelLabels[current.educationCredit]}`)
+    }
+    if (prevProfile.compliance !== current.compliance) {
+      recentChanges.push(`制度顺从：${levelLabels[prevProfile.compliance]} → ${levelLabels[current.compliance]}`)
+    }
+    if (prevProfile.bodyAsset !== current.bodyAsset) {
+      recentChanges.push(`身体资产：${levelLabels[prevProfile.bodyAsset]} → ${levelLabels[current.bodyAsset]}`)
+    }
+  }
+
+  return {
+    primaryLevel: primaryDimension[0],
+    primaryLabel: `${dimensionLabels[primaryDimension[0]]}：${levelLabels[primaryDimension[1]]}`,
+    tagsSummary: current.tags.length > 0 ? current.tags.slice(0, 3).join('、') : '暂无显著标签',
+    recentChanges
+  }
+}
+
+// ========== 方案 A：反画像路线 ==========
+
+export type AntiProfileActionType = 'resist_domination' | 'maintain_autonomy' | 'exploit_gaps' | 'false_compliance'
+
+export const ANTI_PROFILE_THRESHOLD = 3
+
+export function isAntiProfileAction(action: ActionId, g: GameState): boolean {
+  const profile = buildSocialProfile(g)
+  const domestication = g.domestication ?? 0
+  const numbness = g.numbness ?? 0
+  const compliance = profile.compliance
+
+  if (action === 'study' && domestication >= 30) return true
+  if (action === 'tuna' && compliance === 'domesticated') return true
+  if (action === 'rest' && domestication >= 50 && numbness >= 30) return true
+  if (action === 'train' && profile.bodyAsset === 'depleted') return true
+
+  return false
+}
+
+export function updateAntiProfileStreak(g: GameState, isAnti: boolean): void {
+  if (isAnti) {
+    g.antiProfileDayStreak = (g.antiProfileDayStreak ?? 0) + 1
+  } else {
+    g.antiProfileDayStreak = 0
+  }
+}
+
+export function getAntiProfileStreak(g: GameState): number {
+  return g.antiProfileDayStreak ?? 0
+}
+
+export function calculateAntiProfileRisk(g: GameState): number {
+  const streak = getAntiProfileStreak(g)
+  if (streak < ANTI_PROFILE_THRESHOLD) return 0
+  const excess = streak - ANTI_PROFILE_THRESHOLD
+  return clamp(excess * 0.15, 0, 0.6)
+}
+
+export function antiProfileRiskEventProbability(g: GameState): number {
+  const risk = calculateAntiProfileRisk(g)
+  return risk
+}
+
+export function shouldTriggerAntiProfileRiskEvent(g: GameState, rand: () => number): boolean {
+  if (getAntiProfileStreak(g) < ANTI_PROFILE_THRESHOLD) return false
+  return rand() < antiProfileRiskEventProbability(g)
+}
+
+export function buildAntiProfileRiskEvent(g: GameState): PendingEvent {
+  const streak = getAntiProfileStreak(g)
+  return {
+    title: '异常行为检测',
+    body: `系统检测到您近期行为模式与登记画像存在偏差。连续${streak}日出现与系统评估不符的行为。系统已将此异常标记为「待处理」。`,
+    options: [
+      { id: 'adjust_behavior', label: '调整行为（回归画像）', tone: 'primary' },
+      { id: 'maintain_resistance', label: '维持现状（承担风险）', tone: 'danger' }
+    ],
+    tier: 'critical',
+    systemSummary: '反画像行为已被系统记录；持续偏离将触发校正流程。',
+    systemDetails: `偏离天数：${streak}；当前风险等级：${Math.round(calculateAntiProfileRisk(g) * 100)}%。`
+  }
+}
+
+export function applyAntiProfileConsequence(
+  g: GameState,
+  choice: 'adjust' | 'maintain'
+): void {
+  if (choice === 'adjust') {
+    g.antiProfileDayStreak = 0
+    g.logs.unshift({
+      id: `log_${Date.now()}`,
+      day: g.school.day,
+      title: '行为已调整',
+      detail: '您选择了回归系统评估的正轨。异常标记将在下一个结算日清除。',
+      tone: 'info'
+    })
+  } else {
+    const risk = calculateAntiProfileRisk(g)
+    g.domestication = clamp((g.domestication ?? 0) + risk * 20, 0, 100)
+    g.logs.unshift({
+      id: `log_${Date.now()}`,
+      day: g.school.day,
+      title: '维持偏离',
+      detail: `您选择了继续偏离。系统校正程序已启动，驯化进度上升。`,
+      tone: 'warn'
+    })
+  }
+  if (g.logs.length > 120) g.logs.pop()
+}
+
+export function clearAntiProfileStreakOnWeeklySettlement(g: GameState): void {
+  if (g.antiProfileDayStreak && g.antiProfileDayStreak > 0) {
+    g.antiProfileDayStreak = Math.max(0, g.antiProfileDayStreak - 1)
   }
 }

@@ -39,6 +39,10 @@ export interface EconomyState {
   dailyRate: number // 日利率（例如 0.008）
   delinquency: number // 逾期等级（0 起）
   lastPaymentDay: number
+  /** 方案 A：债务锁定状态 - 'normal' 正常债务，'bodyLocked' 身体专属债务 */
+  debtLock?: 'normal' | 'bodyLocked'
+  /** 方案 A：被锁定的债务金额（只有通过身体抵押才能偿还） */
+  lockedDebtAmount?: number
 }
 
 export interface SchoolState {
@@ -98,6 +102,16 @@ export interface EventTrigger {
   maxDelinquency?: number
   classTierIn?: SchoolState['classTier'][]
   contractActive?: boolean
+  /** 方案 A：画像条件 - 财务风险等级 */
+  financialRiskIn?: FinancialRiskLevel[]
+  /** 方案 A：画像条件 - 教育信用等级 */
+  educationCreditIn?: EducationCreditLevel[]
+  /** 方案 A：画像条件 - 制度顺从等级 */
+  complianceIn?: ComplianceLevel[]
+  /** 方案 A：画像条件 - 身体资产等级 */
+  bodyAssetIn?: BodyAssetLevel[]
+  /** 方案 A：画像条件 - 标签包含 */
+  profileTagIn?: ProfileTagId[]
 }
 
 export type EventEffectKind = 'stat' | 'econ' | 'debt' | 'contract' | 'school' | 'log'
@@ -300,6 +314,12 @@ export interface GameState {
   summarySeen?: boolean
   /** 查看总结时的游戏日 */
   summarySeenAtDay?: number
+
+  /** 方案 A：画像快照（持久化） */
+  profileSnapshot?: ProfileSnapshot
+
+  /** 方案 A：反画像路线追踪 - 连续偏离画像评估的天数 */
+  antiProfileDayStreak?: number
 }
 
 
@@ -336,4 +356,49 @@ export interface LogEntryDisplay {
   title: string
   detail: string
   tone: 'info' | 'warn' | 'danger' | 'ok'
+}
+
+// ========== 方案 A：社会画像系统类型 ==========
+
+export type FinancialRiskLevel = 'low' | 'medium' | 'high' | 'extreme'
+export type EducationCreditLevel = 'discarded' | 'unstable' | 'investable' | 'preferred'
+export type ComplianceLevel = 'resistant' | 'softened' | 'obedient' | 'domesticated'
+export type BodyAssetLevel = 'intact' | 'marked' | 'mortgaged' | 'depleted'
+
+export type ProfileTagId =
+  | '高风险修士'
+  | '低偿付能力'
+  | '可重组对象'
+  | '催收优先级上升'
+  | '可投资优等生'
+  | '偏科执行体'
+  | '末位淘汰预备对象'
+  | '高服从度人才'
+  | '可规训对象'
+  | '低反抗样本'
+  | '已进入稳定驯化区'
+  | '可抵押体质'
+  | '已标记资产'
+  | '身体估值下降'
+  | '深度拆解候选'
+
+export interface SocialProfile {
+  financialRisk: FinancialRiskLevel
+  educationCredit: EducationCreditLevel
+  compliance: ComplianceLevel
+  bodyAsset: BodyAssetLevel
+  tags: ProfileTagId[]
+}
+
+export interface ProfileSnapshot {
+  profile: SocialProfile
+  lastProfileUpdateDay: number
+  profileVersion: number
+}
+
+export interface ProfileDigest {
+  primaryLevel: string
+  primaryLabel: string
+  tagsSummary: string
+  recentChanges: string[]
 }

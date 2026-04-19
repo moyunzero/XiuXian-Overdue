@@ -163,6 +163,9 @@ const slotData = computed(() =>
               <Button size="sm" @click="initialDebt = 70000">7万</Button>
               <Button size="sm" @click="initialDebt = 150000">15万</Button>
             </div>
+            <p class="ProfileHint">
+              身份、天赋、出身与债务将共同决定系统对您的初始画像评估。
+            </p>
           </div>
         </Card>
       </Transition>
@@ -349,6 +352,13 @@ const slotData = computed(() =>
   height: 6px;
   border-radius: 999px;
   background: var(--neon-cyan);
+}
+
+.ProfileHint {
+  margin-top: 10px;
+  font-size: var(--text-xs);
+  color: rgba(255, 255, 255, 0.4);
+  line-height: 1.5;
 }
 
 @media (max-width: 1024px) {

@@ -1,8 +1,11 @@
 # 方案 A 系统设计
 
+> **文档更新**：本文档反映 v1.0 已实施的方案 A 功能范围。
+> 最新实施状态请参考 `.monkeycode/specs/plan-a-credit-society-2026/implementation-order.md`。
+
 ## 1. 方案定位
 
-方案 A 的目标，不是把项目继续做成常规修仙成长游戏，而是把它收束成一款“修仙信用社会模拟器”。
+方案 A 的目标，不是把项目继续做成常规修仙成长游戏，而是把它收束成一款"修仙信用社会模拟器"。
 
 玩家在系统中的核心身份，不再只是一个需要变强的角色，而是一个会被制度持续记录、分类、定价和使用的对象。
 
@@ -18,15 +21,47 @@
 
 ## 2. 核心产品命题
 
-项目需要从“独特题材”升级到“独特机制”。
+项目需要从"独特题材"升级到"独特机制"。
 
-当前已有的债务、分班、契约、身体偿还、驯化和麻木系统，已经具备成为统一产品主语的基础。方案 A 的关键动作，是把这些分散字段收束为一个稳定、可见、可驱动内容分发的“社会画像系统”。
+当前已有的债务、分班、契约、身体偿还、驯化和麻木系统，已经具备成为统一产品主语的基础。方案 A 的关键动作，是把这些分散字段收束为一个稳定、可见、可驱动内容分发的"社会画像系统"。
 
 方案 A 回答的问题是：
 
 - 系统如何定义玩家
 - 玩家如何被系统定义后的世界继续对待
 - 玩家如何在被定义的前提下寻找生存空间
+
+## 2.1 实施状态（v1.0）
+
+### ✅ 已完成
+
+| 模块 | 文件 | 说明 |
+|------|------|------|
+| 类型定义 | `app/types/game.ts` | `SocialProfile`、`FinancialRiskLevel`、`EducationCreditLevel`、`ComplianceLevel`、`BodyAssetLevel`、`ProfileTagId`、`ProfileSnapshot`、`ProfileDigest`；`EventTrigger` 画像条件字段 |
+| 画像推导 | `app/logic/gameEngine.ts` | `deriveFinancialRiskLevel`、`deriveEducationCreditLevel`、`deriveComplianceLevel`、`deriveBodyAssetLevel`、`deriveProfileTags`、`buildSocialProfile`、`buildProfileDigest` |
+| 画像刷新 | `app/composables/useGame.ts` | `profileSnapshot`、`profileDigest` computed；`refreshProfileSnapshot()` 在关键动作后刷新 |
+| 周结算报告 | `app/composables/useGame.dayCycle.ts` | 画像状态和变更记录接入周结算通报 |
+| 事件匹配 | `app/logic/gameEngine.ts` | `eventMatchesTrigger` 支持画像条件判断 |
+| 事件校验 | `scripts/validate-events.mjs` | 画像 trigger 字段校验规则 |
+| 旧档兼容 | `app/composables/useGameStorage.ts` | 画像字段迁移逻辑 |
+| 画像展示 | `app/components/game/DebtDashboard.vue` | 展开详情显示制度画像摘要 |
+| 借贷解释 | `app/components/game/BorrowModal.vue` | 画像风险等级提示 |
+| 还款评估 | `app/components/game/RepayModal.vue` | 制度偿付能力评估 |
+| 开局提示 | `app/pages/index.vue` | 初始画像提示文案 |
+| 命运卡组件 | `app/components/share/FateCard.vue` | 命运判定卡 UI |
+| 命运卡生成 | `app/components/share/FateCardGenerator.vue` | 命运判定数据生成 |
+| 分享功能 | `app/composables/useShare.ts` | 分享文本生成与剪贴板 |
+| 画像测试 | `app/logic/gameEngine.profile.spec.ts` | 画像推导测试 |
+| 反画像路线 | `app/logic/gameEngine.ts` | 扰乱系统判断的逻辑与事件 |
+| 身体抵押增强 | `app/logic/gameEngine.ts`、`app/composables/useGame.events.ts` | 区分减债型/准入型/修行加速型抵押 |
+| 债务锁定机制 | `app/types/game.ts`、`app/logic/gameEngine.ts`、`app/composables/useGame.ts` | 锁定债务只能用身体偿还 |
+
+### 🔄 待后续迭代
+
+| 模块 | 说明 |
+|------|------|
+| 事件数据 | `data/events.json` 画像条件事件补充 |
+| SummaryPanel 升级 | 制度归档风格强化 |
 
 ## 3. 核心闭环
 

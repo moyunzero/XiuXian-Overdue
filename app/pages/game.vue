@@ -38,7 +38,9 @@ const {
   summaryPanelOpen,
   openSummaryPanel,
   acknowledgeSummaryAndContinue,
-  closeSummaryPanelWithoutMarking
+  closeSummaryPanelWithoutMarking,
+  profileSnapshot,
+  profileDigest
 } = useGame()
 
 const tutorial = useGameTutorial()
@@ -78,6 +80,7 @@ const logDrawerOpen = ref(false)
 onMounted(async () => {
   if (import.meta.server) return
   await nextTick()
+
   modelMq = window.matchMedia('(min-width: 640px)')
   syncModelDetailsOpen()
   modelMq.addEventListener('change', syncModelDetailsOpen)
@@ -100,6 +103,16 @@ onUnmounted(() => {
 const g = computed(() => game.value)
 const started = computed(() => g.value.started)
 const actionsLocked = computed(() => Boolean(g.value.pendingEvent))
+
+watch(
+  started,
+  (isStarted) => {
+    if (!isStarted && !import.meta.server) {
+      navigateTo('/')
+    }
+  },
+  { immediate: true }
+)
 
 // Logs for LogPanel
 const logsForPanel = computed(() => 
@@ -367,6 +380,11 @@ watch(
         :delinquency="g.econ.delinquency || 0"
         :min-payment="minPayment || 0"
         :cash="g.econ.cash || 0"
+        :profile-primary-label="profileDigest.primaryLabel"
+        :profile-tags-summary="profileDigest.tagsSummary"
+        :profile-version="g.profileSnapshot?.profileVersion || 0"
+        :profile-update-day="g.profileSnapshot?.lastProfileUpdateDay || 0"
+        :profile-financial-risk="profileSnapshot.financialRisk"
         @borrow="showBorrow = true"
         @repay="showRepay = true"
       />
@@ -462,6 +480,8 @@ watch(
       :daily-rate="g.econ.dailyRate"
       :total-debt="totalDebt"
       :credit-limit="creditLimit"
+      :profile-risk-level="profileSnapshot.financialRisk"
+      :profile-tags="profileSnapshot.tags"
       @close="showBorrow = false"
       @confirm="onBorrow"
     />
@@ -476,6 +496,8 @@ watch(
       :collection-fee="g.econ.collectionFee"
       :principal="g.econ.debtPrincipal"
       :delinquency="g.econ.delinquency"
+      :profile-compliance-level="profileSnapshot.compliance"
+      :profile-tags="profileSnapshot.tags"
       @close="showRepay = false"
       @confirm="onRepay"
     />

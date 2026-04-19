@@ -239,6 +239,18 @@ export function useGameStorage() {
       if (state.summaryUnlockedAtDay === undefined) state.summaryUnlockedAtDay = state.school.day
     }
 
+    // 方案 A：画像字段旧档迁移（profileSnapshot 为运行时推导，不强制回填）
+    if (!state.profileSnapshot || typeof state.profileSnapshot !== 'object') {
+      state.profileSnapshot = undefined
+    } else {
+      if (typeof state.profileSnapshot.profileVersion !== 'number') {
+        state.profileSnapshot.profileVersion = 0
+      }
+      if (typeof state.profileSnapshot.lastProfileUpdateDay !== 'number') {
+        state.profileSnapshot.lastProfileUpdateDay = state.school.day
+      }
+    }
+
     game.value = state
     activeSlot.value = id
     return true

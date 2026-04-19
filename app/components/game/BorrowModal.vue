@@ -11,6 +11,10 @@
         <div class="MonoSmall">
           你当然知道借贷会让未来更窒息。你也知道不借贷，今天就会先窒息。
         </div>
+        <div v-if="profileRiskLevel && profileRiskLevel !== 'low'" class="ProfileWarning">
+          <span class="ProfileWarning__label">制度评估：</span>
+          <span>{{ profileRiskText }}</span>
+        </div>
         <div class="Grid2" style="margin-top: 12px">
           <div>
             <div class="Label">借款金额</div>
@@ -37,7 +41,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import Button from '../ui/Button.vue'
 import Pill from '../ui/Pill.vue'
 
@@ -46,6 +50,8 @@ const props = defineProps<{
   dailyRate: number
   totalDebt: number
   creditLimit: number
+  profileRiskLevel?: string
+  profileTags?: string[]
 }>()
 
 const emit = defineEmits<{
@@ -55,10 +61,31 @@ const emit = defineEmits<{
 
 const borrowAmt = ref(5000)
 
+const profileRiskText = computed(() => {
+  if (!props.profileTags || props.profileTags.length === 0) return '系统正在重新评估您的信用等级'
+  const riskTags = props.profileTags.filter(t =>
+    ['高风险修士', '低偿付能力', '可重组对象', '催收优先级上升'].includes(t)
+  )
+  if (riskTags.length > 0) return `检测到标签：${riskTags.join('、')}`
+  return '您的制度画像显示风险等级偏高'
+})
+
 function onConfirm() {
   emit('confirm', borrowAmt.value)
 }
 </script>
 
 <style scoped>
+.ProfileWarning {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: rgba(255, 59, 59, 0.1);
+  border: 1px solid rgba(255, 59, 59, 0.3);
+  border-radius: 8px;
+  font-size: var(--text-xs);
+  color: var(--warn);
+}
+.ProfileWarning__label {
+  font-weight: var(--font-semibold);
+}
 </style>

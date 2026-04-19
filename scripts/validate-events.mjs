@@ -31,6 +31,17 @@ const EVT03_FAMILIES = ['社交', '试功', '法赛']
 const GAMEPLAY_EFFECT_KINDS = ['stat', 'econ', 'debt', 'contract', 'school']
 const statTargets = ['daoXin', 'faLi', 'rouTi', 'fatigue', 'focus']
 const econTargets = ['cash', 'collectionFee', 'debtPrincipal', 'debtInterestAccrued', 'dailyRate', 'delinquency', 'lastPaymentDay']
+/** 方案 A：画像 trigger 字段的允许值 */
+const ALLOWED_FINANCIAL_RISK = ['low', 'medium', 'high', 'extreme']
+const ALLOWED_EDUCATION_CREDIT = ['discarded', 'unstable', 'investable', 'preferred']
+const ALLOWED_COMPLIANCE = ['resistant', 'softened', 'obedient', 'domesticated']
+const ALLOWED_BODY_ASSET = ['intact', 'marked', 'mortgaged', 'depleted']
+const ALLOWED_PROFILE_TAGS = [
+  '高风险修士', '低偿付能力', '可重组对象', '催收优先级上升',
+  '可投资优等生', '偏科执行体', '末位淘汰预备对象',
+  '高服从度人才', '可规训对象', '低反抗样本', '已进入稳定驯化区',
+  '可抵押体质', '已标记资产', '身体估值下降', '深度拆解候选'
+]
 
 function countGameplayDimensions(effects) {
   const kinds = new Set()
@@ -98,6 +109,65 @@ function validateEvent(event, index) {
       errors.push(
         `${where}: family="${event.family}" 的 EVT-03 事件须至少一个选项的 effects 覆盖 ≥2 个不同维度（stat/econ/debt/contract/school，log 不计）（D-09）。`
       )
+    }
+  }
+
+  // 方案 A：画像 trigger 字段校验
+  if (event.trigger) {
+    if (event.trigger.financialRiskIn) {
+      if (!Array.isArray(event.trigger.financialRiskIn)) {
+        errors.push(`${where}: trigger.financialRiskIn 必须为数组。`)
+      } else {
+        for (const val of event.trigger.financialRiskIn) {
+          if (!ALLOWED_FINANCIAL_RISK.includes(val)) {
+            errors.push(`${where}: trigger.financialRiskIn 包含非法值 "${val}"，应为 ${ALLOWED_FINANCIAL_RISK.join(', ')} 之一。`)
+          }
+        }
+      }
+    }
+    if (event.trigger.educationCreditIn) {
+      if (!Array.isArray(event.trigger.educationCreditIn)) {
+        errors.push(`${where}: trigger.educationCreditIn 必须为数组。`)
+      } else {
+        for (const val of event.trigger.educationCreditIn) {
+          if (!ALLOWED_EDUCATION_CREDIT.includes(val)) {
+            errors.push(`${where}: trigger.educationCreditIn 包含非法值 "${val}"，应为 ${ALLOWED_EDUCATION_CREDIT.join(', ')} 之一。`)
+          }
+        }
+      }
+    }
+    if (event.trigger.complianceIn) {
+      if (!Array.isArray(event.trigger.complianceIn)) {
+        errors.push(`${where}: trigger.complianceIn 必须为数组。`)
+      } else {
+        for (const val of event.trigger.complianceIn) {
+          if (!ALLOWED_COMPLIANCE.includes(val)) {
+            errors.push(`${where}: trigger.complianceIn 包含非法值 "${val}"，应为 ${ALLOWED_COMPLIANCE.join(', ')} 之一。`)
+          }
+        }
+      }
+    }
+    if (event.trigger.bodyAssetIn) {
+      if (!Array.isArray(event.trigger.bodyAssetIn)) {
+        errors.push(`${where}: trigger.bodyAssetIn 必须为数组。`)
+      } else {
+        for (const val of event.trigger.bodyAssetIn) {
+          if (!ALLOWED_BODY_ASSET.includes(val)) {
+            errors.push(`${where}: trigger.bodyAssetIn 包含非法值 "${val}"，应为 ${ALLOWED_BODY_ASSET.join(', ')} 之一。`)
+          }
+        }
+      }
+    }
+    if (event.trigger.profileTagIn) {
+      if (!Array.isArray(event.trigger.profileTagIn)) {
+        errors.push(`${where}: trigger.profileTagIn 必须为数组。`)
+      } else {
+        for (const val of event.trigger.profileTagIn) {
+          if (!ALLOWED_PROFILE_TAGS.includes(val)) {
+            errors.push(`${where}: trigger.profileTagIn 包含非法值 "${val}"，应为 ${ALLOWED_PROFILE_TAGS.join(', ')} 之一。`)
+          }
+        }
+      }
     }
   }
 }

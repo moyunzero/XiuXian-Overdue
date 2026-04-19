@@ -10,6 +10,10 @@
       </div>
       <div class="ModalBody">
         <div class="MonoSmall">系统清偿顺序：利息 → 费用 → 本金。该顺序不可调整。</div>
+        <div v-if="profileComplianceLevel" class="ProfileAssessment">
+          <div class="ProfileAssessment__title">制度偿付能力评估</div>
+          <div class="ProfileAssessment__content">{{ complianceText }}</div>
+        </div>
         <div class="Grid2" style="margin-top: 12px">
           <div>
             <div class="Label">还款金额</div>
@@ -65,6 +69,8 @@ const props = defineProps<{
   collectionFee: number
   principal: number
   delinquency: number
+  profileComplianceLevel?: string
+  profileTags?: string[]
 }>()
 
 const emit = defineEmits<{
@@ -83,6 +89,25 @@ const projected = computed(() => {
   remaining -= fee
   const principal = Math.min(remaining, Math.max(0, Math.floor(props.principal)))
   return { interest, fee, principal }
+})
+
+const complianceText = computed(() => {
+  if (props.profileComplianceLevel === 'domesticated') {
+    return '系统记录显示高度驯化特征。建议优先完成最低还款以维持基本信用评估。'
+  }
+  if (props.profileComplianceLevel === 'obedient') {
+    return '当前偿付表现趋于稳定。系统将维持现有评估周期。'
+  }
+  if (props.profileComplianceLevel === 'softened') {
+    return '检测到制度适应迹象。建议按计划推进还款以改善评估结果。'
+  }
+  if (props.profileComplianceLevel === 'resistant') {
+    return '制度记录显示一定抵抗特征。系统提醒：逾期将触发风险等级上调。'
+  }
+  if (props.profileTags?.includes('已进入稳定驯化区')) {
+    return '长期驯化特征已被系统归档。建议维持当前还款节奏。'
+  }
+  return '系统正在持续评估您的偿付行为特征。'
 })
 
 function onConfirm() {
@@ -110,5 +135,26 @@ function onConfirm() {
   justify-content: space-between;
   font-size: var(--text-sm, 13px);
   padding: 2px 0;
+}
+
+.ProfileAssessment {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: rgba(0, 255, 255, 0.05);
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  border-radius: 8px;
+}
+
+.ProfileAssessment__title {
+  font-size: var(--text-xs);
+  color: var(--neon-cyan);
+  font-weight: var(--font-semibold);
+  margin-bottom: 4px;
+}
+
+.ProfileAssessment__content {
+  font-size: var(--text-xs);
+  color: var(--muted);
+  line-height: 1.5;
 }
 </style>

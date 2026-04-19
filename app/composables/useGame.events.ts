@@ -77,34 +77,40 @@ export function executeBodyPartRepayment(
     return
   }
 
-  const rawValue = Engine.calculateDynamicValuation(partId, {
-    faLi: g.stats.faLi,
-    rouTi: g.stats.rouTi,
-    fatigue: g.stats.fatigue,
-    buyDebasement: g.buyDebasement ?? 0
-  })
   const label = BODY_PART_LABELS[partId] ?? partId
-  const rollingDebtNow = g.econ.collectionFee + g.econ.debtPrincipal + g.econ.debtInterestAccrued
-  const value = Math.min(rawValue, Math.max(0, rollingDebtNow))
+  const mortgageType = Engine.determineMortgageType(g)
+  const mortgageResult = Engine.calculateBodyMortgageBenefits(partId, mortgageType, g)
 
-  const repayment = applyRepaymentByPriority(g, value)
+  Engine.applyBodyMortgageEffect(g, mortgageResult)
+
+  if (mortgageType === 'debt_reduction') {
+    g.econ.delinquency = Math.max(0, g.econ.delinquency - 1)
+  }
 
   if (!g.bodyPartRepayment) g.bodyPartRepayment = {}
   g.bodyPartRepayment[partId] = true
-  g.econ.delinquency = Math.max(0, g.econ.delinquency - 1)
   g.lastBodyPartRepaymentDay = g.school.day
-  g.bodyIntegrity = (g.bodyIntegrity ?? 1.0) * 0.8
-  g.bodyReputation = 'marked'
   g.lastBodyPartDay = g.school.day
   if (!g.pendingNarratives) g.pendingNarratives = []
   g.pendingNarratives.push({ day: g.school.day, partId })
 
+  let detailMessage = `你抵押了${label}（${mortgageType === 'debt_reduction' ? '减债型' : mortgageType === 'access_grant' ? '准入型' : '修行加速型'}）。`
+  if (mortgageResult.debtReduction > 0) {
+    detailMessage += `减免滚动债¥${mortgageResult.debtReduction.toLocaleString()}。`
+  }
+  if (mortgageResult.cultivationBonus.faLi > 0 || mortgageResult.cultivationBonus.rouTi > 0) {
+    detailMessage += `修行加成：法力+${mortgageResult.cultivationBonus.faLi.toFixed(2)}，肉体+${mortgageResult.cultivationBonus.rouTi.toFixed(2)}。`
+  }
+  if (mortgageResult.accessGained.length > 0) {
+    detailMessage += `获得准入：${mortgageResult.accessGained.join('、')}。`
+  }
+
   g.logs.unshift({
     id: `log_${Date.now()}`,
     day: g.school.day,
-    title: '身体部位偿还',
-    detail: `你偿还了${label}，减免滚动债¥${repayment.totalPaid.toLocaleString()}（费用¥${repayment.feePaid.toLocaleString()}、利息¥${repayment.interestPaid.toLocaleString()}、本金¥${repayment.principalPaid.toLocaleString()}）。`,
-    tone: 'danger'
+    title: '身体抵押完成',
+    detail: detailMessage,
+    tone: 'warn'
   })
   if (g.logs.length > 120) g.logs.pop()
 }
