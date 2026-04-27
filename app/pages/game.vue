@@ -2,6 +2,9 @@
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useGame } from '~/composables/useGame'
 import { useGameTutorial } from '~/composables/useGameTutorial'
+import { useCausalGraph } from '~/composables/useCausalGraph'
+import { useEmotionalMemory } from '~/composables/useEmotionalMemory'
+import { buildPersonalityProfile, getHiddenModifiers } from '~/logic/emotionalMemoryLayer'
 import * as Engine from '~/logic/gameEngine'
 import { navigateTo } from '#app'
 import type { ActionId } from '~/types/game'
@@ -19,6 +22,7 @@ import SummaryPanel from '~/components/game/SummaryPanel.vue'
 import MobileToolbar from '~/components/game/MobileToolbar.vue'
 import MobileActionGrid from '~/components/game/MobileActionGrid.vue'
 import LogDrawer from '~/components/game/LogDrawer.vue'
+import DeductionSandbox from '~/components/game/DeductionSandbox.vue'
 
 const {
   game,
@@ -44,6 +48,29 @@ const {
 } = useGame()
 
 const tutorial = useGameTutorial()
+
+const { causalGraph } = useCausalGraph()
+const { memory: emotionalMemory, initialize: initEmotionalMemory } = useEmotionalMemory()
+initEmotionalMemory()
+
+const personalityProfile = computed(() => buildPersonalityProfile(emotionalMemory.value as any))
+const hiddenModifiers = computed(() => getHiddenModifiers(personalityProfile.value))
+
+const showSandbox = ref(false)
+
+const sandboxState = computed(() => ({
+  currentState: JSON.parse(JSON.stringify(game.value)) as any,
+  causalGraph: JSON.parse(JSON.stringify(causalGraph.value)) as any,
+  personalityProfile: personalityProfile.value,
+  hiddenModifiers: hiddenModifiers.value
+}))
+
+function handleSandboxCommit(actions: ActionId[]) {
+  showSandbox.value = false
+  for (const action of actions) {
+    act(action)
+  }
+}
 
 /** D-16：ESC/遮罩关闭优先映射 defaultOptionId；无配置时回退末项（常见消极/拒绝），与后续 validate-events 可对齐收紧 */
 const dismissOptionId = computed(() => {
@@ -398,6 +425,9 @@ watch(
           </Pill>
           <span class="Spacer" />
           <Pill>剩余时段：{{ remainingSlots }}</Pill>
+          <Button variant="secondary" size="sm" @click="showSandbox = true">
+            推演
+          </Button>
         </div>
 
         <!-- Desktop: ActionGrid -->
@@ -511,6 +541,20 @@ watch(
       @resolve="resolveEvent"
       @dismiss="() => resolveEvent(dismissOptionId)"
     />
+
+    <!-- Causal Sandbox -->
+    <Teleport to="body">
+      <div v-if="showSandbox" class="sandbox-overlay" @click.self="showSandbox = false">
+        <DeductionSandbox
+          :current-state="sandboxState.currentState"
+          :causal-graph="sandboxState.causalGraph"
+          :personality-profile="sandboxState.personalityProfile"
+          :hidden-modifiers="sandboxState.hiddenModifiers"
+          @commit="handleSandboxCommit"
+          @cancel="showSandbox = false"
+        />
+      </div>
+    </Teleport>
 
     <SummaryPanel
       :show="summaryPanelOpen"
@@ -689,5 +733,19 @@ watch(
 .LogDrawerTrigger {
   width: 100%;
   margin-top: 8px;
+}
+
+.sandbox-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
 }
 </style>

@@ -3,7 +3,8 @@ import type {
   EventEffect,
   GameState,
   PendingEvent,
-  StartConfig
+  StartConfig,
+  HiddenModifiers
 } from '~/types/game'
 import { computed, ref } from 'vue'
 import { clamp, mulberry32, round1, uid } from '~/utils/rng'
@@ -12,6 +13,25 @@ import { buildInstitutionalEventLogDetail } from '~/logic/eventInstitutionalLog'
 import * as Engine from '~/logic/gameEngine'
 import { useGameState, defaultState } from './useGameState'
 import { useGameStorage, resetModuleStorageState } from './useGameStorage'
+import {
+  applyMemoryToState,
+  createSessionSummaryFromGameState,
+  recordSession,
+  initEmotionalMemory,
+  buildPersonalityProfile,
+  getHiddenModifiers,
+  EMOTIONAL_MEMORY_STORAGE_KEY
+} from '~/logic/emotionalMemoryLayer'
+import { generateEmergentEvent } from '~/logic/emergentEventGenerator'
+import { calculateStressLevel } from '~/logic/hiddenVariableEngine'
+import { useCausalGraph } from './useCausalGraph'
+import {
+  createSocialNetwork,
+  recordInteraction as recordSocialInteraction,
+  propagateInfluence,
+  checkThresholdEvents
+} from '~/logic/socialNetworkEngine'
+import type { EmergentEvent, EventContext, SocialNetwork, InteractionType } from '~/types/game'
 import {
   remainingSlotsFor,
   pickActionSummaryItems,
@@ -50,6 +70,7 @@ export function useGame() {
   const { game } = useGameState()
   const { activeSlot, saveToSlot, loadFromSlot, listSlots } = useGameStorage()
 
+  const socialNetwork = useState<SocialNetwork>('social-network', () => createSocialNetwork())
   const summaryPanelOpen = ref(false)
 
   const ensureSummaryUnlock = (g: GameState) => {
@@ -136,7 +157,55 @@ export function useGame() {
     activeSlot.value = 'autosave'
   }
 
+  let sessionStartDay = 1
+  let sessionStartTime = Date.now()
+  let sessionAntiProfileStreakMax = 0
+
+  const loadEmotionalMemory = (): ReturnType<typeof initEmotionalMemory> => {
+    if (import.meta.server) return initEmotionalMemory()
+    try {
+      const raw = localStorage.getItem(EMOTIONAL_MEMORY_STORAGE_KEY)
+      if (!raw) return initEmotionalMemory()
+      const parsed = JSON.parse(raw)
+      return initEmotionalMemory(parsed)
+    } catch {
+      return initEmotionalMemory()
+    }
+  }
+
+  const saveEmotionalMemory = (memory: ReturnType<typeof initEmotionalMemory>): void => {
+    if (import.meta.server) return
+    try {
+      localStorage.setItem(EMOTIONAL_MEMORY_STORAGE_KEY, JSON.stringify(memory))
+    } catch {
+      // localStorage full or unavailable - graceful degradation
+    }
+  }
+
+  const recordCurrentSession = () => {
+    const currentGame = game.value
+    if (currentGame.started && currentGame.sessionMetrics) {
+      const memory = loadEmotionalMemory()
+      const session = createSessionSummaryFromGameState(
+        currentGame,
+        sessionStartDay,
+        sessionStartTime,
+        sessionAntiProfileStreakMax
+      )
+      const updatedMemory = recordSession(memory, session)
+      saveEmotionalMemory(updatedMemory)
+    }
+  }
+
   const startNew = (cfg: StartConfig) => {
+    recordCurrentSession()
+
+    const { initializeGraph } = useCausalGraph()
+    initializeGraph()
+
+    socialNetwork.value = createSocialNetwork()
+
+    const memory = loadEmotionalMemory()
     const g = defaultState()
     g.started = true
     g.startConfig = cfg
@@ -181,6 +250,13 @@ export function useGame() {
       profileVersion: 1
     }
 
+    const stateWithMemory = applyMemoryToState(memory, g)
+    Object.assign(g, stateWithMemory)
+
+    sessionStartDay = g.school.day
+    sessionStartTime = Date.now()
+    sessionAntiProfileStreakMax = 0
+
     game.value = g
   }
 
@@ -211,6 +287,20 @@ export function useGame() {
         : `你借到¥${a.toLocaleString()}。利息不会因为你的梦想而心软。`
     g.logs.unshift({ id: uid('log'), day: g.school.day, title: '借贷到账', detail: logDetail, tone: 'warn' })
     if (g.logs.length > 120) g.logs.pop()
+
+    if (!g.sessionMetrics) {
+      g.sessionMetrics = {
+        actionCounts: {},
+        borrowCount: 0,
+        bodyPartRepaymentCount: 0,
+        antiProfileActionCount: 0,
+        restCount: 0,
+        startTime: Date.now()
+      }
+    }
+    g.sessionMetrics.borrowCount = (g.sessionMetrics.borrowCount || 0) + 1
+    g.sessionMetrics.actionCounts['borrow'] = (g.sessionMetrics.actionCounts['borrow'] || 0) + 1
+
     refreshProfileSnapshot()
     saveToSlot(activeSlot.value)
   }
@@ -290,7 +380,20 @@ export function useGame() {
         rightleg: 'RightLeg'
       }
       const actualPartId = partIdMap[partIdStr]
-      if (actualPartId) doExecuteBodyPartRepayment(g, actualPartId)
+      if (actualPartId) {
+        doExecuteBodyPartRepayment(g, actualPartId)
+        if (!g.sessionMetrics) {
+          g.sessionMetrics = {
+            actionCounts: {},
+            borrowCount: 0,
+            bodyPartRepaymentCount: 0,
+            antiProfileActionCount: 0,
+            restCount: 0,
+            startTime: Date.now()
+          }
+        }
+        g.sessionMetrics.bodyPartRepaymentCount = (g.sessionMetrics.bodyPartRepaymentCount || 0) + 1
+      }
     } else if (optionId === 'immediate_payment') {
       // 方案 A：锁定债务不能用现金偿还
       if (Engine.isDebtLocked(g)) {
@@ -436,6 +539,39 @@ export function useGame() {
   }
 
   const randomPoolAfterAction = (g: GameState, rand: () => number): PendingEvent | undefined => {
+    const memory = loadEmotionalMemory()
+    const profile = buildPersonalityProfile(memory)
+    const hiddenModifiers = getHiddenModifiers(profile)
+    const stressLevel = g.hiddenVariables ? calculateStressLevel(g.hiddenVariables, g) : 0
+
+    const { getRecentHistory } = useCausalGraph()
+    const recentChain = getRecentHistory(7)
+
+    const emergentContext: EventContext = {
+      state: g,
+      profile,
+      network: socialNetwork.value,
+      hiddenModifiers,
+      recentChain,
+      stressLevel
+    }
+
+    const emergentEvent = generateEmergentEvent(emergentContext, rand)
+    if (emergentEvent) {
+      const pending: PendingEvent = {
+        title: emergentEvent.title,
+        body: emergentEvent.body,
+        options: emergentEvent.options.map(opt => ({
+          id: opt.id,
+          label: opt.label,
+          tone: opt.tone
+        })),
+        tier: emergentEvent.tier,
+        mandatory: false
+      }
+      return pending
+    }
+
     const imbBoost = Engine.imbalanceEventProbabilityBoost(g)
     let baseP = clamp(0.04 + g.econ.delinquency * 0.04 + imbBoost, 0, 0.42)
     baseP = Engine.applyWeeklyRandomDownweightToProbability(baseP, g)
@@ -459,9 +595,30 @@ export function useGame() {
     return Engine.toPendingEvent(picked)
   }
 
+  const computeHiddenContributions = (g: GameState): Record<string, number> => {
+    const contributions: Record<string, number> = {}
+    if (!g.hiddenVariables) return contributions
+
+    const hv = g.hiddenVariables
+    if (hv.emotionalResidues.borrowTrauma) {
+      contributions.borrowTrauma = hv.emotionalResidues.borrowTrauma * 0.01
+    }
+    if (hv.emotionalResidues.complianceFatigue) {
+      contributions.complianceFatigue = hv.emotionalResidues.complianceFatigue * 0.01
+    }
+    if (hv.narrativeMomentum.crisisTendency) {
+      contributions.crisisTendency = hv.narrativeMomentum.crisisTendency * 0.01
+    }
+
+    return contributions
+  }
+
   const act = (action: ActionId) => {
     const g = game.value
     if (!g.started || g.pendingEvent) return
+
+    const { recordGameAction } = useCausalGraph()
+    const beforeStateForGraph = JSON.parse(JSON.stringify(g)) as GameState
 
     const slotAtStart = g.school.slot
     const rand = mulberry32(g.seed + g.school.day * 31 + Engine.slotOrder().indexOf(g.school.slot) * 997)
@@ -554,6 +711,39 @@ export function useGame() {
 
     const isAnti = Engine.isAntiProfileAction(action, g)
     Engine.updateAntiProfileStreak(g, isAnti)
+
+    if (isAnti && g.antiProfileDayStreak && g.antiProfileDayStreak > sessionAntiProfileStreakMax) {
+      sessionAntiProfileStreakMax = g.antiProfileDayStreak
+    }
+
+    if (!g.sessionMetrics) {
+      g.sessionMetrics = {
+        actionCounts: {},
+        borrowCount: 0,
+        bodyPartRepaymentCount: 0,
+        antiProfileActionCount: 0,
+        restCount: 0,
+        startTime: sessionStartTime
+      }
+    }
+    if (!g.sessionMetrics.actionCounts) {
+      g.sessionMetrics.actionCounts = {}
+    }
+    g.sessionMetrics.actionCounts[action] = (g.sessionMetrics.actionCounts[action] || 0) + 1
+    if (action === 'rest') {
+      g.sessionMetrics.restCount = (g.sessionMetrics.restCount || 0) + 1
+    }
+
+    const afterStateForGraph = JSON.parse(JSON.stringify(g)) as GameState
+    const hiddenContributions = computeHiddenContributions(g)
+    recordGameAction(
+      g.school.day,
+      slotAtStart,
+      action,
+      beforeStateForGraph,
+      afterStateForGraph,
+      hiddenContributions
+    )
 
     const endingAlreadySeen = g.logs.some(
       (log: GameState['logs'][number]) => log.title === Engine.NARRATIVE_ENDING_LOG_TITLE
