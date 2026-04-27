@@ -82,25 +82,25 @@
 
 ## Phase 5: 拆分 useGameActionExecutor
 
-- [ ] 5.1 创建 `app/composables/useGameActionExecutor.ts`
+- [x] 5.1 创建 `app/composables/useGameActionExecutor.ts`
   - 创建函数，接收所有必要依赖
   - 迁移 `act` 函数（约175行）
   - 保持 `act` 函数内部结构，仅移动位置
 
-- [ ] 5.2 创建 `app/composables/useGameActionExecutor.spec.ts`
-  - [ ] 5.2.1 编写行动阻塞测试（pendingEvent 存在时）
-  - [ ] 5.2.2 编写契约触发测试
-  - [ ] 5.2.3 编写时段推进测试
-  - [ ] 5.2.4 编写行动统计更新测试
+- [x] 5.2 创建 `app/composables/useGameActionExecutor.spec.ts`
+  - [x] 5.2.1 编写行动阻塞测试（pendingEvent 存在时）
+  - [x] 5.2.2 编写契约触发测试
+  - [x] 5.2.3 编写时段推进测试
+  - [x] 5.2.4 编写行动统计更新测试
 
-- [ ] 5.3 更新 `useGame.ts` 导入和使用
+- [x] 5.3 更新 `useGame.ts` 导入和使用
   - 删除已迁移的 act 代码
   - 导入新的 `useGameActionExecutor`
   - 验证 `npm test` 通过
 
 ## Phase 6: useGame.ts 最终清理
 
-- [ ] 6.1 清理 `useGame.ts`
+- [x] 6.1 清理 `useGame.ts`
   - 删除所有已迁移的代码
   - 保留：UI状态、组合式调用、return 语句
   - 验证文件行数减少到 ~200 行
@@ -122,9 +122,9 @@
 
 ## 检查点
 
-- [ ] Phase 1 检查点：确保 useGameComputed 测试通过
-- [ ] Phase 2 检查点：确保 useEmotionalMemoryStorage 测试通过
-- [ ] Phase 3 检查点：确保 useGameEconomyActions 测试通过
-- [ ] Phase 4 检查点：确保 useGameEventResolver 测试通过
-- [ ] Phase 5 检查点：确保 useGameActionExecutor 测试通过
+- [x] Phase 1 检查点：确保 useGameComputed 测试通过
+- [x] Phase 2 检查点：确保 useEmotionalMemoryStorage 测试通过
+- [x] Phase 3 检查点：确保 useGameEconomyActions 测试通过
+- [x] Phase 4 检查点：确保 useGameEventResolver 测试通过
+- [x] Phase 5 检查点：确保 useGameActionExecutor 测试通过
 - [ ] Phase 6 检查点：确保所有测试通过，手动测试完成
