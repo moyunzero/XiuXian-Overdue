@@ -14,14 +14,11 @@ import * as Engine from '~/logic/gameEngine'
 import { useGameState, defaultState } from './useGameState'
 import { useGameComputed } from './useGameComputed'
 import { useGameStorage, resetModuleStorageState } from './useGameStorage'
+import { useEmotionalMemoryStorage } from './useEmotionalMemoryStorage'
 import {
   applyMemoryToState,
-  createSessionSummaryFromGameState,
-  recordSession,
-  initEmotionalMemory,
   buildPersonalityProfile,
-  getHiddenModifiers,
-  EMOTIONAL_MEMORY_STORAGE_KEY
+  getHiddenModifiers
 } from '~/logic/emotionalMemoryLayer'
 import { generateEmergentEvent } from '~/logic/emergentEventGenerator'
 import { calculateStressLevel } from '~/logic/hiddenVariableEngine'
@@ -109,55 +106,17 @@ export function useGame() {
     activeSlot.value = 'autosave'
   }
 
-  let sessionStartDay = 1
-  let sessionStartTime = Date.now()
-  let sessionAntiProfileStreakMax = 0
-
-  const loadEmotionalMemory = (): ReturnType<typeof initEmotionalMemory> => {
-    if (import.meta.server) return initEmotionalMemory()
-    try {
-      const raw = localStorage.getItem(EMOTIONAL_MEMORY_STORAGE_KEY)
-      if (!raw) return initEmotionalMemory()
-      const parsed = JSON.parse(raw)
-      return initEmotionalMemory(parsed)
-    } catch {
-      return initEmotionalMemory()
-    }
-  }
-
-  const saveEmotionalMemory = (memory: ReturnType<typeof initEmotionalMemory>): void => {
-    if (import.meta.server) return
-    try {
-      localStorage.setItem(EMOTIONAL_MEMORY_STORAGE_KEY, JSON.stringify(memory))
-    } catch {
-      // localStorage full or unavailable - graceful degradation
-    }
-  }
-
-  const recordCurrentSession = () => {
-    const currentGame = game.value
-    if (currentGame.started && currentGame.sessionMetrics) {
-      const memory = loadEmotionalMemory()
-      const session = createSessionSummaryFromGameState(
-        currentGame,
-        sessionStartDay,
-        sessionStartTime,
-        sessionAntiProfileStreakMax
-      )
-      const updatedMemory = recordSession(memory, session)
-      saveEmotionalMemory(updatedMemory)
-    }
-  }
+  const emotionalStorage = useEmotionalMemoryStorage()
 
   const startNew = (cfg: StartConfig) => {
-    recordCurrentSession()
+    emotionalStorage.recordCurrentSession(game.value)
 
     const { initializeGraph } = useCausalGraph()
     initializeGraph()
 
     socialNetwork.value = createSocialNetwork()
 
-    const memory = loadEmotionalMemory()
+    const memory = emotionalStorage.loadEmotionalMemory()
     const g = defaultState()
     g.started = true
     g.startConfig = cfg
@@ -205,9 +164,9 @@ export function useGame() {
     const stateWithMemory = applyMemoryToState(memory, g)
     Object.assign(g, stateWithMemory)
 
-    sessionStartDay = g.school.day
-    sessionStartTime = Date.now()
-    sessionAntiProfileStreakMax = 0
+    emotionalStorage.updateSessionStartDay(g.school.day)
+    emotionalStorage.sessionStartTime.value = Date.now()
+    emotionalStorage.sessionAntiProfileStreakMax.value = 0
 
     game.value = g
   }
@@ -491,7 +450,7 @@ export function useGame() {
   }
 
   const randomPoolAfterAction = (g: GameState, rand: () => number): PendingEvent | undefined => {
-    const memory = loadEmotionalMemory()
+    const memory = emotionalStorage.loadEmotionalMemory()
     const profile = buildPersonalityProfile(memory)
     const hiddenModifiers = getHiddenModifiers(profile)
     const stressLevel = g.hiddenVariables ? calculateStressLevel(g.hiddenVariables, g) : 0
@@ -664,8 +623,8 @@ export function useGame() {
     const isAnti = Engine.isAntiProfileAction(action, g)
     Engine.updateAntiProfileStreak(g, isAnti)
 
-    if (isAnti && g.antiProfileDayStreak && g.antiProfileDayStreak > sessionAntiProfileStreakMax) {
-      sessionAntiProfileStreakMax = g.antiProfileDayStreak
+    if (isAnti && g.antiProfileDayStreak && g.antiProfileDayStreak > emotionalStorage.sessionAntiProfileStreakMax.value) {
+      emotionalStorage.sessionAntiProfileStreakMax.value = g.antiProfileDayStreak
     }
 
     if (!g.sessionMetrics) {
@@ -675,7 +634,7 @@ export function useGame() {
         bodyPartRepaymentCount: 0,
         antiProfileActionCount: 0,
         restCount: 0,
-        startTime: sessionStartTime
+        startTime: emotionalStorage.sessionStartTime.value
       }
     }
     if (!g.sessionMetrics.actionCounts) {

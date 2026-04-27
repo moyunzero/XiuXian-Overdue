@@ -28,17 +28,17 @@
 
 ## Phase 2: 拆分 useEmotionalMemoryStorage
 
-- [ ] 2.1 创建 `app/composables/useEmotionalMemoryStorage.ts`
+- [x] 2.1 创建 `app/composables/useEmotionalMemoryStorage.ts`
   - 迁移 `loadEmotionalMemory` 函数
   - 迁移 `saveEmotionalMemory` 函数
   - 迁移 `recordCurrentSession` 函数
   - 迁移 `sessionStartDay`, `sessionStartTime`, `sessionAntiProfileStreakMax` 状态变量
 
-- [ ] 2.2 创建 `app/composables/useEmotionalMemoryStorage.spec.ts`
-  - [ ] 2.2.1 编写 localStorage 读写测试
-  - [ ] 2.2.2 编写 session 记录测试
+- [x] 2.2 创建 `app/composables/useEmotionalMemoryStorage.spec.ts`
+  - [x] 2.2.1 编写 localStorage 读写测试
+  - [x] 2.2.2 编写 session 记录测试
 
-- [ ] 2.3 更新 `useGame.ts` 导入和使用
+- [x] 2.3 更新 `useGame.ts` 导入和使用
   - 删除已迁移的情感记忆代码
   - 导入新的 `useEmotionalMemoryStorage`
   - 验证 `npm test` 通过
