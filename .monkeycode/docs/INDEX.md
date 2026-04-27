@@ -38,7 +38,7 @@
 
 ## 文档导航
 
-- [架构设计](./ARCHITECTURE.md) - 系统架构和技术设计详解
+- [架构设计](./ARCHITECTURE.md) - **系统架构、CEE模块、流程图详解**
 - [接口定义](./INTERFACES.md) - 组件间接口、API 规范
 - [开发指南](./DEVELOPER_GUIDE.md) - 环境搭建、测试、构建
 - [方案 A 系统设计](./PLAN_A_SYSTEM_DESIGN.md) - 修仙信用社会模拟器的产品主轴、核心闭环与落地路径

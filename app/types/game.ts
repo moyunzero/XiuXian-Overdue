@@ -320,11 +320,16 @@ export interface GameState {
 
   /** 方案 A：反画像路线追踪 - 连续偏离画像评估的天数 */
   antiProfileDayStreak?: number
+
+  // ========================================
+  // CEE: 因果涌现引擎扩展字段
+  // ========================================
+
+  /** CEE: 当前会话的累计指标（运行时状态） */
+  sessionMetrics?: SessionMetrics
+  /** CEE: 隐藏变量（通过隐藏变量系统影响游戏） */
+  hiddenVariables?: HiddenVariables
 }
-
-
-// ========================================
-// 展示层类型（UI 渲染专用，与数据层类型分离）
 // ========================================
 
 /** EventModal 展示用的选项类型（不含 effects 等游戏逻辑字段） */
@@ -401,4 +406,275 @@ export interface ProfileDigest {
   primaryLabel: string
   tagsSummary: string
   recentChanges: string[]
+}
+
+// ========================================
+// CEE: 因果涌现引擎类型
+// ========================================
+
+export type RoutePreference = 'score' | 'cash' | 'mixed'
+
+export interface SessionSummary {
+  id: string
+  startDay: number
+  endDay: number
+  totalDays: number
+  actionCounts: Partial<Record<ActionId, number>>
+  borrowCount: number
+  bodyPartRepaymentCount: number
+  contractAccepted: boolean
+  contractFinalProgress: number
+  finalTier: string
+  finalDebt: number
+  finalCash: number
+  antiProfileStreakMax: number
+  routePreference: RoutePreference
+  timestamp: number
+}
+
+export interface AggregateMetrics {
+  totalSessions: number
+  totalActions: number
+  avgBorrowRate: number
+  avgScoreRouteRate: number
+  avgBodyRepaymentRate: number
+  avgContractAcceptRate: number
+  avgRestRate: number
+  antiProfileStreakAvg: number
+}
+
+export interface EmotionalMemory {
+  version: number
+  sessions: SessionSummary[]
+  aggregateMetrics: AggregateMetrics
+  lastUpdated: number
+}
+
+export type RiskTolerance = 'conservative' | 'moderate' | 'aggressive'
+export type ComplianceTendency = 'resistant' | 'adaptive' | 'compliant'
+export type ResourceStrategy = 'accumulator' | 'balanced' | 'spender'
+export type BodyAutonomyValue = 'high' | 'medium' | 'low'
+export type StressResponse = 'fighter' | 'negotiator' | 'avoider'
+
+export interface PersonalityProfile {
+  riskTolerance: RiskTolerance
+  complianceTendency: ComplianceTendency
+  resourceStrategy: ResourceStrategy
+  bodyAutonomyValue: BodyAutonomyValue
+  stressResponse: StressResponse
+  dominantTraits: string[]
+}
+
+export interface HiddenModifiers {
+  actionOutcomes: Record<string, number>
+  eventProbabilities: Record<string, number>
+  narrativeBias: string[]
+}
+
+export interface SessionMetrics {
+  actionCounts: Partial<Record<ActionId, number>>
+  borrowCount: number
+  bodyPartRepaymentCount: number
+  antiProfileActionCount: number
+  restCount: number
+  startTime: number
+}
+
+export interface HiddenVariables {
+  emotionalResidues: Record<string, number>
+  environmentalFactors: Record<string, number>
+  npcAttitudes: Record<string, number>
+  narrativeMomentum: Record<string, number>
+}
+
+// ========================================
+// CEE: 因果图引擎类型
+// ========================================
+
+export type CausalNodeType = 'action' | 'state'
+export type EffectType = 'stat' | 'econ' | 'hidden' | 'event'
+
+export interface CausalNode {
+  id: string
+  type: CausalNodeType
+  timestamp: number
+  day: number
+  slot?: SlotId
+  data: ActionRecord | StateSnapshot
+}
+
+export interface ActionRecord {
+  actionId: ActionId
+  beforeStats: Partial<PlayerStats>
+  afterStats: Partial<PlayerStats>
+  beforeEcon: Partial<EconomyState>
+  afterEcon: Partial<EconomyState>
+}
+
+export interface StateSnapshot {
+  stats: PlayerStats
+  econ: EconomyState
+  school: SchoolState
+  contract: ContractState
+  fatigue: number
+  focus: number
+}
+
+export interface CausalEdge {
+  from: string
+  to: string
+  weight: number
+  effectType: EffectType
+  hiddenVariable?: string
+  day: number
+}
+
+export interface CausalGraph {
+  nodes: Map<string, CausalNode>
+  edges: CausalEdge[]
+  nodeCounter: number
+}
+
+export type RiskIndicatorType = 'debt_trajectory' | 'fatigue_accumulation' | 'exam_forecast' | 'collapse_risk'
+export type RiskLevel = 'low' | 'medium' | 'high' | 'critical'
+
+export interface RiskIndicator {
+  type: RiskIndicatorType
+  level: RiskLevel
+  description: string
+}
+
+export interface PredictionResult {
+  finalState: StateSnapshot
+  stateChain: StateSnapshot[]
+  uncertaintyIntervals: Record<string, [number, number]>
+  riskIndicators: RiskIndicator[]
+  potentialEvents: string[]
+}
+
+// ========================================
+// CEE: 涌现式事件系统类型
+// ========================================
+
+export type TemplateOperator = 'gt' | 'lt' | 'eq' | 'gte' | 'lte' | 'in' | 'contains'
+export type EventTone = 'info' | 'warn' | 'danger' | 'ok'
+
+export interface TemplateCondition {
+  variable: string
+  operator: TemplateOperator
+  value: unknown
+}
+
+export interface EffectTemplate {
+  kind: EventEffectKind
+  targetTemplate: string
+  deltaTemplate: string
+}
+
+export interface OptionTemplate {
+  id: string
+  labelTemplate: string
+  tone: 'normal' | 'danger' | 'primary'
+  effectTemplates: EffectTemplate[]
+}
+
+export interface EventTemplate {
+  id: string
+  family: string
+  phase: EventPhase
+  triggerConditions: TemplateCondition[]
+  titleTemplate: string
+  bodyTemplate: string
+  optionTemplates: OptionTemplate[]
+  weight: number
+  tone: EventTone
+  tier?: 'critical' | 'normal'
+}
+
+export interface EventContext {
+  state: GameState
+  profile: PersonalityProfile
+  network?: unknown
+  recentChain?: CausalNode[]
+  hiddenModifiers: HiddenModifiers
+  primaryNPC?: string
+  stressLevel: number
+}
+
+export interface EmergentEvent {
+  id: string
+  title: string
+  body: string
+  options: EventOptionDefinition[]
+  tone: EventTone
+  tier?: 'critical' | 'normal'
+  isEmergent: true
+  generatedAt: number
+}
+
+// CEE GameState extension (optional, backward compatible)
+export interface CEEGameState {
+  causalGraph?: CausalGraph
+  socialNetwork?: SocialNetwork
+  sessionMetrics?: SessionMetrics
+  hiddenVariables?: HiddenVariables
+}
+
+// ========================================
+// CEE: NPC 社交网络类型
+// ========================================
+
+export type InteractionType = 'helped' | 'harmed' | 'ignored' | 'betrayed' | 'impressed' | 'disappointed'
+
+export interface NpcAttitude {
+  affinity: number
+  trust: number
+  fear: number
+  respect: number
+  hiddenTags: string[]
+}
+
+export interface NpcMemory {
+  day: number
+  eventType: string
+  impact: number
+  description: string
+}
+
+export interface ThresholdTrigger {
+  condition: string
+  eventTemplateId: string
+  triggered: boolean
+}
+
+export interface NPC {
+  id: string
+  name: string
+  role: string
+  attitude: NpcAttitude
+  memory: NpcMemory[]
+  thresholdTriggers: ThresholdTrigger[]
+}
+
+export interface Relationship {
+  npcA: string
+  npcB: string
+  affinity: number
+  sharedSecrets: string[]
+  sharedGrievances: string[]
+  lastInteraction: number
+}
+
+export interface SocialNetwork {
+  npcs: Map<string, NPC>
+  relationships: Map<string, Relationship>
+  lastPropagated: number
+}
+
+export interface RelationshipHint {
+  npcA: string
+  npcB: string
+  hintType: 'tension' | 'alliance' | 'secret'
+  description: string
+  confidence: number
 }

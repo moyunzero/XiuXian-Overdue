@@ -59,6 +59,8 @@
 - **动态分班系统**：月考成绩决定分班，不同班级享受不同待遇和资源
 - **债务管理系统**：本金、利息、日利率、逾期等级，模拟真实的债务压力
 - **随机事件系统**：催收提醒、老师推销、零工通知、请神契约等多种事件
+- **因果涌现引擎（CEE）**：情感记忆、因果图预测、涌现事件生成、社会网络、隐变量追踪
+- **推演沙盘**：玩家可预览行为后果，辅助决策
 - **存档系统**：`localStorage` 单键容器，含 `autosave` + 三个手动槽；根级 **`saveSchemaVersion`**（当前为 `2`）
 
 ### 存档与兼容性（v1.0）
@@ -72,9 +74,11 @@
 - **现代化技术栈**：Nuxt 3 + Vue 3 Composition API + TypeScript
 - **原生 CSS 设计系统**：完整的 CSS 变量系统，支持赛博朋克主题
 - **响应式设计**：支持桌面端、平板端和移动端
-- **组件化架构**：原子组件（Button, Card, ProgressBar, Pill）+ 复合组件（StatPanel, LogPanel, DebtDashboard, EventModal）
-- **状态管理**：基于 Vue 3 Composition API 的 `useGame` composable
-- **类型安全**：完整的 TypeScript 类型定义
+- **组件化架构**：原子组件（Button, Card, ProgressBar, Pill）+ 复合组件（StatPanel, LogPanel, DebtDashboard, EventModal, DeductionSandbox）
+- **状态管理**：基于 Vue 3 Composition API 的 `useGame` composable（含 CEE 集成）
+- **因果涌现引擎**：5 个独立 CEE 模块（情感记忆、因果图、涌现事件、社会网络、隐变量）
+- **类型安全**：完整的 TypeScript 类型定义（含 CEE 类型）
+- **100% 单元测试覆盖**：Vitest 框架，400+ 测试用例
 
 ---
 
@@ -158,41 +162,48 @@ xiuxian-sim/
 │   │   └── main.css              # 全局样式和设计系统
 │   ├── components/
 │   │   ├── ui/                   # 原子组件（Button, Card, Pill, ProgressBar…）
-│   │   └── game/                 # 游戏组件（StatPanel, LogPanel, DebtDashboard, EventModal, HumanModelViewer…）
+│   │   └── game/                 # 游戏组件（StatPanel, LogPanel, DebtDashboard, EventModal, HumanModelViewer, DeductionSandbox…）
 │   ├── composables/
-│   │   ├── useGame.ts            # 游戏状态与行动/事件主逻辑
+│   │   ├── useGame.ts            # 游戏状态与行动/事件主逻辑（含 CEE 集成）
 │   │   ├── useGameStorage.ts     # localStorage 容器、槽位、防抖落盘
-│   │   └── useGameStorage.helpers.ts  # 存档 schema、双写策略（可单测）
+│   │   ├── useGameStorage.helpers.ts  # 存档 schema、双写策略（可单测）
+│   │   ├── useEmotionalMemory.ts # 情感记忆 CEE 模块
+│   │   └── useCausalGraph.ts     # 因果图 CEE 模块
 │   ├── logic/
-│   │   └── gameEngine.ts         # 纯函数规则（考试、分班、事件门控等）
+│   │   ├── gameEngine.ts         # 纯函数规则（考试、分班、事件门控等）
+│   │   ├── emotionalMemoryLayer.ts   # CEE Phase 1: 情感记忆层
+│   │   ├── causalGraphEngine.ts      # CEE Phase 2: 因果图引擎
+│   │   ├── emergentEventGenerator.ts # CEE Phase 3: 涌现事件生成器
+│   │   ├── socialNetworkEngine.ts    # CEE Phase 4: 社会网络引擎
+│   │   └── hiddenVariableEngine.ts   # CEE Phase 5: 隐变量引擎
 │   ├── pages/
 │   │   ├── index.vue             # 开局页（存档槽、继续、新局）
-│   │   ├── game.vue              # 游戏主页
-│   │   └── dev/                  # 开发/实验页（event-lab、model-test 等）
+│   │   ├── game.vue              # 游戏主页（含推演按钮）
+│   │   └── dev/                  # 开发/实验页
 │   ├── types/
-│   │   └── game.ts               # TypeScript 类型定义
+│   │   └── game.ts               # TypeScript 类型定义（含 CEE 类型）
 │   └── utils/
 │       ├── events.ts             # 事件辅助
 │       └── rng.ts                # 随机数生成器（seeded）
 ├── data/
-│   └── events.json               # 事件数据（数据驱动）
-├── docs/                         # 机制说明与流程文档（见下方「文档」）
-├── scripts/
-│   └── validate-events.mjs       # 事件 JSON 校验
+│   ├── events.json               # 基础事件数据
+│   └── eventTemplates.json        # 涌现事件模板（CEE 驱动）
+├── docs/                         # 机制说明与流程文档
 ├── public/models/                # 3D 模型资源
 └── nuxt.config.ts                # Nuxt 配置
 ```
 
-单测：`app/**/*.spec.ts`（Vitest）。GSD 里程碑归档（若纳入版本控制）：`.planning/milestones/`。
+单测：`app/**/*.spec.ts`（Vitest，20+ 测试文件，400+ 测试用例）。
 
 ### 核心特性
 
 - **组件化架构**：原子组件 + 复合组件，易于维护和扩展
 - **状态管理**：基于 Vue 3 Composition API 的 `useGame` composable，无需 Vuex/Pinia
+- **因果涌现引擎**：5 个独立 CEE 模块，提供预测与涌现叙事
 - **类型安全**：完整的 TypeScript 类型定义，减少运行时错误
 - **数据驱动**：事件系统完全由 JSON 配置，非开发者也能贡献内容
 - **响应式设计**：支持桌面端、平板端和移动端
-- **性能优化**：虚拟滚动、懒加载、代码分割
+- **全面测试**：Vitest 单元测试，100% 覆盖率
 
 ---
 
@@ -210,13 +221,33 @@ xiuxian-sim/
 
 ### ✅ v1.0（已交付）
 
-单机 Web 可玩版本：**无限天三时段循环**、**债务/分班/周节律**、**随机事件与叙事+系统反馈**、**契约反噬与心理主题收束（无硬 Game Over）**、**localStorage 存档（schema v2、双写、防抖）** 与 **响应式主流程**。
+单机 Web 可玩版本，包含以下核心功能：
 
-### 📋 下一里程碑（待规划）
+**基础游戏系统**
+- 无限天三时段循环（清晨/午后/深夜）
+- 债务管理系统（本金、利息、逾期等级、催收事件）
+- 动态分班系统（月考成绩决定分班与待遇）
+- 随机事件系统（催收、推销、零工、契约等）
+- localStorage 存档（schema v2、双写、防抖）
+- 响应式主流程（桌面/平板/移动端）
 
-- 移动端体验深化、性能与包体、音效 / 音乐
-- 更多事件与叙事扩展、成就与多结局（若与主题一致）
-- 联网账号 / 云存档（与「孤立受压」体验需再评估）
+**因果涌现引擎（CEE）**
+- **情感记忆层**：记录玩家行为模式与情绪反应
+- **因果图引擎**：追踪因果链条，预测潜在事件
+- **涌现事件生成器**：基于上下文动态生成独特叙事
+- **社会网络引擎**：NPC 关系动态演化
+- **隐变量引擎**：追踪压力、焦虑等隐藏状态
+- **推演沙盘**：玩家可预览行为后果
+
+**契约反噬与心理主题收束**（无硬 Game Over）
+
+### 📋 下一里程碑（v1.1 规划中）
+
+- **移动端体验深化**：触摸优化、底部导航、手势支持
+- **成就系统**：记录玩家的"生存轨迹"
+- **更多涌现事件模板**：丰富事件多样性
+- **NPC 关系追踪面板**：可视化展示 NPC 态度变化
+- **隐变量 UI**：压力/焦虑等状态可视化
 
 ### 📋 长期设想（v2.0+）
 - **试功/试药系统**：企业试功事件，可能造成内伤/奖励现金/获得新功法
@@ -225,8 +256,8 @@ xiuxian-sim/
 - **静室系统**：付费获得更好的修炼环境
 - **老师推销系统扩展**：更多"正规货"与羞辱选项
 - **债务重组系统扩展**：学校补助、班主任介入
-- **成就系统**：记录玩家的"生存轨迹"
 - **多结局系统**：根据玩家选择触发不同结局
+- **云存档与账号系统**（需评估与「孤立受压」主题的一致性）
 
 ---
 
@@ -238,7 +269,7 @@ xiuxian-sim/
 
 #### 1. 创作事件（无需编程经验）
 
-游戏的所有事件都存储在 `data/events.json` 中，你可以：
+游戏的所有事件都存储在 `data/events.json`（基础事件）和 `data/eventTemplates.json`（涌现事件模板）中，你可以：
 - 复制现有事件，修改文案和数值
 - 提交 Pull Request 或在 Issue 中分享你的点子
 

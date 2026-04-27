@@ -1,0 +1,448 @@
+{
+  "version": 1,
+  "templates": [
+    {
+      "id": "emergent_new_player_welcome",
+      "family": "emergent_welcome",
+      "phase": "afterAction",
+      "triggerConditions": [
+        { "variable": "school.day", "operator": "lte", "value": 3 },
+        { "variable": "stats.daoXin", "operator": "lt", "value": 5 }
+      ],
+      "titleTemplate": "初入宗门",
+      "bodyTemplate": "你踏入修行的第一步。面对债务和制度的压力，你需要找到自己的生存之道。是专心修炼提升实力，还是打工赚钱还债？",
+      "optionTemplates": [
+        {
+          "id": "focus_cultivation",
+          "labelTemplate": "专注修炼",
+          "tone": "primary",
+          "effectTemplates": [
+            { "kind": "stat", "targetTemplate": "stats.daoXin", "deltaTemplate": "1" }
+          ]
+        },
+        {
+          "id": "explore_options",
+          "labelTemplate": "先了解规则",
+          "tone": "normal",
+          "effectTemplates": [
+            { "kind": "stat", "targetTemplate": "stats.focus", "deltaTemplate": "5" }
+          ]
+        }
+      ],
+      "weight": 2.0,
+      "tone": "info",
+      "tier": "normal"
+    },
+    {
+      "id": "emergent_first_debt_reminder",
+      "family": "emergent_debt",
+      "phase": "afterAction",
+      "triggerConditions": [
+        { "variable": "econ.debtPrincipal", "operator": "gt", "value": 0 },
+        { "variable": "school.day", "operator": "lte", "value": 2 }
+      ],
+      "titleTemplate": "债务提醒",
+      "bodyTemplate": "制度债的利息在不断累积。虽然现在看起来不多，但复利的威力是可怕的。尽早规划还款策略才是明智之举。",
+      "optionTemplates": [
+        {
+          "id": "plan_repayment",
+          "labelTemplate": "制定还款计划",
+          "tone": "primary",
+          "effectTemplates": [
+            { "kind": "stat", "targetTemplate": "stats.focus", "deltaTemplate": "3" }
+          ]
+        },
+        {
+          "id": "ignore_warning",
+          "labelTemplate": "先不管它",
+          "tone": "normal",
+          "effectTemplates": []
+        }
+      ],
+      "weight": 1.8,
+      "tone": "warn",
+      "tier": "normal"
+    },
+    {
+      "id": "emergent_first_fatigue",
+      "family": "emergent_fatigue",
+      "phase": "afterAction",
+      "triggerConditions": [
+        { "variable": "stats.fatigue", "operator": "gt", "value": 40 },
+        { "variable": "school.day", "operator": "lte", "value": 5 }
+      ],
+      "titleTemplate": "身体警告",
+      "bodyTemplate": "你感到一阵疲惫袭来。疲劳值已经到达 ${stats.fatigue}。修行之路漫长，身体是本钱，要注意休息。",
+      "optionTemplates": [
+        {
+          "id": "take_rest",
+          "labelTemplate": "休息一下",
+          "tone": "primary",
+          "effectTemplates": [
+            { "kind": "stat", "targetTemplate": "stats.focus", "deltaTemplate": "5" }
+          ]
+        },
+        {
+          "id": "push_on",
+          "labelTemplate": "继续坚持",
+          "tone": "normal",
+          "effectTemplates": [
+            { "kind": "stat", "targetTemplate": "stats.fatigue", "deltaTemplate": "5" }
+          ]
+        }
+      ],
+      "weight": 1.5,
+      "tone": "warn",
+      "tier": "normal"
+    },
+    {
+      "id": "emergent_debt_pressure_1",
+      "family": "emergent_debt",
+      "phase": "afterAction",
+      "triggerConditions": [
+        { "variable": "econ.debtPrincipal", "operator": "gt", "value": 5000 },
+        { "variable": "econ.cash", "operator": "lt", "value": 500 },
+        { "variable": "stats.fatigue", "operator": "gt", "value": 60 }
+      ],
+      "titleTemplate": "债务压力警告",
+      "bodyTemplate": "你背着${econ.debtPrincipal}灵石的债务，口袋里只剩${econ.cash}灵石，而身体已经疲惫不堪。这种绝望的感觉让你意识到，如果不做出改变，情况只会越来越糟。",
+      "optionTemplates": [
+        {
+          "id": "keep_going",
+          "labelTemplate": "继续坚持",
+          "tone": "normal",
+          "effectTemplates": [
+            { "kind": "stat", "targetTemplate": "stats.focus", "deltaTemplate": "-5" }
+          ]
+        },
+        {
+          "id": "seek_help",
+          "labelTemplate": "寻求帮助",
+          "tone": "primary",
+          "effectTemplates": [
+            { "kind": "stat", "targetTemplate": "stats.daoXin", "deltaTemplate": "2" }
+          ]
+        },
+        {
+          "id": "desperate_measure",
+          "labelTemplate": "采取极端措施",
+          "tone": "danger",
+          "effectTemplates": [
+            { "kind": "econ", "targetTemplate": "econ.cash", "deltaTemplate": "500" },
+            { "kind": "stat", "targetTemplate": "stats.fatigue", "deltaTemplate": "20" }
+          ]
+        }
+      ],
+      "weight": 1.5,
+      "tone": "warn",
+      "tier": "normal"
+    },
+    {
+      "id": "emergent_fatigue_crisis_1",
+      "family": "emergent_fatigue",
+      "phase": "afterAction",
+      "triggerConditions": [
+        { "variable": "stats.fatigue", "operator": "gt", "value": 80 },
+        { "variable": "profile.riskTolerance", "operator": "eq", "value": "aggressive" }
+      ],
+      "titleTemplate": "过劳预警",
+      "bodyTemplate": "你已经连续高强度活动，疲劳值突破${stats.fatigue}。你的身体在尖叫，但债务的压力让你不敢停下来。",
+      "optionTemplates": [
+        {
+          "id": "push_through",
+          "labelTemplate": "硬撑下去",
+          "tone": "danger",
+          "effectTemplates": [
+            { "kind": "stat", "targetTemplate": "stats.focus", "deltaTemplate": "-15" },
+            { "kind": "stat", "targetTemplate": "stats.daoXin", "deltaTemplate": "1" }
+          ]
+        },
+        {
+          "id": "mandatory_rest",
+          "labelTemplate": "强制休息",
+          "tone": "primary",
+          "effectTemplates": [
+            { "kind": "stat", "targetTemplate": "stats.fatigue", "deltaTemplate": "-30" }
+          ]
+        }
+      ],
+      "weight": 1.2,
+      "tone": "warn",
+      "tier": "normal"
+    },
+    {
+      "id": "emergent_contract_temptation_1",
+      "family": "emergent_contract",
+      "phase": "afterAction",
+      "triggerConditions": [
+        { "variable": "econ.cash", "operator": "lt", "value": 200 },
+        { "variable": "profile.complianceTendency", "operator": "eq", "value": "adaptive" },
+        { "variable": "contract.active", "operator": "eq", "value": false }
+      ],
+      "titleTemplate": "契约诱惑",
+      "bodyTemplate": "一个神秘的声音在你耳边响起：\"我可以帮你解决眼前的困境...只需签下这份契约。\"你的内心在挣扎。",
+      "optionTemplates": [
+        {
+          "id": "accept_contract",
+          "labelTemplate": "签下契约",
+          "tone": "danger",
+          "effectTemplates": [
+            { "kind": "contract", "targetTemplate": "contract.active", "deltaTemplate": "true" },
+            { "kind": "contract", "targetTemplate": "contract.progress", "deltaTemplate": "10" },
+            { "kind": "econ", "targetTemplate": "econ.cash", "deltaTemplate": "1000" }
+          ]
+        },
+        {
+          "id": "refuse_contract",
+          "labelTemplate": "拒绝",
+          "tone": "normal",
+          "effectTemplates": [
+            { "kind": "stat", "targetTemplate": "stats.daoXin", "deltaTemplate": "1" }
+          ]
+        }
+      ],
+      "weight": 1.0,
+      "tone": "warn",
+      "tier": "critical"
+    },
+    {
+      "id": "emergent_body_trade_1",
+      "family": "emergent_body",
+      "phase": "afterAction",
+      "triggerConditions": [
+        { "variable": "econ.debtPrincipal", "operator": "gt", "value": 3000 },
+        { "variable": "profile.bodyAutonomyValue", "operator": "eq", "value": "low" },
+        { "variable": "hiddenVariables.emotionalResidues.borrowTrauma", "operator": "gt", "value": 20 }
+      ],
+      "titleTemplate": "身体的代价",
+      "bodyTemplate": "催收者提出了一个你不想面对的选择：\"如果你还不起钱...我们可以考虑别的偿还方式。\"这句话像一把刀，刺入你最深的恐惧。",
+      "optionTemplates": [
+        {
+          "id": "body_negotiate",
+          "labelTemplate": "谈判周旋",
+          "tone": "normal",
+          "effectTemplates": [
+            { "kind": "stat", "targetTemplate": "stats.focus", "deltaTemplate": "-10" }
+          ]
+        },
+        {
+          "id": "body_accept",
+          "labelTemplate": "接受安排",
+          "tone": "danger",
+          "effectTemplates": [
+            { "kind": "debt", "targetTemplate": "debtPrincipal", "deltaTemplate": "-2000" },
+            { "kind": "stat", "targetTemplate": "bodyIntegrity", "deltaTemplate": "-0.2" }
+          ]
+        }
+      ],
+      "weight": 0.8,
+      "tone": "danger",
+      "tier": "critical"
+    },
+    {
+      "id": "emergent_study_motivation_1",
+      "family": "emergent_motivation",
+      "phase": "afterAction",
+      "triggerConditions": [
+        { "variable": "profile.resourceStrategy", "operator": "eq", "value": "accumulator" },
+        { "variable": "school.classTier", "operator": "eq", "value": "示范班" }
+      ],
+      "titleTemplate": "学霸的孤独",
+      "bodyTemplate": "作为示范班的你，享受着最好的资源。但周围同学的眼神让你感到一丝不安——他们是羡慕，还是嫉妒？",
+      "optionTemplates": [
+        {
+          "id": "share_knowledge",
+          "labelTemplate": "分享学习心得",
+          "tone": "primary",
+          "effectTemplates": [
+            { "kind": "stat", "targetTemplate": "stats.daoXin", "deltaTemplate": "2" },
+            { "kind": "school", "targetTemplate": "school.perks.focusBonus", "deltaTemplate": "5" }
+          ]
+        },
+        {
+          "id": "stay_focused",
+          "labelTemplate": "保持低调",
+          "tone": "normal",
+          "effectTemplates": [
+            { "kind": "stat", "targetTemplate": "stats.faLi", "deltaTemplate": "0.5" }
+          ]
+        }
+      ],
+      "weight": 0.6,
+      "tone": "info",
+      "tier": "normal"
+    },
+    {
+      "id": "emergent_social_support_1",
+      "family": "emergent_social",
+      "phase": "afterAction",
+      "triggerConditions": [
+        { "variable": "hiddenVariables.narrativeMomentum.stabilityTendency", "operator": "gt", "value": 0.5 },
+        { "variable": "stats.daoXin", "operator": "gt", "value": 5 }
+      ],
+      "titleTemplate": "同学的善意",
+      "bodyTemplate": "一个平时不太说话的同学走过来，递给你一瓶补给液：\"看你最近压力很大，这个给你。\"简单的举动，却让你感到一丝温暖。",
+      "optionTemplates": [
+        {
+          "id": "accept_gift",
+          "labelTemplate": "接受善意",
+          "tone": "primary",
+          "effectTemplates": [
+            { "kind": "stat", "targetTemplate": "stats.focus", "deltaTemplate": "10" },
+            { "kind": "stat", "targetTemplate": "stats.fatigue", "deltaTemplate": "-5" }
+          ]
+        },
+        {
+          "id": "politely_refuse",
+          "labelTemplate": "婉拒",
+          "tone": "normal",
+          "effectTemplates": [
+            { "kind": "stat", "targetTemplate": "stats.daoXin", "deltaTemplate": "1" }
+          ]
+        }
+      ],
+      "weight": 0.7,
+      "tone": "ok",
+      "tier": "normal"
+    },
+    {
+      "id": "emergent_exam_anxiety_1",
+      "family": "emergent_exam",
+      "phase": "endOfDay",
+      "triggerConditions": [
+        { "variable": "school.day", "operator": "gte", "value": 6 },
+        { "variable": "profile.riskTolerance", "operator": "eq", "value": "conservative" }
+      ],
+      "titleTemplate": "月考焦虑",
+      "bodyTemplate": "明天就是月考了！你回顾自己这段时间的表现，道心${stats.daoXin}，法力${stats.faLi}...这些够不够应对明天的考试？",
+      "optionTemplates": [
+        {
+          "id": "panic_study",
+          "labelTemplate": "熬夜复习",
+          "tone": "normal",
+          "effectTemplates": [
+            { "kind": "stat", "targetTemplate": "stats.focus", "deltaTemplate": "-10" },
+            { "kind": "stat", "targetTemplate": "stats.daoXin", "deltaTemplate": "2" }
+          ]
+        },
+        {
+          "id": "calm_rest",
+          "labelTemplate": "平静休息",
+          "tone": "primary",
+          "effectTemplates": [
+            { "kind": "stat", "targetTemplate": "stats.focus", "deltaTemplate": "15" },
+            { "kind": "stat", "targetTemplate": "stats.fatigue", "deltaTemplate": "-10" }
+          ]
+        }
+      ],
+      "weight": 1.0,
+      "tone": "warn",
+      "tier": "normal"
+    },
+    {
+      "id": "emergent_collector_visit_1",
+      "family": "emergent_debt",
+      "phase": "afterAction",
+      "triggerConditions": [
+        { "variable": "econ.delinquency", "operator": "gt", "value": 1 },
+        { "variable": "hiddenVariables.environmentalFactors.institutionalScrutiny", "operator": "gt", "value": 10 }
+      ],
+      "titleTemplate": "催收上门",
+      "bodyTemplate": "催收员登门拜访，脸上带着职业性的微笑：\"${playerName}，你的债务已经逾期${econ.delinquency}天了。我们来商量一下还款计划。\"",
+      "optionTemplates": [
+        {
+          "id": "negotiate_payment",
+          "labelTemplate": "协商还款",
+          "tone": "normal",
+          "effectTemplates": [
+            { "kind": "stat", "targetTemplate": "stats.focus", "deltaTemplate": "-5" },
+            { "kind": "econ", "targetTemplate": "econ.collectionFee", "deltaTemplate": "100" }
+          ]
+        },
+        {
+          "id": "stall_collector",
+          "labelTemplate": "拖延时间",
+          "tone": "normal",
+          "effectTemplates": [
+            { "kind": "stat", "targetTemplate": "stats.daoXin", "deltaTemplate": "1" }
+          ]
+        },
+        {
+          "id": "hide",
+          "labelTemplate": "躲避",
+          "tone": "danger",
+          "effectTemplates": [
+            { "kind": "stat", "targetTemplate": "stats.focus", "deltaTemplate": "-10" },
+            { "kind": "econ", "targetTemplate": "econ.delinquency", "deltaTemplate": "1" }
+          ]
+        }
+      ],
+      "weight": 1.3,
+      "tone": "danger",
+      "tier": "critical"
+    },
+    {
+      "id": "emergent_market_opportunity_1",
+      "family": "emergent_economy",
+      "phase": "afterAction",
+      "triggerConditions": [
+        { "variable": "hiddenVariables.eventProbabilities.economicOpportunity", "operator": "gt", "value": 1.1 },
+        { "variable": "econ.cash", "operator": "gt", "value": 500 }
+      ],
+      "titleTemplate": "商机出现",
+      "bodyTemplate": "黑市商人神秘兮兮地凑过来：\"我这儿有个稳赚不赔的机会，只需要投入${requiredCash}灵石，三天后就能翻倍。你有兴趣吗？\"",
+      "optionTemplates": [
+        {
+          "id": "invest",
+          "labelTemplate": "投资",
+          "tone": "primary",
+          "effectTemplates": [
+            { "kind": "econ", "targetTemplate": "econ.cash", "deltaTemplate": "-500" }
+          ]
+        },
+        {
+          "id": "skip_investment",
+          "labelTemplate": "不感兴趣",
+          "tone": "normal",
+          "effectTemplates": []
+        }
+      ],
+      "weight": 0.5,
+      "tone": "info",
+      "tier": "normal"
+    },
+    {
+      "id": "emergent_npc_rival_1",
+      "family": "emergent_social",
+      "phase": "afterAction",
+      "triggerConditions": [
+        { "variable": "hiddenVariables.npcAttitudes.rival", "operator": "gt", "value": 30 },
+        { "variable": "school.classTier", "operator": "eq", "value": "示范班" }
+      ],
+      "titleTemplate": " rivalry",
+      "bodyTemplate": "班里的 rival 总是用异样的眼光看你。今天他终于忍不住开口了：\"你以为进了示范班就了不起吗？早晚我会超过你！\"",
+      "optionTemplates": [
+        {
+          "id": "ignore_rival",
+          "labelTemplate": "无视他",
+          "tone": "normal",
+          "effectTemplates": [
+            { "kind": "stat", "targetTemplate": "stats.focus", "deltaTemplate": "5" }
+          ]
+        },
+        {
+          "id": "confront_rival",
+          "labelTemplate": "正面回应",
+          "tone": "primary",
+          "effectTemplates": [
+            { "kind": "stat", "targetTemplate": "stats.daoXin", "deltaTemplate": "2" },
+            { "kind": "stat", "targetTemplate": "stats.fatigue", "deltaTemplate": "5" }
+          ]
+        }
+      ],
+      "weight": 0.4,
+      "tone": "info",
+      "tier": "normal"
+    }
+  ]
+}
