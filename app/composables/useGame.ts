@@ -12,6 +12,7 @@ import { ALL_EVENTS, getEventsByPhase } from '~/utils/events'
 import { buildInstitutionalEventLogDetail } from '~/logic/eventInstitutionalLog'
 import * as Engine from '~/logic/gameEngine'
 import { useGameState, defaultState } from './useGameState'
+import { useGameComputed } from './useGameComputed'
 import { useGameStorage, resetModuleStorageState } from './useGameStorage'
 import {
   applyMemoryToState,
@@ -100,56 +101,7 @@ export function useGame() {
     summaryPanelOpen.value = false
   }
 
-  const totalDebt = computed(() =>
-    Math.max(
-      0,
-      game.value.econ.collectionFee +
-        game.value.econ.debtPrincipal +
-        game.value.econ.debtInterestAccrued
-    )
-  )
-
-  const minPayment = computed(() => {
-    return Engine.calculateTierAdjustedMinPayment(
-      totalDebt.value,
-      game.value.econ.delinquency,
-      game.value.school.classTier
-    )
-  })
-
-  const nextLabel = computed(() => Engine.describeSlot(game.value.school.slot))
-  const remainingSlots = computed(() => remainingSlotsFor(game.value.school.slot))
-
-  const accumulatedMinPayment = computed(() => Engine.calculateAccumulatedMinPayment(game.value))
-
-  const profileSnapshot = computed(() => Engine.buildSocialProfile(game.value))
-
-  const prevProfile = computed(() => game.value.profileSnapshot?.profile)
-
-  const profileDigest = computed(() => Engine.buildProfileDigest(game.value, prevProfile.value))
-
-  const refreshProfileSnapshot = () => {
-    const g = game.value
-    const currentProfile = Engine.buildSocialProfile(g)
-    const version = (g.profileSnapshot?.profileVersion ?? 0) + 1
-    g.profileSnapshot = {
-      profile: currentProfile,
-      lastProfileUpdateDay: g.school.day,
-      profileVersion: version
-    }
-  }
-
-  const classPressureDigest = computed(() => {
-    const g = game.value
-    const latestWeeklyReport = g.logs.find((log: GameState['logs'][number]) => log.title.includes('周结算通报'))
-    const tierDebtProfile = Engine.debtProfileForTier(g.school.classTier)
-    const weeklyChangeMatch = latestWeeklyReport?.detail.match(/分班变化：([^；]+)；/)
-    return {
-      weeklyClassChange: weeklyChangeMatch?.[1] ?? '等待首轮周结算',
-      nextWeekPerks: `餐补¥${g.school.perks.mealSubsidy}/天，专注加成${g.school.perks.focusBonus >= 0 ? '+' : ''}${g.school.perks.focusBonus}`,
-      riskShiftSummary: `利率×${tierDebtProfile.dailyRateMultiplier.toFixed(2)}，最低周还款×${tierDebtProfile.minWeeklyPaymentMultiplier.toFixed(2)}，催收权重×${tierDebtProfile.collectionRiskWeight.toFixed(2)}`
-    }
-  })
+  const gameComputed = useGameComputed(game)
 
   const reset = () => {
     game.value = defaultState()
@@ -260,7 +212,7 @@ export function useGame() {
     game.value = g
   }
 
-  const creditLimit = computed(() => Math.max(2000, 50000 - totalDebt.value))
+  const creditLimit = computed(() => Math.max(2000, 50000 - gameComputed.totalDebt.value))
 
   const borrow = (amount: number) => {
     const g = game.value
@@ -301,7 +253,7 @@ export function useGame() {
     g.sessionMetrics.borrowCount = (g.sessionMetrics.borrowCount || 0) + 1
     g.sessionMetrics.actionCounts['borrow'] = (g.sessionMetrics.actionCounts['borrow'] || 0) + 1
 
-    refreshProfileSnapshot()
+    gameComputed.refreshProfileSnapshot()
     saveToSlot(activeSlot.value)
   }
 
@@ -325,7 +277,7 @@ export function useGame() {
       return
     }
 
-    const budget = Math.min(a, g.econ.cash, totalDebt.value)
+    const budget = Math.min(a, g.econ.cash, gameComputed.totalDebt.value)
     const repayment = applyRepaymentByPriority(g, budget)
     if (repayment.totalPaid <= 0) {
       g.logs.unshift({
@@ -342,7 +294,7 @@ export function useGame() {
     g.econ.cash -= repayment.totalPaid
     g.econ.lastPaymentDay = g.school.day
     let delinquencyNote = ''
-    if (repayment.totalPaid >= minPayment.value && g.econ.delinquency > 0) {
+    if (repayment.totalPaid >= gameComputed.minPayment.value && g.econ.delinquency > 0) {
       g.econ.delinquency = Math.max(0, g.econ.delinquency - 1)
       delinquencyNote = ` 逾期等级降低至${g.econ.delinquency}级。`
     }
@@ -354,7 +306,7 @@ export function useGame() {
       tone: 'ok'
     })
     if (g.logs.length > 120) g.logs.pop()
-    refreshProfileSnapshot()
+    gameComputed.refreshProfileSnapshot()
     saveToSlot(activeSlot.value)
   }
 
@@ -472,7 +424,7 @@ export function useGame() {
 
     g.pendingEvent = undefined
     ensureSummaryUnlock(g)
-    refreshProfileSnapshot()
+    gameComputed.refreshProfileSnapshot()
     saveToSlot(activeSlot.value)
   }
 
@@ -781,11 +733,11 @@ export function useGame() {
     const nextSlot = Engine.slotOrder()[idx + 1]
     if (idx < Engine.slotOrder().length - 1 && nextSlot) g.school.slot = nextSlot
     else {
-      performEndDay(g, minPayment.value, applyWeeklyCollectionFee)
+      performEndDay(g, gameComputed.minPayment.value, applyWeeklyCollectionFee)
     }
 
     ensureSummaryUnlock(g)
-    refreshProfileSnapshot()
+    gameComputed.refreshProfileSnapshot()
     saveToSlot(activeSlot.value)
   }
 
@@ -797,13 +749,8 @@ export function useGame() {
     listSlots,
     reset,
     startNew,
-    totalDebt,
-    minPayment,
-    accumulatedMinPayment,
-    classPressureDigest,
+    ...gameComputed,
     creditLimit,
-    nextLabel,
-    remainingSlots,
     act,
     borrow,
     repay,
@@ -811,9 +758,7 @@ export function useGame() {
     summaryPanelOpen,
     openSummaryPanel,
     acknowledgeSummaryAndContinue,
-    closeSummaryPanelWithoutMarking,
-    profileSnapshot,
-    profileDigest
+    closeSummaryPanelWithoutMarking
   }
 }
 

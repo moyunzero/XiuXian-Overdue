@@ -2,7 +2,7 @@
 
 ## Phase 1: 拆分 useGameComputed
 
-- [ ] 1.1 创建 `app/composables/useGameComputed.ts`
+- [x] 1.1 创建 `app/composables/useGameComputed.ts`
   - 定义 `useGameComputed` 函数，接收 `game: Ref<GameState>` 参数
   - 迁移 `totalDebt` 计算属性
   - 迁移 `minPayment` 计算属性
@@ -16,12 +16,12 @@
   - 迁移 `classPressureDigest` 计算属性
   - 迁移 `refreshProfileSnapshot` 函数
 
-- [ ] 1.2 创建 `app/composables/useGameComputed.spec.ts`
-  - [ ] 1.2.1 编写 totalDebt 计算正确性测试
-  - [ ] 1.2.2 编写 profileDigest 生成测试
-  - [ ] 1.2.3 编写 creditLimit 边界测试
+- [x] 1.2 创建 `app/composables/useGameComputed.spec.ts`
+  - [x] 1.2.1 编写 totalDebt 计算正确性测试
+  - [x] 1.2.2 编写 profileDigest 生成测试
+  - [x] 1.2.3 编写 creditLimit 边界测试
 
-- [ ] 1.3 更新 `useGame.ts` 导入和使用
+- [x] 1.3 更新 `useGame.ts` 导入和使用
   - 删除已迁移的计算属性代码
   - 导入新的 `useGameComputed`
   - 验证 `npm test` 通过
