@@ -45,17 +45,17 @@
 
 ## Phase 3: 拆分 useGameEconomyActions
 
-- [ ] 3.1 创建 `app/composables/useGameEconomyActions.ts`
+- [x] 3.1 创建 `app/composables/useGameEconomyActions.ts`
   - 创建函数，接收 `game`, `computed`, `storage` 依赖
   - 迁移 `borrow` 函数（含日志逻辑）
   - 迁移 `repay` 函数（含债务锁定检查、日志逻辑）
 
-- [ ] 3.2 创建 `app/composables/useGameEconomyActions.spec.ts`
-  - [ ] 3.2.1 编写借贷边界测试（额度不足、负数）
-  - [ ] 3.2.2 编写还款边界测试（余额不足、债务锁定）
-  - [ ] 3.2.3 编写逾期等级变化测试
+- [x] 3.2 创建 `app/composables/useGameEconomyActions.spec.ts`
+  - [x] 3.2.1 编写借贷边界测试（额度不足、负数）
+  - [x] 3.2.2 编写还款边界测试（余额不足、债务锁定）
+  - [x] 3.2.3 编写逾期等级变化测试
 
-- [ ] 3.3 更新 `useGame.ts` 导入和使用
+- [x] 3.3 更新 `useGame.ts` 导入和使用
   - 删除已迁移的 borrow/repay 代码
   - 导入新的 `useGameEconomyActions`
   - 验证 `npm test` 通过

@@ -15,6 +15,7 @@ import { useGameState, defaultState } from './useGameState'
 import { useGameComputed } from './useGameComputed'
 import { useGameStorage, resetModuleStorageState } from './useGameStorage'
 import { useEmotionalMemoryStorage } from './useEmotionalMemoryStorage'
+import { useGameEconomyActions } from './useGameEconomyActions'
 import {
   applyMemoryToState,
   buildPersonalityProfile,
@@ -108,6 +109,8 @@ export function useGame() {
 
   const emotionalStorage = useEmotionalMemoryStorage()
 
+  const economyActions = useGameEconomyActions(game, gameComputed, { activeSlot, saveToSlot })
+
   const startNew = (cfg: StartConfig) => {
     emotionalStorage.recordCurrentSession(game.value)
 
@@ -169,104 +172,6 @@ export function useGame() {
     emotionalStorage.sessionAntiProfileStreakMax.value = 0
 
     game.value = g
-  }
-
-  const creditLimit = computed(() => Math.max(2000, 50000 - gameComputed.totalDebt.value))
-
-  const borrow = (amount: number) => {
-    const g = game.value
-    const a = Math.max(0, Math.floor(amount))
-    if (a <= 0) return
-    if (a > creditLimit.value) {
-      g.logs.unshift({
-        id: uid('log'),
-        day: g.school.day,
-        title: '额度不足',
-        detail: `当前可借额度仅¥${Math.floor(creditLimit.value).toLocaleString()}，申请被拒绝。`,
-        tone: 'danger'
-      })
-      if (g.logs.length > 120) g.logs.pop()
-      saveToSlot(activeSlot.value)
-      return
-    }
-    const effectivePrincipal = g.bodyReputation === 'marked' ? Math.floor(a * 1.2) : a
-    g.econ.debtPrincipal += effectivePrincipal
-    g.econ.cash += a
-    const logDetail =
-      g.bodyReputation === 'marked'
-        ? `经系统评估，您的申请已通过。到账¥${a.toLocaleString()}。`
-        : `你借到¥${a.toLocaleString()}。利息不会因为你的梦想而心软。`
-    g.logs.unshift({ id: uid('log'), day: g.school.day, title: '借贷到账', detail: logDetail, tone: 'warn' })
-    if (g.logs.length > 120) g.logs.pop()
-
-    if (!g.sessionMetrics) {
-      g.sessionMetrics = {
-        actionCounts: {},
-        borrowCount: 0,
-        bodyPartRepaymentCount: 0,
-        antiProfileActionCount: 0,
-        restCount: 0,
-        startTime: Date.now()
-      }
-    }
-    g.sessionMetrics.borrowCount = (g.sessionMetrics.borrowCount || 0) + 1
-    g.sessionMetrics.actionCounts['borrow'] = (g.sessionMetrics.actionCounts['borrow'] || 0) + 1
-
-    gameComputed.refreshProfileSnapshot()
-    saveToSlot(activeSlot.value)
-  }
-
-  const repay = (amount: number) => {
-    const g = game.value
-    const a = Math.max(0, Math.floor(amount))
-    if (a <= 0) return
-    if (g.econ.cash <= 0) return
-
-    // 方案 A：锁定债务不能用现金偿还
-    if (Engine.isDebtLocked(g)) {
-      g.logs.unshift({
-        id: uid('log'),
-        day: g.school.day,
-        title: '还款被拒绝',
-        detail: '该债务已被系统锁定，必须通过身体抵押方式偿还。现金无法直接抵扣。',
-        tone: 'warn'
-      })
-      if (g.logs.length > 120) g.logs.pop()
-      saveToSlot(activeSlot.value)
-      return
-    }
-
-    const budget = Math.min(a, g.econ.cash, gameComputed.totalDebt.value)
-    const repayment = applyRepaymentByPriority(g, budget)
-    if (repayment.totalPaid <= 0) {
-      g.logs.unshift({
-        id: uid('log'),
-        day: g.school.day,
-        title: '还款未记账',
-        detail: '无可还债务或余额不足。',
-        tone: 'warn'
-      })
-      if (g.logs.length > 120) g.logs.pop()
-      saveToSlot(activeSlot.value)
-      return
-    }
-    g.econ.cash -= repayment.totalPaid
-    g.econ.lastPaymentDay = g.school.day
-    let delinquencyNote = ''
-    if (repayment.totalPaid >= gameComputed.minPayment.value && g.econ.delinquency > 0) {
-      g.econ.delinquency = Math.max(0, g.econ.delinquency - 1)
-      delinquencyNote = ` 逾期等级降低至${g.econ.delinquency}级。`
-    }
-    g.logs.unshift({
-      id: uid('log'),
-      day: g.school.day,
-      title: '还款',
-      detail: `系统已记账：¥${repayment.totalPaid.toLocaleString()}（利息¥${repayment.interestPaid.toLocaleString()}、费用¥${repayment.feePaid.toLocaleString()}、本金¥${repayment.principalPaid.toLocaleString()}）。${delinquencyNote}剩余债务：¥${(g.econ.debtPrincipal + g.econ.collectionFee + g.econ.debtInterestAccrued).toLocaleString()}。`,
-      tone: 'ok'
-    })
-    if (g.logs.length > 120) g.logs.pop()
-    gameComputed.refreshProfileSnapshot()
-    saveToSlot(activeSlot.value)
   }
 
   const resolveEvent = (optionId: string) => {
@@ -709,10 +614,9 @@ export function useGame() {
     reset,
     startNew,
     ...gameComputed,
-    creditLimit,
+    creditLimit: computed(() => Math.max(2000, 50000 - gameComputed.totalDebt.value)),
     act,
-    borrow,
-    repay,
+    ...economyActions,
     resolveEvent,
     summaryPanelOpen,
     openSummaryPanel,
