@@ -62,20 +62,20 @@
 
 ## Phase 4: 拆分 useGameEventResolver
 
-- [ ] 4.1 创建 `app/composables/useGameEventResolver.ts`
+- [x] 4.1 创建 `app/composables/useGameEventResolver.ts`
   - 创建函数，接收 `game`, `engine`, `storage`, `socialNetwork` 依赖
   - 迁移 `resolveEvent` 函数（包含所有事件选项处理分支）
   - 迁移 `applyEventEffects` 函数
   - 迁移 `randomPoolAfterAction` 函数
   - 迁移 `computeHiddenContributions` 函数
 
-- [ ] 4.2 创建 `app/composables/useGameEventResolver.spec.ts`
-  - [ ] 4.2.1 编写身体部位还款选项测试
-  - [ ] 4.2.2 编写契约反噬选项测试
-  - [ ] 4.2.3 编写随机事件池触发测试
-  - [ ] 4.2.4 编写涌现事件生成集成测试
+- [x] 4.2 创建 `app/composables/useGameEventResolver.spec.ts`
+  - [x] 4.2.1 编写身体部位还款选项测试
+  - [x] 4.2.2 编写契约反噬选项测试
+  - [x] 4.2.3 编写随机事件池触发测试
+  - [x] 4.2.4 编写涌现事件生成集成测试
 
-- [ ] 4.3 更新 `useGame.ts` 导入和使用
+- [x] 4.3 更新 `useGame.ts` 导入和使用
   - 删除已迁移的事件处理代码（约180行）
   - 导入新的 `useGameEventResolver`
   - 验证 `npm test` 通过
