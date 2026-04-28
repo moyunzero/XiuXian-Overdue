@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useGameEventResolver } from './useGameEventResolver'
 import { defaultState } from './useGameState'
 import type { GameState, SocialNetwork } from '~/types/game'
@@ -28,6 +28,9 @@ describe('useGameEventResolver', () => {
   const mockEnsureSummaryUnlock = vi.fn()
 
   beforeEach(() => {
+    vi.stubGlobal('useState', <T>(key: string, init: () => T) => ref(init()))
+    vi.stubGlobal('computed', (fn: Function) => computed(fn))
+
     const state = defaultState()
     state.started = true
     state.econ.cash = 5000

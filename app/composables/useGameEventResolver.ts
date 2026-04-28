@@ -33,6 +33,8 @@ export function useGameEventResolver(
   emotionalStorage: UseEmotionalMemory,
   socialNetwork: Ref<SocialNetwork>
 ) {
+  const { getRecentHistory } = useCausalGraph()
+
   const addLog = (g: GameState, title: string, detail: string, tone: 'info' | 'warn' | 'danger' | 'ok' = 'info') => {
     g.logs.unshift({ id: uid('log'), day: g.school.day, title, detail, tone })
     if (g.logs.length > 120) g.logs.pop()
@@ -119,7 +121,6 @@ export function useGameEventResolver(
     const hiddenModifiers = getHiddenModifiers(profile)
     const stressLevel = g.hiddenVariables ? calculateStressLevel(g.hiddenVariables, g) : 0
 
-    const { getRecentHistory } = useCausalGraph()
     const recentChain = getRecentHistory(7)
 
     const emergentContext: EventContext = {
