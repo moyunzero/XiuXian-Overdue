@@ -12,6 +12,16 @@ import { calculateStressLevel } from '~/logic/hiddenVariableEngine'
 import { buildPersonalityProfile, getHiddenModifiers } from '~/logic/emotionalMemoryLayer'
 import type { EventContext } from '~/types/game'
 
+let preloadScheduled = false
+function schedulePreload() {
+  if (preloadScheduled || typeof requestIdleCallback === 'undefined') return
+  preloadScheduled = true
+  requestIdleCallback(() => {
+    import('~/logic/emergentEventGenerator')
+    import('~/logic/hiddenVariableEngine')
+  }, { timeout: 2000 })
+}
+
 interface UseGameComputed {
   accumulatedMinPayment: Ref<number>
   refreshProfileSnapshot: () => void
@@ -34,6 +44,8 @@ export function useGameEventResolver(
   socialNetwork: Ref<SocialNetwork>
 ) {
   const { getRecentHistory } = useCausalGraph()
+
+  schedulePreload()
 
   const addLog = (g: GameState, title: string, detail: string, tone: 'info' | 'warn' | 'danger' | 'ok' = 'info') => {
     g.logs.unshift({ id: uid('log'), day: g.school.day, title, detail, tone })
