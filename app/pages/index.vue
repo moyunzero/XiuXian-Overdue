@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { Background, StartConfig, Talent } from '~/types/game'
-import { useGame } from '~/composables/useGame'
-import type { SaveSlotId } from '~/composables/useGameStorage'
+import type { Background, Talent } from '~/types/game'
+import { useGameForIndex } from '~/composables/useGameForIndex'
+import type { SaveSlotId } from '~/composables/useGameForIndex'
 import { computed, ref } from 'vue'
 import { navigateTo } from '#app'
 import HeroSection from '~/components/home/HeroSection.vue'
@@ -13,7 +13,7 @@ import Button from '~/components/ui/Button.vue'
 import Card from '~/components/ui/Card.vue'
 import Pill from '~/components/ui/Pill.vue'
 
-const { game, startNew, reset, listSlots, loadFromSlot, saveToSlot, activeSlot } = useGame()
+const { game, startNew, reset, listSlots, loadFromSlot, saveToSlot, activeSlot } = useGameForIndex()
 
 const saveSlotOrder: SaveSlotId[] = ['autosave', 'slot1', 'slot2', 'slot3']
 
@@ -35,17 +35,16 @@ const showAdvanced = ref(false)
 const canContinue = computed(() => game.value.started)
 
 async function onStart() {
-  const cfg: StartConfig = {
+  startNew({
     playerName: playerName.value.trim() || '无名氏',
     background: background.value,
     talent: talent.value,
     initialDebt: initialDebt.value,
     startingCity: startingCity.value.trim() || '嵩阳市'
-  }
-  startNew(cfg)
+  })
   const slot = selectedNewGameSlot.value
   const n = slot.slice(-1)
-  saveToSlot(slot, `第${n}局·${cfg.playerName}`)
+  saveToSlot(slot, `第${n}局·${playerName.value.trim() || '无名氏'}`)
   activeSlot.value = slot
   await navigateTo('/game')
 }
