@@ -170,12 +170,14 @@ const slotData = computed(() =>
         </Card>
       </Transition>
 
-      <SaveSlotList
-        :slots="slotData"
-        :active-slot="activeSlot"
-        class="IndexPage__saves"
-        @select="resume"
-      />
+      <ClientOnly>
+        <SaveSlotList
+          :slots="slotData"
+          :active-slot="activeSlot"
+          class="IndexPage__saves"
+          @select="resume"
+        />
+      </ClientOnly>
 
       <div class="IndexPage__footer">
         <Button variant="ghost" size="sm" @click="onClearSaves">

@@ -30,9 +30,9 @@
           </div>
         </div>
         <div class="Row" style="margin-top: 12px; flex-wrap: wrap; gap: 8px">
-          <Button variant="primary" :disabled="borrowAmt > creditLimit" @click="onConfirm">确认借贷</Button>
+          <Button variant="primary" :disabled="borrowAmt > creditLimitValue" @click="onConfirm">确认借贷</Button>
           <span class="Spacer" />
-          <Pill variant="warning">可借额度：¥{{ Math.floor(creditLimit).toLocaleString() }}</Pill>
+          <Pill variant="warning">可借额度：¥{{ creditLimitValue.toLocaleString() }}</Pill>
           <Pill>当前债务：¥{{ Math.floor(totalDebt).toLocaleString() }}</Pill>
         </div>
       </div>
@@ -60,6 +60,12 @@ const emit = defineEmits<{
 }>()
 
 const borrowAmt = ref(5000)
+
+const creditLimitValue = computed(() => {
+  const val = props.creditLimit
+  if (typeof val !== 'number' || Number.isNaN(val)) return 0
+  return Math.floor(val)
+})
 
 const profileRiskText = computed(() => {
   if (!props.profileTags || props.profileTags.length === 0) return '系统正在重新评估您的信用等级'
