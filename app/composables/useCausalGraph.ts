@@ -1,24 +1,50 @@
 import type { CausalGraph, ActionId, GameState, HiddenModifiers } from '~/types/game'
 import { readonly } from 'vue'
-import {
-  createCausalGraph,
-  recordAction,
-  predictSequence,
-  pruneGraph,
-  getRecentChain,
-  DEFAULT_MAX_NODES
-} from '~/logic/causalGraphEngine'
+
+type CausalGraphEngine = typeof import('~/logic/causalGraphEngine')
+
+let causalGraphEngine: CausalGraphEngine | null = null
+let preloadScheduled = false
+
+async function preloadEngine() {
+  if (causalGraphEngine || preloadScheduled) return
+  preloadScheduled = true
+
+  if (typeof requestIdleCallback !== 'undefined') {
+    requestIdleCallback(async () => {
+      causalGraphEngine = await import('~/logic/causalGraphEngine')
+    }, { timeout: 3000 })
+  } else {
+    causalGraphEngine = await import('~/logic/causalGraphEngine')
+  }
+}
 
 export function useCausalGraph() {
-  const causalGraph = useState<CausalGraph>('causal-graph', () => createCausalGraph())
+  const causalGraph = useState<CausalGraph>('causal-graph', () => ({
+    nodes: new Map(),
+    edges: [],
+    nodeCounter: 0
+  }))
 
   const isSandboxOpen = useState<boolean>('sandbox-open', () => false)
 
-  const initializeGraph = () => {
-    causalGraph.value = createCausalGraph()
+  if (!causalGraphEngine) {
+    preloadEngine()
   }
 
-  const recordGameAction = (
+  const ensureEngine = async () => {
+    if (!causalGraphEngine) {
+      causalGraphEngine = await import('~/logic/causalGraphEngine')
+    }
+    return causalGraphEngine
+  }
+
+  const initializeGraph = async () => {
+    const Engine = await ensureEngine()
+    causalGraph.value = Engine.createCausalGraph()
+  }
+
+  const recordGameAction = async (
     day: number,
     slot: 'morning' | 'afternoon' | 'night',
     actionId: ActionId,
@@ -26,7 +52,8 @@ export function useCausalGraph() {
     afterState: GameState,
     hiddenContributions?: Record<string, number>
   ) => {
-    causalGraph.value = recordAction(
+    const Engine = await ensureEngine()
+    causalGraph.value = Engine.recordAction(
       causalGraph.value,
       day,
       slot,
@@ -34,16 +61,17 @@ export function useCausalGraph() {
       beforeState,
       afterState,
       hiddenContributions,
-      { maxNodes: DEFAULT_MAX_NODES }
+      { maxNodes: Engine.DEFAULT_MAX_NODES }
     )
   }
 
-  const predictActions = (
+  const predictActions = async (
     currentState: GameState,
     actions: ActionId[],
     hiddenModifiers?: HiddenModifiers
   ) => {
-    return predictSequence(
+    const Engine = await ensureEngine()
+    return Engine.predictSequence(
       causalGraph.value,
       currentState,
       actions,
@@ -52,14 +80,16 @@ export function useCausalGraph() {
   }
 
   const getRecentHistory = (days: number = 7) => {
-    return getRecentChain(causalGraph.value, days)
+    if (!causalGraphEngine) return []
+    return causalGraphEngine.getRecentChain(causalGraph.value, days)
   }
 
-  const executeSandboxSequence = (
+  const executeSandboxSequence = async (
     currentState: GameState,
     actions: ActionId[],
     hiddenModifiers?: HiddenModifiers
-  ): { newState: GameState; executedActions: Array<{ action: ActionId; day: number; slot: string }> } => {
+  ) => {
+    const Engine = await ensureEngine()
     const executedActions: Array<{ action: ActionId; day: number; slot: string }> = []
     let state = { ...currentState }
     const slots: Array<'morning' | 'afternoon' | 'night'> = ['morning', 'afternoon', 'night']
@@ -73,7 +103,16 @@ export function useCausalGraph() {
       const beforeState = { ...state }
       const afterState = simulateAction(state, action, hiddenModifiers)
 
-      recordGameAction(day, slot, action, beforeState, afterState)
+      causalGraph.value = Engine.recordAction(
+        causalGraph.value,
+        day,
+        slot,
+        action,
+        beforeState,
+        afterState,
+        undefined,
+        { maxNodes: Engine.DEFAULT_MAX_NODES }
+      )
 
       executedActions.push({ action, day, slot })
       state = afterState
