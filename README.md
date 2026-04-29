@@ -78,7 +78,7 @@
 - **状态管理**：基于 Vue 3 Composition API 的 `useGame` composable（含 CEE 集成）
 - **因果涌现引擎**：5 个独立 CEE 模块（情感记忆、因果图、涌现事件、社会网络、隐变量）
 - **类型安全**：完整的 TypeScript 类型定义（含 CEE 类型）
-- **100% 单元测试覆盖**：Vitest 框架，400+ 测试用例
+- **100% 单元测试覆盖**：Vitest 框架，489 个测试用例
 
 ---
 
@@ -193,7 +193,7 @@ xiuxian-sim/
 └── nuxt.config.ts                # Nuxt 配置
 ```
 
-单测：`app/**/*.spec.ts`（Vitest，20+ 测试文件，400+ 测试用例）。
+单测：`app/**/*.spec.ts`（Vitest，25 个测试文件，489 个测试用例）。
 
 ### 核心特性
 
@@ -240,6 +240,13 @@ xiuxian-sim/
 - **推演沙盘**：玩家可预览行为后果
 
 **契约反噬与心理主题收束**（无硬 Game Over）
+
+**代码架构**
+- `useGame` composable 重构为多个专用 composable（useGameEventResolver、useGameActionExecutor、useGameEconomyActions、useEmotionalMemoryStorage、useGameComputed）
+- 首页使用轻量级 `useGameForIndex` composable，避免加载重型 CEE 模块
+- 因果图引擎采用动态导入 + `requestIdleCallback` 延迟加载
+- SSR 水合问题修复（SaveSlotList 组件使用 `<ClientOnly>` 包裹）
+- 489 个测试用例，100% 单元测试覆盖
 
 ### 📋 下一里程碑（v1.1 规划中）
 
