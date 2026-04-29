@@ -1,6 +1,6 @@
 import type { GameState } from '~/types/game'
-import { useState } from 'vue'
-import { useGameState, defaultState } from './useGameState'
+import { useState } from '#app'
+import { defaultState } from './useGameState'
 import type { SaveSlotId } from '~/composables/useGameStorage'
 
 export type { SaveSlotId }
