@@ -203,7 +203,7 @@ export function useGameForIndex() {
   }
 
   const listSlots = computed(() => {
-    storageVersion
+    storageVersion.value
     const container = getWorkingContainer()
     const ids: SaveSlotId[] = ['autosave', 'slot1', 'slot2', 'slot3']
     return ids.map((sid) => container?.slots?.[sid]?.meta ?? null)

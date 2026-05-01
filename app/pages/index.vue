@@ -2,7 +2,7 @@
 import type { Background, Talent } from '~/types/game'
 import { useGameForIndex } from '~/composables/useGameForIndex'
 import type { SaveSlotId } from '~/composables/useGameForIndex'
-import { computed, ref } from 'vue'
+import { computed, ref, nextTick } from 'vue'
 import { navigateTo } from '#app'
 import HeroSection from '~/components/home/HeroSection.vue'
 import IdentitySelector from '~/components/home/IdentitySelector.vue'
