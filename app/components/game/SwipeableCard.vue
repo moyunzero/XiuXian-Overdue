@@ -157,6 +157,14 @@ function resetCard() {
   align-items: center;
   justify-content: center;
   background: rgba(255, 59, 59, 0.9);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.SwipeableCard--swiped .SwipeableCard__actions {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .SwipeableCard__action--delete {
