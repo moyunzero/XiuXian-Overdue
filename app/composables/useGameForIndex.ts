@@ -2,6 +2,7 @@ import type { GameState } from '~/types/game'
 import { useState } from '#app'
 import { defaultState } from './useGameState'
 import type { SaveSlotId } from '~/composables/useGameStorage'
+import { ref } from 'vue'
 
 export type { SaveSlotId }
 
@@ -25,7 +26,7 @@ interface SaveContainer {
   slots: Partial<Record<SaveSlotId, { meta: SaveSlotMeta; state: GameState }>>
 }
 
-let storageVersion = 0
+const storageVersion = ref(0)
 
 let pendingMerge: SaveContainer | null = null
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
@@ -36,7 +37,7 @@ export function resetModuleStorageState() {
     debounceTimer = null
   }
   pendingMerge = null
-  storageVersion++
+  storageVersion.value++
   if (import.meta.server) return
   try {
     localStorage.removeItem(STORAGE_KEY)
@@ -162,6 +163,18 @@ export function useGameForIndex() {
     scheduleFlush()
   }
 
+  const deleteSlot = (id: SaveSlotId) => {
+    if (import.meta.server) return
+    flushPendingSaves()
+    const container = getWorkingContainer()
+    if (container?.slots?.[id]) {
+      delete container.slots[id]
+      pendingMerge = container
+      scheduleFlush()
+    }
+    storageVersion.value++
+  }
+
   const loadFromSlot = (id: SaveSlotId): boolean => {
     flushPendingSaves()
     const container = loadContainerFromDisk()
@@ -241,6 +254,7 @@ export function useGameForIndex() {
     listSlots,
     loadFromSlot,
     saveToSlot,
+    deleteSlot,
     reset,
     startNew
   }

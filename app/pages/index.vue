@@ -13,7 +13,7 @@ import Button from '~/components/ui/Button.vue'
 import Card from '~/components/ui/Card.vue'
 import Pill from '~/components/ui/Pill.vue'
 
-const { game, startNew, reset, listSlots, loadFromSlot, saveToSlot, activeSlot } = useGameForIndex()
+const { game, startNew, reset, listSlots, loadFromSlot, saveToSlot, activeSlot, deleteSlot } = useGameForIndex()
 
 const saveSlotOrder: SaveSlotId[] = ['autosave', 'slot1', 'slot2', 'slot3']
 
@@ -65,10 +65,7 @@ function onDeleteSlot(slotId: SaveSlotId) {
   const slotLabel = slotId === 'autosave' ? '自动存档' : slotId
   const ok = window.confirm(`确定要删除「${slotLabel}」吗？该操作不可逆。`)
   if (ok) {
-    const idx = saveSlotOrder.indexOf(slotId)
-    if (idx !== -1) {
-      saveToSlot(slotId, null as any)
-    }
+    deleteSlot(slotId)
   }
 }
 
