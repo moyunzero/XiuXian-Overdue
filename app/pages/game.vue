@@ -577,6 +577,8 @@ watch(
       :show="isMobile"
       @share="onMobileShare"
       @save="quickSave('slot1')"
+      @open-stats="openSummaryPanel"
+      @open-logs="logDrawerOpen = true"
     />
   </div>
 </template>

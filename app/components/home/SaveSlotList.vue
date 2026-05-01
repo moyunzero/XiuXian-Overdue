@@ -8,14 +8,18 @@
       ref="listContainer"
       class="SaveSlotList__grid"
     >
-      <SaveSlotCard
+      <SwipeableCard
         v-for="slot in slots"
         :key="slot.id"
-        :slot="slot.meta"
-        :title="getSlotTitle(slot.id)"
-        :is-active="activeSlot === slot.id"
-        @click="onSlotClick(slot.id)"
-      />
+        @delete="onSlotDelete(slot.id)"
+      >
+        <SaveSlotCard
+          :slot="slot.meta"
+          :title="getSlotTitle(slot.id)"
+          :is-active="activeSlot === slot.id"
+          @click="onSlotClick(slot.id)"
+        />
+      </SwipeableCard>
     </div>
   </div>
 </template>
@@ -23,6 +27,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import SaveSlotCard from './SaveSlotCard.vue'
+import SwipeableCard from '~/components/game/SwipeableCard.vue'
 import type { SaveSlotId } from '~/composables/useGameStorage'
 
 interface SlotData {
@@ -48,6 +53,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   select: [slotId: SaveSlotId]
+  delete: [slotId: SaveSlotId]
 }>()
 
 const listContainer = ref<HTMLElement | null>(null)
@@ -72,26 +78,31 @@ const getSlotTitle = (id: SaveSlotId): string => {
 const onSlotClick = (slotId: SaveSlotId) => {
   emit('select', slotId)
 }
+
+const onSlotDelete = (slotId: SaveSlotId) => {
+  emit('delete', slotId)
+}
 </script>
 
 <style scoped>
 .SaveSlotList {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .SaveSlotList__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 0 2px;
 }
 
 .SaveSlotList__title {
   font-size: var(--text-sm);
-  font-weight: 500;
-  color: var(--text-secondary);
-  letter-spacing: 1px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0.5px;
   text-transform: uppercase;
 }
 
@@ -99,29 +110,39 @@ const onSlotClick = (slotId: SaveSlotId) => {
   font-size: var(--text-xs);
   color: var(--text-muted);
   font-family: var(--mono);
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .SaveSlotList__grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
+  gap: 14px;
 }
 
 @media (max-width: 1024px) {
   .SaveSlotList__grid {
     grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
   }
 }
 
 @media (max-width: 768px) {
   .SaveSlotList__grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  
+  .SaveSlotList {
+    gap: 12px;
   }
 }
 
 @media (max-width: 480px) {
   .SaveSlotList__grid {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
 }
 </style>

@@ -5,7 +5,7 @@
         <button
           class="MobileToolbar__btn"
           :class="{ 'MobileToolbar__btn--active': activeTab === 'save' }"
-          @click="activeTab = 'save'"
+          @click="onSave"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
@@ -18,7 +18,7 @@
         <button
           class="MobileToolbar__btn"
           :class="{ 'MobileToolbar__btn--active': activeTab === 'stats' }"
-          @click="activeTab = 'stats'"
+          @click="onOpenStats"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="18" y1="20" x2="18" y2="10"/>
@@ -45,7 +45,7 @@
         <button
           class="MobileToolbar__btn"
           :class="{ 'MobileToolbar__btn--active': activeTab === 'logs' }"
-          @click="activeTab = 'logs'"
+          @click="onOpenLogs"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -87,12 +87,29 @@ withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   share: []
   save: []
+  openStats: []
+  openLogs: []
 }>()
 
 const activeTab = ref<string | null>(null)
 
 const onShare = () => {
   emit('share')
+}
+
+const onSave = () => {
+  activeTab.value = 'save'
+  emit('save')
+}
+
+const onOpenStats = () => {
+  activeTab.value = 'stats'
+  emit('openStats')
+}
+
+const onOpenLogs = () => {
+  activeTab.value = 'logs'
+  emit('openLogs')
 }
 
 const onBack = () => {

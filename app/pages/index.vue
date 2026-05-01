@@ -61,6 +61,17 @@ function onClearSaves() {
   if (ok) reset()
 }
 
+function onDeleteSlot(slotId: SaveSlotId) {
+  const slotLabel = slotId === 'autosave' ? '自动存档' : slotId
+  const ok = window.confirm(`确定要删除「${slotLabel}」吗？该操作不可逆。`)
+  if (ok) {
+    const idx = saveSlotOrder.indexOf(slotId)
+    if (idx !== -1) {
+      saveToSlot(slotId, null as any)
+    }
+  }
+}
+
 const slotData = computed(() =>
   saveSlotOrder.map((id, idx) => ({
     id,
@@ -175,6 +186,7 @@ const slotData = computed(() =>
           :active-slot="activeSlot"
           class="IndexPage__saves"
           @select="resume"
+          @delete="onDeleteSlot"
         />
       </ClientOnly>
 

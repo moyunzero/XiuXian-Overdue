@@ -16,7 +16,12 @@
     <div v-if="slot" class="SaveSlotCard__content">
       <div class="SaveSlotCard__header">
         <span class="SaveSlotCard__title">{{ title }}</span>
-        <span v-if="isActive" class="SaveSlotCard__active-badge">当前</span>
+        <span v-if="isActive" class="SaveSlotCard__active-badge">
+          <svg class="SaveSlotCard__badge-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          当前
+        </span>
       </div>
 
       <div class="SaveSlotCard__stats">
@@ -35,16 +40,18 @@
 
       <div class="SaveSlotCard__debt-section">
         <div class="SaveSlotCard__debt-row">
-          <span class="SaveSlotCard__debt-label">现金</span>
-          <span class="SaveSlotCard__debt-value SaveSlotCard__debt-value--cash">
-            ¥{{ slot.cash.toLocaleString() }}
-          </span>
-        </div>
-        <div class="SaveSlotCard__debt-row">
-          <span class="SaveSlotCard__debt-label">债务</span>
-          <span class="SaveSlotCard__debt-value SaveSlotCard__debt-value--debt">
-            ¥{{ slot.debt.toLocaleString() }}
-          </span>
+          <div class="SaveSlotCard__debt-info">
+            <span class="SaveSlotCard__debt-label">现金</span>
+            <span class="SaveSlotCard__debt-value SaveSlotCard__debt-value--cash">
+              ¥{{ slot.cash.toLocaleString() }}
+            </span>
+          </div>
+          <div class="SaveSlotCard__debt-info">
+            <span class="SaveSlotCard__debt-label">债务</span>
+            <span class="SaveSlotCard__debt-value SaveSlotCard__debt-value--debt">
+              ¥{{ slot.debt.toLocaleString() }}
+            </span>
+          </div>
         </div>
         <div class="SaveSlotCard__progress">
           <div
@@ -52,18 +59,16 @@
             :style="{ width: debtPressure + '%' }"
           />
         </div>
-        <span class="SaveSlotCard__pressure-label">
-          压力 {{ debtPressure }}%
-        </span>
       </div>
     </div>
 
     <div v-else class="SaveSlotCard__empty">
-      <svg class="SaveSlotCard__empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <circle cx="12" cy="12" r="10" />
-        <line x1="12" y1="8" x2="12" y2="16" />
-        <line x1="8" y1="12" x2="16" y2="12" />
-      </svg>
+      <div class="SaveSlotCard__empty-icon-wrapper">
+        <svg class="SaveSlotCard__empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+      </div>
       <span class="SaveSlotCard__empty-text">新建游戏</span>
     </div>
 
@@ -121,61 +126,70 @@ const handleClick = () => {
   justify-content: space-between;
   width: 100%;
   min-width: 0;
-  padding: 14px 16px;
-  border-radius: 14px;
+  padding: 16px 18px;
+  border-radius: 16px;
   border: 1px solid var(--border-default);
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.03) 0%,
+    rgba(255, 255, 255, 0.04) 0%,
     rgba(255, 255, 255, 0.01) 100%
   );
   cursor: pointer;
-  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-  min-height: 120px;
+  transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+  min-height: 130px;
 }
 
 .SaveSlotCard:hover {
-  border-color: rgba(0, 255, 255, 0.3);
-  transform: translateY(-2px);
+  border-color: rgba(0, 255, 255, 0.35);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.SaveSlotCard:active {
+  transform: translateY(-1px);
 }
 
 .SaveSlotCard--active {
-  border-color: rgba(56, 248, 208, 0.4);
-  box-shadow: inset 3px 0 0 0 rgba(56, 248, 208, 0.6);
+  border-color: rgba(56, 248, 208, 0.5);
+  box-shadow: 
+    inset 3px 0 0 0 rgba(56, 248, 208, 0.7),
+    0 4px 16px rgba(56, 248, 208, 0.15);
 }
 
 .SaveSlotCard--danger {
-  border-color: rgba(255, 59, 59, 0.3);
+  border-color: rgba(255, 59, 59, 0.35);
   background: linear-gradient(
     180deg,
-    rgba(255, 59, 59, 0.05) 0%,
+    rgba(255, 59, 59, 0.06) 0%,
     rgba(255, 59, 59, 0.02) 100%
   );
 }
 
 .SaveSlotCard--warning {
-  border-color: rgba(255, 210, 74, 0.3);
+  border-color: rgba(255, 210, 74, 0.35);
   background: linear-gradient(
     180deg,
-    rgba(255, 210, 74, 0.05) 0%,
+    rgba(255, 210, 74, 0.06) 0%,
     rgba(255, 210, 74, 0.02) 100%
   );
 }
 
 .SaveSlotCard--empty {
   border-style: dashed;
-  opacity: 0.7;
+  opacity: 0.6;
 }
 
 .SaveSlotCard--empty:hover {
   opacity: 1;
+  border-color: rgba(0, 255, 255, 0.3);
+  background: rgba(0, 255, 255, 0.03);
 }
 
 .SaveSlotCard__content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   min-width: 0;
 }
 
@@ -189,107 +203,135 @@ const handleClick = () => {
   font-size: var(--text-sm);
   font-weight: 600;
   color: var(--text-primary);
+  letter-spacing: 0.3px;
 }
 
 .SaveSlotCard__active-badge {
-  font-size: var(--text-xs);
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: rgba(56, 248, 208, 0.2);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(56, 248, 208, 0.15);
   color: var(--neon-cyan);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.SaveSlotCard__badge-icon {
+  width: 12px;
+  height: 12px;
 }
 
 .SaveSlotCard__stats {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
+  padding: 8px 0;
 }
 
 .SaveSlotCard__stat {
   display: flex;
   align-items: baseline;
-  gap: 2px;
+  gap: 3px;
 }
 
 .SaveSlotCard__stat-value {
-  font-size: var(--text-lg);
-  font-weight: 600;
+  font-size: var(--text-xl);
+  font-weight: 700;
   font-family: var(--mono);
   color: var(--text-primary);
+  line-height: 1;
 }
 
 .SaveSlotCard__stat-value--tier {
   font-size: var(--text-sm);
+  font-weight: 500;
   color: var(--text-secondary);
 }
 
 .SaveSlotCard__stat-label {
   font-size: var(--text-xs);
   color: var(--text-muted);
+  font-weight: 400;
 }
 
 .SaveSlotCard__divider {
   width: 1px;
-  height: 16px;
-  background: var(--border-default);
+  height: 20px;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    var(--border-default) 50%,
+    transparent 100%
+  );
 }
 
 .SaveSlotCard__debt-section {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .SaveSlotCard__debt-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
+}
+
+.SaveSlotCard__debt-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
 }
 
 .SaveSlotCard__debt-label {
-  font-size: var(--text-xs);
+  font-size: 10px;
   color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .SaveSlotCard__debt-value {
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
   font-family: var(--mono);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .SaveSlotCard__debt-value--cash {
-  color: var(--text-secondary);
+  color: var(--neon-cyan);
 }
 
 .SaveSlotCard__debt-value--debt {
   color: var(--danger);
+  text-align: right;
 }
 
 .SaveSlotCard__progress {
-  height: 4px;
-  border-radius: 2px;
+  height: 5px;
+  border-radius: 3px;
   background: rgba(255, 255, 255, 0.08);
   overflow: hidden;
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 .SaveSlotCard__progress-fill {
   height: 100%;
-  border-radius: 2px;
+  border-radius: 3px;
   background: linear-gradient(90deg, var(--neon-cyan), var(--neon-magenta));
-  transition: width 0.3s ease;
+  transition: width 0.4s ease;
 }
 
 .SaveSlotCard--danger .SaveSlotCard__progress-fill {
   background: linear-gradient(90deg, var(--warning), var(--danger));
 }
 
-.SaveSlotCard__pressure-label {
-  font-size: 10px;
-  color: var(--text-muted);
-  text-align: right;
+.SaveSlotCard--warning .SaveSlotCard__progress-fill {
+  background: linear-gradient(90deg, var(--neon-cyan), var(--warning));
 }
 
 .SaveSlotCard__empty {
@@ -298,19 +340,32 @@ const handleClick = () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.SaveSlotCard__empty-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px dashed rgba(255, 255, 255, 0.2);
 }
 
 .SaveSlotCard__empty-icon {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   color: var(--text-muted);
-  opacity: 0.5;
+  opacity: 0.6;
 }
 
 .SaveSlotCard__empty-text {
   font-size: var(--text-sm);
   color: var(--text-muted);
+  font-weight: 500;
 }
 
 .SaveSlotCard__action {
@@ -337,13 +392,33 @@ const handleClick = () => {
 
 @media (max-width: 640px) {
   .SaveSlotCard {
-    padding: 12px 14px;
-    min-height: 100px;
+    padding: 14px 16px;
+    min-height: 110px;
+    border-radius: 14px;
   }
 
   .SaveSlotCard__action svg {
     opacity: 1;
     transform: none;
+  }
+
+  .SaveSlotCard__stat-value {
+    font-size: var(--text-lg);
+  }
+}
+
+@media (max-width: 480px) {
+  .SaveSlotCard {
+    padding: 12px 14px;
+    min-height: 100px;
+  }
+  
+  .SaveSlotCard__stats {
+    gap: 10px;
+  }
+  
+  .SaveSlotCard__debt-row {
+    gap: 8px;
   }
 }
 </style>
