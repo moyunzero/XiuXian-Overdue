@@ -1,0 +1,781 @@
+[
+  {
+    "id": "seed_collector_01",
+    "title": "催收提醒：温柔陷阱",
+    "body": "“同学，只是善意提醒哦。”短信末尾的笑脸表情让你更加不安。系统知道什么语气最让你难受。",
+    "type": "collection",
+    "family": "催收",
+    "tone": "warn",
+    "phase": "afterAction",
+    "weight": 4,
+    "cooldownDays": 3,
+    "trigger": {
+      "minDelinquency": 0,
+      "maxDelinquency": 1,
+      "financialRiskIn": ["low", "medium"]
+    },
+    "options": [
+      {
+        "id": "ignore",
+        "label": "假装没看见（专注下降）",
+        "tone": "primary",
+        "effects": [
+          { "kind": "stat", "target": "focus", "delta": -3 },
+          { "kind": "log", "title": "无视催收", "detail": "你试图忽略它，但手指微微发抖。", "tone": "info" }
+        ]
+      },
+      {
+        "id": "check",
+        "label": "查看还款计划（焦虑上升）",
+        "tone": "danger",
+        "effects": [
+          { "kind": "stat", "target": "fatigue", "delta": 5 },
+          { "kind": "log", "title": "查看计划", "detail": "你打开还款页面，数字像石头一样压在心上。", "tone": "warn" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "seed_collector_02",
+    "title": "催收提醒：同窗压力",
+    "body": "班长在群里发了条消息：“本月还款率未达标的同学，月考成绩将受影响。”你感到脊背发凉。",
+    "type": "collection",
+    "family": "催收",
+    "tone": "danger",
+    "phase": "afterAction",
+    "weight": 5,
+    "cooldownDays": 5,
+    "trigger": {
+      "minDelinquency": 1,
+      "maxDelinquency": 2,
+      "financialRiskIn": ["medium", "high"]
+    },
+    "options": [
+      {
+        "id": "shame",
+        "label": "低下头，假装在看书（专注大幅下降）",
+        "tone": "primary",
+        "effects": [
+          { "kind": "stat", "target": "focus", "delta": -10 },
+          { "kind": "log", "title": "同窗压力", "detail": "你知道有人在看着你。", "tone": "warn" }
+        ]
+      },
+      {
+        "id": "borrow",
+        "label": "去借点钱周转（增加债务）",
+        "tone": "danger",
+        "effects": [
+          { "kind": "debt", "mode": "addPrincipal", "amount": 500 },
+          { "kind": "econ", "target": "cash", "delta": 500 },
+          { "kind": "log", "title": "借款周转", "detail": "你借了 500 灵石，但利息在暗中滚动。", "tone": "danger" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "seed_collector_03",
+    "title": "催收提醒：制度威慑",
+    "body": "教务处发来通知：“逾期还款将影响下学期分班评估。”制度的大棒总是悬在你头顶。",
+    "type": "collection",
+    "family": "催收",
+    "tone": "danger",
+    "phase": "afterAction",
+    "weight": 6,
+    "cooldownDays": 4,
+    "trigger": {
+      "minDelinquency": 2,
+      "financialRiskIn": ["high", "extreme"]
+    },
+    "options": [
+      {
+        "id": "fear",
+        "label": "咬紧牙关，继续修炼（疲劳上升）",
+        "tone": "primary",
+        "effects": [
+          { "kind": "stat", "target": "fatigue", "delta": 8 },
+          { "kind": "stat", "target": "faLi", "delta": 0.2 },
+          { "kind": "log", "title": "制度威慑", "detail": "你只能更努力地修炼，但身体越来越沉重。", "tone": "warn" }
+        ]
+      },
+      {
+        "id": "give_up",
+        "label": "放弃抵抗，接受现实（道心下降）",
+        "tone": "danger",
+        "effects": [
+          { "kind": "stat", "target": "daoXin", "delta": -0.5 },
+          { "kind": "log", "title": "接受现实", "detail": "你告诉自己，这就是命。", "tone": "danger" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "seed_collector_04",
+    "title": "催收提醒：深夜来电",
+    "body": "凌晨两点，电话铃声撕裂寂静。“你的债务已经进入最后催收阶段。”对方的声音冷得像冰。",
+    "type": "collection",
+    "family": "催收",
+    "tone": "danger",
+    "phase": "afterAction",
+    "weight": 7,
+    "cooldownDays": 3,
+    "trigger": {
+      "minDelinquency": 3,
+      "financialRiskIn": ["extreme"]
+    },
+    "options": [
+      {
+        "id": "sleepless",
+        "label": "整夜未眠（疲劳大幅上升）",
+        "tone": "primary",
+        "effects": [
+          { "kind": "stat", "target": "fatigue", "delta": 15 },
+          { "kind": "log", "title": "深夜催收", "detail": "你睁着眼睛直到天亮，脑子里全是债务的数字。", "tone": "danger" }
+        ]
+      },
+      {
+        "id": "numb",
+        "label": "麻木地挂断（专注下降）",
+        "tone": "normal",
+        "effects": [
+          { "kind": "stat", "target": "focus", "delta": -5 },
+          { "kind": "log", "title": "麻木", "detail": "你已经习惯了。这才是最可怕的。", "tone": "warn" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "seed_work_01",
+    "title": "零工诱惑：夜班配送",
+    "body": "“灵骑配送”招募夜班骑手，日结 300 灵石。但需要在深夜穿梭于危险的修仙街区。",
+    "type": "work",
+    "family": "零工",
+    "tone": "info",
+    "phase": "afterAction",
+    "weight": 3,
+    "cooldownDays": 2,
+    "trigger": {
+      "minCash": 0,
+      "maxCash": 500,
+      "financialRiskIn": ["medium", "high", "extreme"]
+    },
+    "options": [
+      {
+        "id": "accept",
+        "label": "接下夜班任务（疲劳上升，获得现金）",
+        "tone": "primary",
+        "effects": [
+          { "kind": "stat", "target": "fatigue", "delta": 10 },
+          { "kind": "econ", "target": "cash", "delta": 300 },
+          { "kind": "log", "title": "夜班配送", "detail": "你在冷风中穿梭，灵石到手了，但身体像被掏空。", "tone": "ok" }
+        ]
+      },
+      {
+        "id": "reject",
+        "label": "拒绝，安全第一",
+        "tone": "normal",
+        "effects": [
+          { "kind": "log", "title": "拒绝零工", "detail": "你选择了保守，但债务的压力并未减轻。", "tone": "info" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "seed_work_02",
+    "title": "零工诱惑：试药志愿者",
+    "body": "丹鼎堂招募试药志愿者，报酬丰厚，但副作用未知。广告上写着：“修行路上，总得有人先试。”",
+    "type": "work",
+    "family": "零工",
+    "tone": "warn",
+    "phase": "afterAction",
+    "weight": 4,
+    "cooldownDays": 4,
+    "trigger": {
+      "minCash": 0,
+      "maxCash": 800,
+      "financialRiskIn": ["high", "extreme"]
+    },
+    "options": [
+      {
+        "id": "trial",
+        "label": "成为试药人（高风险高回报）",
+        "tone": "danger",
+        "effects": [
+          { "kind": "econ", "target": "cash", "delta": 800 },
+          { "kind": "stat", "target": "fatigue", "delta": 15 },
+          { "kind": "stat", "target": "rouTi", "delta": -0.5 },
+          { "kind": "log", "title": "试药", "detail": "药力在你体内乱窜，你感到一阵恶心，但灵石是真的。", "tone": "warn" }
+        ]
+      },
+      {
+        "id": "skip",
+        "label": "跳过，保命要紧",
+        "tone": "normal",
+        "effects": [
+          { "kind": "log", "title": "放弃试药", "detail": "你不想成为别人的实验品。", "tone": "info" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "seed_work_03",
+    "title": "零工诱惑：代写作业",
+    "body": "有富家子弟出钱找人代写修炼心得。一篇 50 灵石，但被发现会被记过。",
+    "type": "work",
+    "family": "零工",
+    "tone": "warn",
+    "phase": "afterAction",
+    "weight": 3,
+    "cooldownDays": 3,
+    "trigger": {
+      "minCash": 0,
+      "maxCash": 300
+    },
+    "options": [
+      {
+        "id": "write",
+        "label": "代写三篇（获得现金，专注下降）",
+        "tone": "primary",
+        "effects": [
+          { "kind": "econ", "target": "cash", "delta": 150 },
+          { "kind": "stat", "target": "focus", "delta": -8 },
+          { "kind": "log", "title": "代写作业", "detail": "你替别人写了心得，自己的修炼却落下了。", "tone": "warn" }
+        ]
+      },
+      {
+        "id": "refuse",
+        "label": "拒绝，不冒风险",
+        "tone": "normal",
+        "effects": [
+          { "kind": "log", "title": "拒绝代写", "detail": "你不想在违规的路上越走越远。", "tone": "info" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "seed_cultivation_01",
+    "title": "修仙挫折：瓶颈期",
+    "body": "无论你怎么吐纳，法力都停滞不前。你怀疑自己的灵根是否真的适合修行。",
+    "type": "cultivation",
+    "family": "修仙",
+    "tone": "warn",
+    "phase": "afterAction",
+    "weight": 4,
+    "cooldownDays": 5,
+    "trigger": {
+      "minDay": 10
+    },
+    "options": [
+      {
+        "id": "push",
+        "label": "加倍吐纳（疲劳上升，法力微增）",
+        "tone": "primary",
+        "effects": [
+          { "kind": "stat", "target": "fatigue", "delta": 10 },
+          { "kind": "stat", "target": "faLi", "delta": 0.3 },
+          { "kind": "log", "title": "瓶颈期", "detail": "你拼命吐纳，但进步微乎其微。", "tone": "warn" }
+        ]
+      },
+      {
+        "id": "rest",
+        "label": "暂时放下，调整心态（道心微升）",
+        "tone": "normal",
+        "effects": [
+          { "kind": "stat", "target": "daoXin", "delta": 0.2 },
+          { "kind": "log", "title": "调整心态", "detail": "你告诉自己，修行不是一蹴而就的。", "tone": "info" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "seed_cultivation_02",
+    "title": "修仙挫折：资源匮乏",
+    "body": "示范班的同学在使用“聚灵阵”，你的宿舍却连最基础的“凝神香”都点不起。",
+    "type": "cultivation",
+    "family": "修仙",
+    "tone": "danger",
+    "phase": "afterAction",
+    "weight": 5,
+    "cooldownDays": 4,
+    "trigger": {
+      "classTierIn": ["末位班"],
+      "minCash": 0,
+      "maxCash": 200
+    },
+    "options": [
+      {
+        "id": "envy",
+        "label": "暗自嫉妒（专注下降，道心下降）",
+        "tone": "danger",
+        "effects": [
+          { "kind": "stat", "target": "focus", "delta": -5 },
+          { "kind": "stat", "target": "daoXin", "delta": -0.3 },
+          { "kind": "log", "title": "资源差距", "detail": "你意识到，修行也是一场金钱的游戏。", "tone": "danger" }
+        ]
+      },
+      {
+        "id": "work_harder",
+        "label": "用时间弥补资源（疲劳上升，法力微增）",
+        "tone": "primary",
+        "effects": [
+          { "kind": "stat", "target": "fatigue", "delta": 12 },
+          { "kind": "stat", "target": "faLi", "delta": 0.2 },
+          { "kind": "log", "title": "笨鸟先飞", "detail": "你只能用更多的时间来追赶。", "tone": "warn" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "seed_cultivation_03",
+    "title": "修仙挫折：功法冲突",
+    "body": "你修炼的免费功法与学校教的体系不兼容，导致吐纳效率只有常人的一半。",
+    "type": "cultivation",
+    "family": "修仙",
+    "tone": "warn",
+    "phase": "afterAction",
+    "weight": 3,
+    "cooldownDays": 6,
+    "trigger": {
+      "minDay": 15
+    },
+    "options": [
+      {
+        "id": "adapt",
+        "label": "尝试融合两种功法（风险：可能受伤）",
+        "tone": "danger",
+        "effects": [
+          { "kind": "stat", "target": "rouTi", "delta": -0.3 },
+          { "kind": "stat", "target": "faLi", "delta": 0.5 },
+          { "kind": "log", "title": "功法冲突", "detail": "你感到体内灵力乱窜，但似乎找到了一丝平衡。", "tone": "warn" }
+        ]
+      },
+      {
+        "id": "stick_free",
+        "label": "坚持免费功法，慢慢来",
+        "tone": "normal",
+        "effects": [
+          { "kind": "stat", "target": "daoXin", "delta": 0.3 },
+          { "kind": "log", "title": "坚持己见", "detail": "你决定走自己的路，哪怕慢一点。", "tone": "info" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "seed_system_01",
+    "title": "制度压迫：学分贷",
+    "body": "班主任推荐你办理“学分贷”：提前支付学费，未来分期偿还。利息“仅”为每日千分之八。",
+    "type": "system",
+    "family": "制度",
+    "tone": "warn",
+    "phase": "afterAction",
+    "weight": 4,
+    "cooldownDays": 5,
+    "trigger": {
+      "minDay": 5,
+      "maxDay": 20,
+      "minCash": 0,
+      "maxCash": 1000
+    },
+    "options": [
+      {
+        "id": "accept_loan",
+        "label": "办理学分贷（债务大幅增加）",
+        "tone": "danger",
+        "effects": [
+          { "kind": "debt", "mode": "addPrincipal", "amount": 2000 },
+          { "kind": "econ", "target": "cash", "delta": 2000 },
+          { "kind": "log", "title": "学分贷", "detail": "你拿到了钱，但利息像雪球一样会越滚越大。", "tone": "danger" }
+        ]
+      },
+      {
+        "id": "refuse_loan",
+        "label": "婉拒，自己想办法",
+        "tone": "normal",
+        "effects": [
+          { "kind": "log", "title": "拒绝贷款", "detail": "你不想陷入更深的债务泥潭。", "tone": "info" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "seed_system_02",
+    "title": "制度压迫：行为规范扣分",
+    "body": "你因为“修炼态度不端正”被扣了 2 分行为规范分。分数低于 60 将影响月考评级。",
+    "type": "system",
+    "family": "制度",
+    "tone": "warn",
+    "phase": "afterAction",
+    "weight": 3,
+    "cooldownDays": 4,
+    "trigger": {
+      "minDay": 10
+    },
+    "options": [
+      {
+        "id": "comply",
+        "label": "表现出乖巧顺从（专注下降）",
+        "tone": "primary",
+        "effects": [
+          { "kind": "stat", "target": "focus", "delta": -5 },
+          { "kind": "log", "title": "顺从", "detail": "你学会了低头，学会了说“是”。", "tone": "warn" }
+        ]
+      },
+      {
+        "id": "ignore",
+        "label": "无所谓，继续我行我素",
+        "tone": "danger",
+        "effects": [
+          { "kind": "log", "title": "我行我素", "detail": "扣分就扣分吧，你已经不在乎了。", "tone": "danger" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "seed_system_03",
+    "title": "制度压迫：强制体检",
+    "body": "学校通知全员体检，实则是为了评估“身体资产价值”。你的数据将被录入系统。",
+    "type": "system",
+    "family": "制度",
+    "tone": "danger",
+    "phase": "afterAction",
+    "weight": 5,
+    "cooldownDays": 7,
+    "trigger": {
+      "minDay": 20
+    },
+    "options": [
+      {
+        "id": "submit",
+        "label": "配合体检（心理压力上升）",
+        "tone": "danger",
+        "effects": [
+          { "kind": "stat", "target": "fatigue", "delta": 5 },
+          { "kind": "log", "title": "体检", "detail": "你像一件商品一样被评估、记录。", "tone": "danger" }
+        ]
+      },
+      {
+        "id": "skip",
+        "label": "装病逃避（风险：被发现扣分）",
+        "tone": "warn",
+        "effects": [
+          { "kind": "stat", "target": "focus", "delta": -3 },
+          { "kind": "log", "title": "逃避体检", "detail": "你躲过了今天，但明天呢？", "tone": "warn" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "seed_social_01",
+    "title": "社交关系：同窗借贷",
+    "body": "室友向你借钱，承诺月考后还。你知道他信誉不好，但不借怕被孤立。",
+    "type": "social",
+    "family": "社交",
+    "tone": "warn",
+    "phase": "afterAction",
+    "weight": 3,
+    "cooldownDays": 5,
+    "trigger": {
+      "minCash": 200,
+      "maxCash": 1000
+    },
+    "options": [
+      {
+        "id": "lend",
+        "label": "借给他（现金减少，可能收不回）",
+        "tone": "danger",
+        "effects": [
+          { "kind": "econ", "target": "cash", "delta": -300 },
+          { "kind": "log", "title": "同窗借贷", "detail": "你借出了 300 灵石，心里隐隐不安。", "tone": "warn" }
+        ]
+      },
+      {
+        "id": "refuse_lend",
+        "label": "哭穷拒绝（关系恶化）",
+        "tone": "normal",
+        "effects": [
+          { "kind": "log", "title": "拒绝借款", "detail": "你说自己也没钱。他看你的眼神变了。", "tone": "info" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "seed_social_02",
+    "title": "社交关系：班长示好",
+    "body": "班长主动找你聊天，暗示如果“配合工作”，可以在分班评估中“美言几句”。",
+    "type": "social",
+    "family": "社交",
+    "tone": "warn",
+    "phase": "afterAction",
+    "weight": 4,
+    "cooldownDays": 6,
+    "trigger": {
+      "minDay": 15,
+      "classTierIn": ["末位班", "普通班"]
+    },
+    "options": [
+      {
+        "id": "cooperate",
+        "label": "顺从暗示（道心下降）",
+        "tone": "danger",
+        "effects": [
+          { "kind": "stat", "target": "daoXin", "delta": -0.5 },
+          { "kind": "log", "title": "权力交易", "detail": "你参与了这场交易，出卖了自己的原则。", "tone": "danger" }
+        ]
+      },
+      {
+        "id": "avoid",
+        "label": "装傻回避",
+        "tone": "normal",
+        "effects": [
+          { "kind": "log", "title": "装傻", "detail": "你假装听不懂他的暗示。", "tone": "info" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "seed_social_03",
+    "title": "社交关系：孤立预警",
+    "body": "你发现最近没人叫你一起吃饭。债务逾期的消息可能已经在同学间传开了。",
+    "type": "social",
+    "family": "社交",
+    "tone": "danger",
+    "phase": "afterAction",
+    "weight": 5,
+    "cooldownDays": 4,
+    "trigger": {
+      "minDelinquency": 2
+    },
+    "options": [
+      {
+        "id": "withdraw",
+        "label": "主动独处（专注下降，疲劳上升）",
+        "tone": "danger",
+        "effects": [
+          { "kind": "stat", "target": "focus", "delta": -8 },
+          { "kind": "stat", "target": "fatigue", "delta": 5 },
+          { "kind": "log", "title": "孤立", "detail": "你一个人坐在角落，像个透明人。", "tone": "danger" }
+        ]
+      },
+      {
+        "id": "confront",
+        "label": "试图融入（风险：被当众羞辱）",
+        "tone": "warn",
+        "effects": [
+          { "kind": "stat", "target": "daoXin", "delta": -0.3 },
+          { "kind": "log", "title": "强融", "detail": "你试图加入话题，但气氛瞬间冷了下来。", "tone": "warn" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "seed_teacher_01",
+    "title": "老师推销：进阶功法",
+    "body": "课后，班主任向你推荐一套“进阶修炼功法”，称“只有这套才能让你在月考中逆袭”。售价 1500 灵石。",
+    "type": "teacher_offer",
+    "family": "推销",
+    "tone": "warn",
+    "phase": "afterAction",
+    "weight": 4,
+    "cooldownDays": 5,
+    "trigger": {
+      "minDay": 10,
+      "maxDay": 30
+    },
+    "options": [
+      {
+        "id": "buy",
+        "label": "咬牙购买（现金减少或借贷）",
+        "tone": "danger",
+        "effects": [
+          { "kind": "stat", "target": "faLi", "delta": 0.8 },
+          { "kind": "econ", "target": "cash", "delta": -1500 },
+          { "kind": "log", "title": "购买功法", "detail": "你花掉了大半积蓄，但法力确实增长了。", "tone": "warn" }
+        ]
+      },
+      {
+        "id": "skip",
+        "label": "婉拒，相信自己",
+        "tone": "normal",
+        "effects": [
+          { "kind": "stat", "target": "daoXin", "delta": 0.3 },
+          { "kind": "log", "title": "自信", "detail": "你决定靠自己的方式提升。", "tone": "info" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "seed_teacher_02",
+    "title": "老师推销：心理辅导",
+    "body": "心理老师建议你购买“专业心理疏导服务”，称可以缓解你的“修行焦虑”。费用 500 灵石/次。",
+    "type": "teacher_offer",
+    "family": "推销",
+    "tone": "info",
+    "phase": "afterAction",
+    "weight": 3,
+    "cooldownDays": 6,
+    "trigger": {
+      "minFatigue": 60,
+      "minDay": 20
+    },
+    "options": [
+      {
+        "id": "counsel",
+        "label": "接受辅导（疲劳下降，现金减少）",
+        "tone": "primary",
+        "effects": [
+          { "kind": "stat", "target": "fatigue", "delta": -15 },
+          { "kind": "econ", "target": "cash", "delta": -500 },
+          { "kind": "log", "title": "心理辅导", "detail": "你说出了压力，感觉轻松了一些。", "tone": "ok" }
+        ]
+      },
+      {
+        "id": "self_help",
+        "label": "自己调整",
+        "tone": "normal",
+        "effects": [
+          { "kind": "log", "title": "自我调整", "detail": "你觉得自己还没到需要花钱疏导的地步。", "tone": "info" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "seed_exam_01",
+    "title": "考前焦虑：重点划错",
+    "body": "你熬夜复习了整整一周，结果月考的重点和你复习的完全不搭边。",
+    "type": "exam",
+    "family": "考试",
+    "tone": "danger",
+    "phase": "afterAction",
+    "weight": 4,
+    "cooldownDays": 7,
+    "trigger": {
+      "minDay": 6,
+      "maxDay": 7
+    },
+    "options": [
+      {
+        "id": "panic",
+        "label": "考场心态崩溃（分数大幅下降）",
+        "tone": "danger",
+        "effects": [
+          { "kind": "stat", "target": "focus", "delta": -20 },
+          { "kind": "log", "title": "心态崩溃", "detail": "你看着试卷，大脑一片空白。", "tone": "danger" }
+        ]
+      },
+      {
+        "id": "calm",
+        "label": "深呼吸，尽力而为（道心微升）",
+        "tone": "primary",
+        "effects": [
+          { "kind": "stat", "target": "daoXin", "delta": 0.5 },
+          { "kind": "log", "title": "尽力而为", "detail": "你告诉自己，尽力就好。", "tone": "warn" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "seed_exam_02",
+    "title": "月考结果：意外进步",
+    "body": "你的排名竟然上升了 10 名。老师当众表扬了你，但你知道这是运气。",
+    "type": "exam",
+    "family": "考试",
+    "tone": "ok",
+    "phase": "afterAction",
+    "weight": 3,
+    "cooldownDays": 7,
+    "trigger": {
+      "minDay": 7,
+      "maxDay": 8
+    },
+    "options": [
+      {
+        "id": "humble",
+        "label": "保持低调（道心上升）",
+        "tone": "primary",
+        "effects": [
+          { "kind": "stat", "target": "daoXin", "delta": 0.5 },
+          { "kind": "log", "title": "低调", "detail": "你知道运气不会一直站在你这边。", "tone": "info" }
+        ]
+      },
+      {
+        "id": "confident",
+        "label": "信心大增（专注上升）",
+        "tone": "normal",
+        "effects": [
+          { "kind": "stat", "target": "focus", "delta": 5 },
+          { "kind": "log", "title": "信心", "detail": "你觉得自己终于找到了节奏。", "tone": "ok" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "seed_health_01",
+    "title": "健康警报：灵力紊乱",
+    "body": "修炼时你突然感到一阵心悸，灵力在经脉中乱窜。这是走火入魔的前兆。",
+    "type": "health",
+    "family": "健康",
+    "tone": "danger",
+    "phase": "afterAction",
+    "weight": 5,
+    "cooldownDays": 5,
+    "trigger": {
+      "minFatigue": 80
+    },
+    "options": [
+      {
+        "id": "stop",
+        "label": "立刻停止修炼，休息一天（疲劳大幅下降）",
+        "tone": "primary",
+        "effects": [
+          { "kind": "stat", "target": "fatigue", "delta": -20 },
+          { "kind": "log", "title": "走火入魔", "detail": "你吓得一身冷汗，赶紧停下。", "tone": "warn" }
+        ]
+      },
+      {
+        "id": "push_through",
+        "label": "硬撑着继续（肉体强度下降）",
+        "tone": "danger",
+        "effects": [
+          { "kind": "stat", "target": "rouTi", "delta": -1.0 },
+          { "kind": "stat", "target": "fatigue", "delta": 5 },
+          { "kind": "log", "title": "硬撑", "detail": "你咬咬牙继续修炼，但身体发出了警告。", "tone": "danger" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "seed_health_02",
+    "title": "健康警报：营养不良",
+    "body": "你最近为了省钱一直吃最便宜的辟谷丹，身体开始出现虚弱症状。",
+    "type": "health",
+    "family": "健康",
+    "tone": "warn",
+    "phase": "afterAction",
+    "weight": 4,
+    "cooldownDays": 4,
+    "trigger": {
+      "minCash": 0,
+      "maxCash": 100
+    },
+    "options": [
+      {
+        "id": "eat_well",
+        "label": "买顿好的补补（现金减少，疲劳下降）",
+        "tone": "primary",
+        "effects": [
+          { "kind": "econ", "target": "cash", "delta": -100 },
+          { "kind": "stat", "target": "fatigue", "delta": -10 },
+          { "kind": "log", "title": "补充营养", "detail": "你终于吃了一顿像样的饭。", "tone": "ok" }
+        ]
+      },
+      {
+        "id": "endure",
+        "label": "忍忍就过去了（疲劳上升）",
+        "tone": "danger",
+        "effects": [
+          { "kind": "stat", "target": "fatigue", "delta": 8 },
+          { "kind": "log", "title": "忍受饥饿", "detail": "你告诉自己，修仙之人不需要太多食物。", "tone": "warn" }
+        ]
+      }
+    ]
+  }
+]

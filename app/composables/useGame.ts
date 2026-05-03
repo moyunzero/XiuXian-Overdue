@@ -47,6 +47,25 @@ import {
 export function useGame() {
   const { game } = useGameState()
   const { activeSlot, saveToSlot, loadFromSlot, listSlots } = useGameStorage()
+  const emotionalStorage = useEmotionalMemoryStorage()
+
+  // 初始化动态事件池
+  if (import.meta.client) {
+    import('~/composables/useDynamicEventPool').then(({ useDynamicEventPool }) => {
+      const pool = useDynamicEventPool()
+      pool.init().then(async () => {
+        if (!await pool.isSeedImported()) {
+          try {
+            const response = await fetch('/seed-events.json')
+            const seedEvents = await response.json()
+            await pool.importSeedEvents(seedEvents)
+          } catch (e) {
+            console.warn('种子库导入失败:', e)
+          }
+        }
+      })
+    })
+  }
 
   const socialNetwork = useState<SocialNetwork>('social-network', () => createSocialNetwork())
   const summaryPanelOpen = ref(false)

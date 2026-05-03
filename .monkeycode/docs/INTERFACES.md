@@ -74,6 +74,22 @@ function useGameStorage(): {
 }
 ```
 
+### useDynamicEventPool
+
+动态事件池管理（IndexedDB），位于 `app/composables/useDynamicEventPool.ts`。
+
+```typescript
+function useDynamicEventPool(): {
+  init(): Promise<void>
+  importSeedEvents(events: EventDefinition[]): Promise<number>
+  insertAiEvents(events: EventDefinition[]): Promise<number>
+  getAllEvents(): Promise<EventDefinition[]>
+  recordEventTrigger(eventId: string, day: number): Promise<void>
+  getEventCount(): Promise<number>
+  isSeedImported(): Promise<boolean>
+}
+```
+
 ## 3. 组件接口
 
 ### UI 基础组件
