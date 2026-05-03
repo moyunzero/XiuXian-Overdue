@@ -86,7 +86,7 @@
 
   - [ ] 7.2 配置环境变量与安全
     - 在 `.env` 中添加 `GROQ_API_KEY` 或等效 AI API 密钥
-    - 实现 API 调用频率限制（每 30 分钟最多 1 次）
+    - 实现 API 调用频率限制（客户端每 10 分钟最多 1 次）
     - 实现错误处理与降级（AI API 失败时返回空数组）
 
   - [ ]* 7.3 为 Edge Function 编写集成测试
@@ -98,14 +98,16 @@
   - [ ] 8.1 创建 `useAiEventGenerator` composable
     - 在 `app/composables/` 下创建 `useAiEventGenerator.ts`
     - 实现 `shouldTriggerGeneration()` 触发条件检查
-      - 游玩时间 > 30 分钟
-      - 动态池事件数 < 50
-      - 事件重复率 > 30%
+      - 玩家完成第 5 次行动后首次触发
+      - 动态池事件数 < 50 时触发补充
+      - 检测到事件重复率 > 30% 时触发
     - 实现 `extractGenerationContext()` 上下文提取
     - 实现 `buildGenerationPrompt()` Prompt 构建
 
   - [ ] 8.2 实现静默生成调度
-    - 使用 `requestIdleCallback` 在浏览器空闲时发起请求
+    - 首次触发后，启动后台定时生成任务
+    - 使用 `setInterval` 每 10 分钟检查并触发一次生成（需满足触发条件）
+    - 使用 `requestIdleCallback` 确保生成请求不阻塞主线程
     - 实现 POST `/api/generate-events` 调用
     - 实现响应接收与解析
 

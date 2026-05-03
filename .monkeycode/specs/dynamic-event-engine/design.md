@@ -270,14 +270,34 @@ function calculateBehaviorProfile(gameState: GameState): BehaviorProfile {
 
 **核心流程**:
 ```typescript
-async function generateAndInsertEvents(gameState: GameState): Promise<void> {
-  // Step 1: 检查触发条件
-  if (!shouldTriggerGeneration(gameState)) return
+let generationTimer: ReturnType<typeof setInterval> | null = null
+let actionCount = 0
+
+function onActionCompleted() {
+  actionCount++
   
-  // Step 2: 提取上下文
-  const context = extractGenerationContext(gameState)
+  // 第 5 次行动后首次触发
+  if (actionCount === 5 && !generationTimer) {
+    startBackgroundGeneration()
+  }
+}
+
+function startBackgroundGeneration() {
+  // 立即触发一次
+  triggerGeneration()
   
-  // Step 3: 发起请求 (requestIdleCallback)
+  // 启动定时器，每 10 分钟检查并触发一次
+  generationTimer = setInterval(() => {
+    triggerGeneration()
+  }, 10 * 60 * 1000)
+}
+
+async function triggerGeneration() {
+  if (!shouldTriggerGeneration()) return
+  
+  const context = extractGenerationContext()
+  
+  // 使用 requestIdleCallback 确保不阻塞主线程
   requestIdleCallback(async () => {
     try {
       const response = await fetch('/api/generate-events', {
@@ -289,19 +309,13 @@ async function generateAndInsertEvents(gameState: GameState): Promise<void> {
       if (!response.ok) throw new Error('Generation failed')
       
       const events: EventDefinition[] = await response.json()
-      
-      // Step 4: 校验
       const validEvents = events.filter(validateEventDefinition)
-      
-      // Step 5: 数值平衡约束
       const balancedEvents = validEvents.map(applyNumericalConstraints)
       
-      // Step 6: 入库
       await useDynamicEventPool().insertAiEvents(balancedEvents)
       
     } catch (error) {
       console.warn('AI event generation failed:', error)
-      // 降级：静默失败，不影响游戏
     }
   })
 }
@@ -410,9 +424,19 @@ export default defineEventHandler(async (event) => {
 
 ### AI 生成流程
 ```
-1. 检查生成触发条件（时间、数量、重复率）
-2. requestIdleCallback 调度
-3. 提取游戏上下文
+1. 玩家执行行动，行动计数器 +1
+2. 第 5 次行动后，触发首次 AI 生成
+3. 启动后台定时器（每 10 分钟检查一次）
+4. 每次触发时：
+   a. 检查生成条件（动态池数量、重复率）
+   b. requestIdleCallback 调度
+   c. 提取游戏上下文
+   d. POST /api/generate-events
+   e. 接收事件数组
+   f. Schema 验证 + 数值约束
+   g. 插入 IndexedDB 动态池
+5. 下次事件选择时自动纳入候选
+```
 4. POST /api/generate-events
 5. 接收事件数组
 6. Schema 验证 + 数值约束
