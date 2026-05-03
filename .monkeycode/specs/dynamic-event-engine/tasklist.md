@@ -25,7 +25,7 @@
     - 测试种子库 JSON 文件结构正确性
     - 测试批量导入性能
 
-- [ ] 3. 实现用户画像构建器
+- [x] 3. 实现用户画像构建器
    - 在 `app/composables/` 下创建 `useBehaviorProfile.ts`
    - 实现行为标签计算逻辑（打工党、修仙党、违约惯犯、模范学生等）
    - 实现财务风险等级计算（基于 cash、debt、delinquency）
