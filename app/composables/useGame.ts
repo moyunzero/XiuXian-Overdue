@@ -47,7 +47,7 @@ import {
 export function useGame() {
   const { game } = useGameState()
   const { activeSlot, saveToSlot, loadFromSlot, listSlots } = useGameStorage()
-  const emotionalStorage = useEmotionalMemoryStorage()
+  const emotionalMemory = useEmotionalMemoryStorage()
 
   // 初始化动态事件池
   if (import.meta.client) {
@@ -105,11 +105,9 @@ export function useGame() {
     activeSlot.value = 'autosave'
   }
 
-  const emotionalStorage = useEmotionalMemoryStorage()
-
   const economyActions = useGameEconomyActions(game, gameComputed, { activeSlot, saveToSlot })
 
-  const eventResolver = useGameEventResolver(game, gameComputed, { activeSlot, saveToSlot }, emotionalStorage, socialNetwork)
+  const eventResolver = useGameEventResolver(game, gameComputed, { activeSlot, saveToSlot }, emotionalMemory, socialNetwork)
 
   const { recordGameAction } = useCausalGraph()
 
@@ -117,7 +115,7 @@ export function useGame() {
     game,
     gameComputed,
     { activeSlot, saveToSlot },
-    emotionalStorage,
+    emotionalMemory,
     eventResolver,
     { performEndDay },
     applyWeeklyCollectionFee,
@@ -126,14 +124,14 @@ export function useGame() {
   )
 
   const startNew = (cfg: StartConfig) => {
-    emotionalStorage.recordCurrentSession(game.value)
+    emotionalMemory.recordCurrentSession(game.value)
 
     const { initializeGraph } = useCausalGraph()
     initializeGraph()
 
     socialNetwork.value = createSocialNetwork()
 
-    const memory = emotionalStorage.loadEmotionalMemory()
+    const memory = emotionalMemory.loadEmotionalMemory()
     const g = defaultState()
     g.started = true
     g.startConfig = cfg

@@ -34,30 +34,30 @@
    - 实现身体资产等级计算（基于 bodyIntegrity、bodyPartRepayment）
    - 提供 `calculateBehaviorProfile(gameState): BehaviorProfile` 接口
 
-- [ ] 4. 实现事件选择管线
-  - [ ] 4.1 创建事件合并与过滤逻辑
+- [x] 4. 实现事件选择管线
+  - [x] 4.1 创建事件合并与过滤逻辑
     - 在 `app/logic/` 下创建 `eventSelectionPipeline.ts`
     - 实现 `mergeEventPools()` 合并静态池、种子库、动态池
     - 实现 `filterByTrigger()` 触发条件过滤（复用 Engine.eventMatchesTrigger）
     - 实现 `filterByCooldown()` 冷却过滤（复用 Engine.isEventOnCooldown + isFamilyOnCooldown）
 
-  - [ ] 4.2 实现画像权重调整算法
+  - [x] 4.2 实现画像权重调整算法
     - 实现 `calculateProfileMatchScore()` 计算事件与画像的匹配度
     - 匹配度高（标签/等级匹配）的事件权重 × 1.5
     - 匹配度低的事件权重 × 0.7
     - 权重计算需考虑所有画像维度（标签、财务风险、顺从等级等）
 
-  - [ ] 4.3 实现全局去重降权机制
+  - [x] 4.3 实现全局去重降权机制
     - 维护最近 14 天的事件触发历史记录
     - 7 天内触发过的事件权重降低 50%
     - 同 family 事件严格遵循现有冷却逻辑（7 天互斥）
 
-  - [ ] 4.4 实现加权随机选择
+  - [x] 4.4 实现加权随机选择
     - 复用 `Engine.pickWeightedEvent()` 或实现等效逻辑
     - 确保权重为 0 的事件不会被选中
     - 处理候选池为空的边界情况
 
-  - [ ] 4.5 为事件选择管线编写单元测试
+  - [x] 4.5 为事件选择管线编写单元测试
     - 测试各过滤阶段的输出正确性
     - 测试画像权重调整逻辑
     - 测试去重降权机制
