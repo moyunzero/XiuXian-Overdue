@@ -332,7 +332,8 @@ export function toPendingEvent(def: EventDefinition): PendingEvent {
     options: def.options.map((opt) => ({
       id: opt.id,
       label: opt.label,
-      tone: opt.tone
+      tone: opt.tone,
+      effects: opt.effects
     })),
     tier,
     systemSummary: sys.systemSummary,

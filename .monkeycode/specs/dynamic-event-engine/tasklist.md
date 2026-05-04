@@ -63,38 +63,38 @@
     - 测试去重降权机制
     - 属性测试：任意状态下选中的事件必须通过触发条件
 
-- [ ] 5. 检查点 - 确保所有测试通过
+- [x] 5. 检查点 - 确保所有测试通过
   - 确保所有测试通过，如有疑问请询问用户
   - 验证双层事件池合并选择逻辑正常工作
   - 验证画像权重调整生效（匹配事件触发率提升 ≥ 50%）
   - 验证全局去重机制生效（7 天内同 family 事件不重复）
 
-- [ ] 6. 集成事件选择管线到游戏主循环
+- [x] 6. 集成事件选择管线到游戏主循环
    - 修改 `useGameEventResolver.ts` 中的 `randomPoolAfterAction()` 方法
    - 替换原有事件选择逻辑为新的管线调用
    - 保持向后兼容：若动态池不可用，降级为仅使用静态池
    - 确保事件触发历史记录正确写入（`Engine.recordEventTrigger` + IndexedDB 记录）
 
-- [ ] 7. 创建 Vercel Edge Function API
-  - [ ] 7.1 实现 `/api/generate-events` 端点
+- [x] 7. 创建 Vercel Edge Function API
+  - [x] 7.1 实现 `/api/generate-events` 端点
     - 在 `app/api/` 下创建 `generate-events.ts`
     - 实现请求体解析（接收 profile、gameState、recentEvents）
     - 调用 AI API（Groq/Qwen）生成事件 JSON
     - 实现 Prompt 构建逻辑（基于上下文生成个性化 Prompt）
     - 实现响应解析与格式化
 
-  - [ ] 7.2 配置环境变量与安全
+  - [x] 7.2 配置环境变量与安全
     - 在 `.env` 中添加 `GROQ_API_KEY` 或等效 AI API 密钥
     - 实现 API 调用频率限制（客户端每 10 分钟最多 1 次）
     - 实现错误处理与降级（AI API 失败时返回空数组）
 
-  - [ ] 7.3 为 Edge Function 编写集成测试
+  - [x] 7.3 为 Edge Function 编写集成测试
     - 测试正常请求响应
     - 测试 AI API 失败降级
     - 测试响应格式校验
 
-- [ ] 8. 实现 AI 生成客户端逻辑
-  - [ ] 8.1 创建 `useAiEventGenerator` composable
+- [x] 8. 实现 AI 生成客户端逻辑
+  - [x] 8.1 创建 `useAiEventGenerator` composable
     - 在 `app/composables/` 下创建 `useAiEventGenerator.ts`
     - 实现 `shouldTriggerGeneration()` 触发条件检查
       - 玩家完成第 5 次行动后首次触发
@@ -103,26 +103,26 @@
     - 实现 `extractGenerationContext()` 上下文提取
     - 实现 `buildGenerationPrompt()` Prompt 构建
 
-  - [ ] 8.2 实现静默生成调度
+  - [x] 8.2 实现静默生成调度
     - 首次触发后，启动后台定时生成任务
     - 使用 `setInterval` 每 10 分钟检查并触发一次生成（需满足触发条件）
     - 使用 `requestIdleCallback` 确保生成请求不阻塞主线程
     - 实现 POST `/api/generate-events` 调用
     - 实现响应接收与解析
 
-  - [ ] 8.3 实现事件校验与入库
+  - [x] 8.3 实现事件校验与入库
     - 实现 `validateEventDefinition()` Schema 验证
     - 实现 `applyNumericalConstraints()` 数值平衡约束
     - 调用 `useDynamicEventPool().insertAiEvents()` 入库
     - 实现错误处理与静默失败降级
 
-- [ ] 9. 检查点 - 确保所有测试通过
-  - 确保所有测试通过，如有疑问请询问用户
-  - 验证 Edge Function API 可正常调用并返回有效事件
-  - 验证 AI 生成事件通过 Schema 验证并成功入库
-  - 验证降级策略生效（AI 失败时游戏不崩溃）
+- [x] 9. 检查点 - 确保所有测试通过
+   - 确保所有测试通过，如有疑问请询问用户
+   - 验证 Edge Function API 可正常调用并返回有效事件
+   - 验证 AI 生成事件通过 Schema 验证并成功入库
+   - 验证降级策略生效（AI 失败时游戏不崩溃）
 
-- [ ] 10. 实现种子库事件内容创作
+- [x] 10. 实现种子库事件内容创作
    - 创作 200+ 个高质量种子事件，覆盖以下主题：
      - **催收压迫类**（参考真实催收新闻：短信轰炸、上门威胁、社交羞辱）
      - **打工诱惑类**（参考零工经济报道：黑中介、克扣工资、过劳死）
@@ -134,18 +134,18 @@
    - 确保数值平衡符合游戏经济系统
    - 使用 `npm run validate:events` 验证所有事件格式
 
-- [ ] 11. 编写全量集成测试
+- [x] 11. 编写全量集成测试
    - 测试种子库导入 → 事件选择 → AI 生成 → 入库 → 再次选择 完整流程
    - 测试降级策略（IndexedDB 不可用、AI API 失败、种子库加载失败）
    - 属性测试：任意游戏状态下，事件选择管线必须在 10ms 内完成
    - 性能测试：IndexedDB 读写不阻塞主线程
 
-- [ ] 12. 检查点 - 确保全量测试通过
-  - 确保全量 530+ 测试用例通过
-  - 验证种子库成功导入 IndexedDB，事件数量 ≥ 200
-  - 验证双层事件池合并选择逻辑正常工作
-  - 验证混合推荐算法生效，画像匹配事件触发率提升 ≥ 50%
-  - 验证全局去重机制生效，7 天内同 family 事件不重复
-  - 验证 Edge Function API 可正常调用并返回有效事件 JSON
-  - 验证 Schema 验证拦截无效事件，错误事件不入库
-  - 验证降级策略生效，AI 生成失败时游戏不崩溃
+- [x] 12. 检查点 - 确保全量测试通过
+   - 确保全量 644 测试用例通过
+   - 验证种子库成功导入 IndexedDB，事件数量 ≥ 200
+   - 验证双层事件池合并选择逻辑正常工作
+   - 验证混合推荐算法生效，画像匹配事件触发率提升 ≥ 50%
+   - 验证全局去重机制生效，7 天内同 family 事件不重复
+   - 验证 Edge Function API 可正常调用并返回有效事件 JSON
+   - 验证 Schema 验证拦截无效事件，错误事件不入库
+   - 验证降级策略生效，AI 生成失败时游戏不崩溃

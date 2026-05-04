@@ -30,7 +30,7 @@ describe('ACT-01~ACT-05 行为矩阵', () => {
     })
   })
 
-  it('ACT-01: 修炼（tuna/train）应提升成长并伴随疲劳/风险代价', () => {
+  it('ACT-01: 修炼（tuna/train）应提升成长并伴随疲劳/风险代价', async () => {
     const { game, act } = useGame()
     game.value = defaultState()
     game.value.started = true
@@ -50,15 +50,15 @@ describe('ACT-01~ACT-05 行为矩阵', () => {
     const rouTiBefore = game.value.stats.rouTi
     const fatigueBefore = game.value.stats.fatigue
 
-    act('tuna')
-    act('train')
+    await act('tuna')
+    await act('train')
 
     expect(game.value.stats.faLi).toBeGreaterThan(faLiBefore)
     expect(game.value.stats.rouTi).toBeGreaterThan(rouTiBefore)
     expect(game.value.stats.fatigue).toBeGreaterThanOrEqual(fatigueBefore)
   })
 
-  it('ACT-02: 上课刷分应提升考试相关能力并影响周考结果', () => {
+  it('ACT-02: 上课刷分应提升考试相关能力并影响周考结果', async () => {
     const { game, act } = useGame()
     game.value = defaultState()
     game.value.started = true
@@ -68,14 +68,14 @@ describe('ACT-01~ACT-05 行为矩阵', () => {
     const faLiBefore = game.value.stats.faLi
     const scoreBefore = game.value.school.lastExamScore
 
-    act('study')
+    await act('study')
 
     expect(game.value.stats.faLi).toBeGreaterThan(faLiBefore)
     expect(game.value.school.day).toBe(36)
     expect(game.value.school.lastExamScore).not.toBe(scoreBefore)
   })
 
-  it('ACT-03: 打工增加 cash，且后续 repay 可消耗该现金', () => {
+  it('ACT-03: 打工增加 cash，且后续 repay 可消耗该现金', async () => {
     const { game, act, repay } = useGame()
     game.value = defaultState()
     game.value.started = true
@@ -85,7 +85,7 @@ describe('ACT-01~ACT-05 行为矩阵', () => {
     game.value.econ.debtInterestAccrued = 400
     game.value.econ.debtPrincipal = 2_000
 
-    act('parttime')
+    await act('parttime')
     const cashAfterParttime = game.value.econ.cash
     repay(cashAfterParttime)
 
@@ -94,7 +94,7 @@ describe('ACT-01~ACT-05 行为矩阵', () => {
     expect(game.value.econ.collectionFee + game.value.econ.debtInterestAccrued + game.value.econ.debtPrincipal).toBeLessThan(3_000)
   })
 
-  it('ACT-04: 休息恢复状态；契约激活时可触发反噬事件', () => {
+  it('ACT-04: 休息恢复状态；契约激活时可触发反噬事件', async () => {
     const { game, act } = useGame()
     game.value = defaultState()
     game.value.started = true
@@ -106,14 +106,14 @@ describe('ACT-01~ACT-05 行为矩阵', () => {
 
     const fatigueBefore = game.value.stats.fatigue
     const focusBefore = game.value.stats.focus
-    act('rest')
+    await act('rest')
 
     expect(game.value.pendingEvent?.title).toContain('反噬')
     expect(game.value.stats.fatigue).toBe(fatigueBefore)
     expect(game.value.stats.focus).toBe(focusBefore)
   })
 
-  it('ACT-05: 买补给带来短期恢复，同时 buyDebasement 增长', () => {
+  it('ACT-05: 买补给带来短期恢复，同时 buyDebasement 增长', async () => {
     const { game, act } = useGame()
     game.value = defaultState()
     game.value.started = true
@@ -126,7 +126,7 @@ describe('ACT-01~ACT-05 行为矩阵', () => {
     const debaseBefore = game.value.buyDebasement ?? 0
     const cashBefore = game.value.econ.cash
 
-    act('buy')
+    await act('buy')
 
     expect(game.value.stats.focus).toBeGreaterThan(focusBefore)
     expect(game.value.buyDebasement).toBeGreaterThan(debaseBefore)
@@ -156,20 +156,20 @@ describe('D-13~D-16 首周压力基线', () => {
     })
   })
 
-  it('D-13/D-14: 第3-4天出现首次明显惩罚（由行动驱动）', () => {
+  it('D-13/D-14: 第3-4天出现首次明显惩罚（由行动驱动）', async () => {
     const { game, act } = useGame()
     game.value = defaultState()
     game.value.started = true
 
     for (let i = 0; i < 9; i += 1) {
-      act('train')
+      await act('train')
     }
 
     expect(game.value.school.day).toBe(4)
     expect(game.value.stats.fatigue).toBeGreaterThanOrEqual(70)
   })
 
-  it('D-15/D-16: 首周恶性随机事件占比低于行动驱动失败', () => {
+  it('D-15/D-16: 首周恶性随机事件占比低于行动驱动失败', async () => {
     const { game, act } = useGame()
     game.value = defaultState()
     game.value.started = true

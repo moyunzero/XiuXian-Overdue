@@ -31,7 +31,7 @@ interface UseEmotionalMemory {
 }
 
 interface EventResolver {
-  randomPoolAfterAction: (g: GameState, rand: () => number) => any
+  randomPoolAfterAction: (g: GameState, rand: () => number) => Promise<any>
   computeHiddenContributions: (g: GameState) => Record<string, number>
 }
 
@@ -69,7 +69,7 @@ export function useGameActionExecutor(
     if (g.logs.length > 120) g.logs.pop()
   }
 
-  const act = (action: ActionId) => {
+  const act = async (action: ActionId) => {
     const g = game.value
     if (!g.started || g.pendingEvent) return
 
@@ -223,7 +223,7 @@ export function useGameActionExecutor(
           })
           if (g.logs.length > 120) g.logs.pop()
         }
-        g.pendingEvent = eventResolver.randomPoolAfterAction(g, rand)
+        g.pendingEvent = await eventResolver.randomPoolAfterAction(g, rand)
       }
     }
 
@@ -236,6 +236,15 @@ export function useGameActionExecutor(
 
     ensureSummaryUnlock(g)
     gameComputed.refreshProfileSnapshot()
+
+    // 触发 AI 事件生成调度（玩家完成行动后启动后台生成）
+    if (import.meta.client) {
+      import('~/composables/useAiEventGenerator').then(({ useAiEventGenerator }) => {
+        const aiGenerator = useAiEventGenerator()
+        aiGenerator.onActionCompleted(g)
+      })
+    }
+
     storage.saveToSlot(storage.activeSlot.value)
   }
 

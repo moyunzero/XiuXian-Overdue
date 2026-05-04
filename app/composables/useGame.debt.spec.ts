@@ -29,10 +29,10 @@ function seedPlayableDebtState() {
   return g
 }
 
-function advanceDaysByNightRest(days: number, act: (id: 'rest') => void, gameRef: { value: ReturnType<typeof defaultState> }) {
+async function advanceDaysByNightRest(days: number, act: (id: 'rest') => Promise<void>, gameRef: { value: ReturnType<typeof defaultState> }) {
   for (let i = 0; i < days; i += 1) {
     gameRef.value.school.slot = 'night'
-    act('rest')
+    await act('rest')
   }
 }
 
@@ -58,7 +58,7 @@ describe('DEBT-01~DEBT-03 Wave 0 回归', () => {
     })
   })
 
-  it('D-01/DEBT-01: 还款按利息->罚金->本金固定顺序结算，且结果可断言', () => {
+  it('D-01/DEBT-01: 还款按利息->罚金->本金固定顺序结算，且结果可断言', async () => {
     const g = seedPlayableDebtState()
     const r = __test__.applyRepaymentByPriority(g, 1_000)
 
@@ -70,42 +70,42 @@ describe('DEBT-01~DEBT-03 Wave 0 回归', () => {
     expect(g.econ.debtPrincipal).toBe(12_000)
   })
 
-  it('D-03/DEBT-02: 首次逾期仅警告缓冲，不立即上浮利率', () => {
+  it('D-03/DEBT-02: 首次逾期仅警告缓冲，不立即上浮利率', async () => {
     const { game, act } = useGame()
     game.value = seedPlayableDebtState()
     const baseRate = game.value.econ.dailyRate
 
-    advanceDaysByNightRest(14, act, game)
+    await advanceDaysByNightRest(14, act, game)
 
     expect(game.value.econ.delinquency).toBe(1)
     expect(game.value.econ.dailyRate).toBe(baseRate)
     expect(game.value.logs.some((log) => log.title.includes('逾期警告'))).toBe(true)
   })
 
-  it('D-01/D-02/DEBT-02: 逾期仅按每周节律升级，且上限锁定为 5 级', () => {
+  it('D-01/D-02/DEBT-02: 逾期仅按每周节律升级，且上限锁定为 5 级', async () => {
     const { game, act } = useGame()
     game.value = seedPlayableDebtState()
 
-    advanceDaysByNightRest(84, act, game)
+    await advanceDaysByNightRest(84, act, game)
 
     expect(game.value.econ.delinquency).toBe(5)
   })
 
-  it('D-04/DEBT-03: 达到高逾期后仍可继续 act/endDay（无硬失败）', () => {
+  it('D-04/DEBT-03: 达到高逾期后仍可继续 act/endDay（无硬失败）', async () => {
     const { game, act } = useGame()
     game.value = seedPlayableDebtState()
     game.value.econ.delinquency = 5
     game.value.school.day = 50
     game.value.school.slot = 'night'
 
-    act('rest')
+    await act('rest')
 
     expect(game.value.school.day).toBe(51)
     expect(game.value.school.slot).toBe('morning')
     expect(game.value.started).toBe(true)
   })
 
-  it('D-06/D-08/DEBT-01: 还款日志需记录分项与制度化说明（单通道日志）', () => {
+  it('D-06/D-08/DEBT-01: 还款日志需记录分项与制度化说明（单通道日志）', async () => {
     const { game, repay } = useGame()
     game.value = seedPlayableDebtState()
     game.value.econ.cash = 10_000

@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useGameActionExecutor } from './useGameActionExecutor'
 import { defaultState } from './useGameState'
 import type { GameState, ActionId } from '~/types/game'
+import * as Engine from '~/logic/gameEngine'
 
 interface MockGameComputed {
   minPayment: { value: number }
@@ -20,7 +21,7 @@ interface MockEmotionalStorage {
 }
 
 interface MockEventResolver {
-  randomPoolAfterAction: (g: GameState, rand: () => number) => any
+  randomPoolAfterAction: (g: GameState, rand: () => number) => Promise<any>
   computeHiddenContributions: (g: GameState) => Record<string, number>
 }
 
@@ -44,7 +45,7 @@ describe('useGameActionExecutor', () => {
   const mockPerformEndDay = vi.fn()
   const mockApplyWeeklyCollectionFee = vi.fn()
   const mockEnsureSummaryUnlock = vi.fn()
-  const mockRandomPoolAfterAction = vi.fn().mockReturnValue({ title: 'Random Event', body: 'Test', options: [], mandatory: false })
+  const mockRandomPoolAfterAction = vi.fn().mockResolvedValue({ title: 'Random Event', body: 'Test', options: [], mandatory: false })
   const mockComputeHiddenContributions = vi.fn().mockReturnValue({})
   const mockRecordGameAction = vi.fn()
 
@@ -111,26 +112,27 @@ describe('useGameActionExecutor', () => {
     )
 
   describe('act', () => {
-    it('5.2.1: should block action when pendingEvent exists', () => {
+    it('5.2.1: should block action when pendingEvent exists', async () => {
       const { act } = createActionExecutor()
       game.value.pendingEvent = { title: 'Test', body: 'Test', options: [], mandatory: false }
 
-      act('study' as ActionId)
+      await act('study' as ActionId)
 
       expect(game.value.daySlotActions['morning']).toBeUndefined()
       expect(mockSaveToSlot).not.toHaveBeenCalled()
     })
 
-    it('5.2.1: should block action when game not started', () => {
+    it('5.2.1: should block action when game not started', async () => {
       const { act } = createActionExecutor()
       game.value.started = false
 
-      act('study' as ActionId)
+      await act('study' as ActionId)
 
       expect(game.value.daySlotActions['morning']).toBeUndefined()
     })
 
-    it('5.2.2: should trigger contract backlash and set pendingEvent', () => {
+    it('5.2.2: should trigger contract backlash and set pendingEvent', async () => {
+      const contractWouldTriggerSpy = vi.spyOn(Engine, 'contractWouldTrigger').mockReturnValue(true)
       const { act } = createActionExecutor()
       game.value.contract.active = true
       game.value.contract.progress = 0
@@ -138,14 +140,16 @@ describe('useGameActionExecutor', () => {
       game.value.contract.lastTriggerDay = 0
       game.value.contract.lastTriggerSlot = 'none'
 
-      act('study' as ActionId)
+      await act('study' as ActionId)
 
       expect(game.value.pendingEvent).toBeDefined()
       expect(game.value.contract.lastTriggerDay).toBe(1)
       expect(game.value.contract.lastTriggerSlot).toBe('morning')
+
+      contractWouldTriggerSpy.mockRestore()
     })
 
-    it('5.2.2: should set pendingEvent when rest triggers contract', () => {
+    it('5.2.2: should set pendingEvent when rest triggers contract', async () => {
       const { act } = createActionExecutor()
       game.value.contract.active = true
       game.value.contract.progress = 0
@@ -153,50 +157,50 @@ describe('useGameActionExecutor', () => {
       game.value.contract.lastTriggerDay = 0
       game.value.contract.lastTriggerSlot = 'none'
 
-      act('rest' as ActionId)
+      await act('rest' as ActionId)
 
       expect(game.value.pendingEvent).toBeDefined()
     })
 
-    it('5.2.3: should advance slot from morning to afternoon', () => {
+    it('5.2.3: should advance slot from morning to afternoon', async () => {
       const { act } = createActionExecutor()
       game.value.school.slot = 'morning'
 
-      act('study' as ActionId)
+      await act('study' as ActionId)
 
       expect(game.value.school.slot).toBe('afternoon')
     })
 
-    it('5.2.3: should advance slot from afternoon to night', () => {
+    it('5.2.3: should advance slot from afternoon to night', async () => {
       const { act } = createActionExecutor()
       game.value.school.slot = 'afternoon'
 
-      act('study' as ActionId)
+      await act('study' as ActionId)
 
       expect(game.value.school.slot).toBe('night')
     })
 
-    it('5.2.3: should call performEndDay when slot is night', () => {
+    it('5.2.3: should call performEndDay when slot is night', async () => {
       const { act } = createActionExecutor()
       game.value.school.slot = 'night'
       game.value.daySlotActions = { morning: 'study', afternoon: 'study' }
 
-      act('study' as ActionId)
+      await act('study' as ActionId)
 
       expect(mockPerformEndDay).toHaveBeenCalled()
     })
 
-    it('5.2.4: should initialize sessionMetrics on first action', () => {
+    it('5.2.4: should initialize sessionMetrics on first action', async () => {
       const { act } = createActionExecutor()
       game.value.sessionMetrics = undefined
 
-      act('study' as ActionId)
+      await act('study' as ActionId)
 
       expect(game.value.sessionMetrics).toBeDefined()
       expect(game.value.sessionMetrics!.actionCounts['study']).toBe(1)
     })
 
-    it('5.2.4: should increment existing action count', () => {
+    it('5.2.4: should increment existing action count', async () => {
       const { act } = createActionExecutor()
       game.value.sessionMetrics = {
         actionCounts: { study: 2 },
@@ -207,12 +211,12 @@ describe('useGameActionExecutor', () => {
         startTime: Date.now()
       }
 
-      act('study' as ActionId)
+      await act('study' as ActionId)
 
       expect(game.value.sessionMetrics!.actionCounts['study']).toBe(3)
     })
 
-    it('5.2.4: should increment restCount when action is rest', () => {
+    it('5.2.4: should increment restCount when action is rest', async () => {
       const { act } = createActionExecutor()
       game.value.sessionMetrics = {
         actionCounts: {},
@@ -223,25 +227,25 @@ describe('useGameActionExecutor', () => {
         startTime: Date.now()
       }
 
-      act('rest' as ActionId)
+      await act('rest' as ActionId)
 
       expect(game.value.sessionMetrics!.restCount).toBe(1)
     })
 
-    it('should record action in daySlotActions', () => {
+    it('should record action in daySlotActions', async () => {
       const { act } = createActionExecutor()
       game.value.school.slot = 'morning'
 
-      act('study' as ActionId)
+      await act('study' as ActionId)
 
       expect(game.value.daySlotActions['morning']).toBe('study')
     })
 
-    it('should call recordGameAction with correct parameters', () => {
+    it('should call recordGameAction with correct parameters', async () => {
       const { act } = createActionExecutor()
       game.value.school.slot = 'morning'
 
-      act('study' as ActionId)
+      await act('study' as ActionId)
 
       expect(mockRecordGameAction).toHaveBeenCalled()
       const callArgs = mockRecordGameAction.mock.calls[0]
@@ -250,45 +254,45 @@ describe('useGameActionExecutor', () => {
       expect(callArgs[2]).toBe('study')
     })
 
-    it('should call ensureSummaryUnlock after action', () => {
+    it('should call ensureSummaryUnlock after action', async () => {
       const { act } = createActionExecutor()
 
-      act('study' as ActionId)
+      await act('study' as ActionId)
 
       expect(mockEnsureSummaryUnlock).toHaveBeenCalled()
     })
 
-    it('should call saveToSlot after action', () => {
+    it('should call saveToSlot after action', async () => {
       const { act } = createActionExecutor()
 
-      act('study' as ActionId)
+      await act('study' as ActionId)
 
       expect(mockSaveToSlot).toHaveBeenCalledWith('autosave')
     })
 
-    it('should call refreshProfileSnapshot after action', () => {
+    it('should call refreshProfileSnapshot after action', async () => {
       const { act } = createActionExecutor()
 
-      act('study' as ActionId)
+      await act('study' as ActionId)
 
       expect(mockRefreshProfileSnapshot).toHaveBeenCalled()
     })
 
-    it('should set pendingEvent after action', () => {
+    it('should set pendingEvent after action', async () => {
       const { act } = createActionExecutor()
 
-      act('study' as ActionId)
+      await act('study' as ActionId)
 
       expect(game.value.pendingEvent).toBeDefined()
     })
 
-    it('should add meal subsidy cash in morning slot', () => {
+    it('should add meal subsidy cash in morning slot', async () => {
       const { act } = createActionExecutor()
       game.value.school.slot = 'morning'
       game.value.school.perks.mealSubsidy = 15
       const cashBefore = game.value.econ.cash
 
-      act('study' as ActionId)
+      await act('study' as ActionId)
 
       expect(game.value.econ.cash).toBe(cashBefore + 15)
     })

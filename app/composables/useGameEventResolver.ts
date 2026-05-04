@@ -11,6 +11,7 @@ import { generateEmergentEvent } from '~/logic/emergentEventGenerator'
 import { calculateStressLevel } from '~/logic/hiddenVariableEngine'
 import { buildPersonalityProfile, getHiddenModifiers } from '~/logic/emotionalMemoryLayer'
 import type { EventContext } from '~/types/game'
+import { selectEvent, toPendingEventFromSelection } from '~/logic/eventSelectionPipeline'
 
 let preloadScheduled = false
 function schedulePreload() {
@@ -127,7 +128,7 @@ export function useGameEventResolver(
     }
   }
 
-  const randomPoolAfterAction = (g: GameState, rand: () => number): PendingEvent | undefined => {
+  const randomPoolAfterAction = async (g: GameState, rand: () => number): Promise<PendingEvent | undefined> => {
     const memory = emotionalStorage.loadEmotionalMemory()
     const profile = buildPersonalityProfile(memory)
     const hiddenModifiers = getHiddenModifiers(profile)
@@ -144,6 +145,7 @@ export function useGameEventResolver(
       stressLevel
     }
 
+    // 优先尝试涌现事件
     const emergentEvent = generateEmergentEvent(emergentContext, rand)
     if (emergentEvent) {
       const pending: PendingEvent = {
@@ -152,7 +154,8 @@ export function useGameEventResolver(
         options: emergentEvent.options.map(opt => ({
           id: opt.id,
           label: opt.label,
-          tone: opt.tone
+          tone: opt.tone,
+          effects: opt.effects
         })),
         tier: emergentEvent.tier,
         mandatory: false
@@ -160,11 +163,25 @@ export function useGameEventResolver(
       return pending
     }
 
+    // 概率门控
     const imbBoost = Engine.imbalanceEventProbabilityBoost(g)
     let baseP = clamp(0.04 + g.econ.delinquency * 0.04 + imbBoost, 0, 0.42)
     baseP = Engine.applyWeeklyRandomDownweightToProbability(baseP, g)
     if (rand() > baseP) return undefined
 
+    // 使用新的事件选择管线（双层事件池 + 画像权重 + 去重）
+    try {
+      const selectionResult = await selectEvent(g, 'afterAction', rand)
+      if (selectionResult) {
+        // 记录触发历史
+        Engine.recordEventTrigger(g, selectionResult.event)
+        return toPendingEventFromSelection(selectionResult)
+      }
+    } catch (e) {
+      console.warn('事件选择管线失败，降级为静态池:', e)
+    }
+
+    // 降级方案：使用原有静态池逻辑
     const pool = getEventsByPhase('afterAction')
     const candidates = pool.filter((event) => {
       if (event.type === 'collapse') return false
@@ -276,18 +293,33 @@ export function useGameEventResolver(
         '你没有被强制结束。你只是把麻木当成了新的日常，然后继续推进下一天。',
         'warn'
       )
-    } else if (event.eventId) {
-      const definition = ALL_EVENTS.find(def => def.id === event.eventId)
-      if (!definition) {
-        addLog(g, '事件配置异常', `未找到事件定义：${event.eventId}。`, 'warn')
-      } else {
-        const option = definition.options.find(opt => opt.id === optionId)
-        if (!option) addLog(g, '事件配置异常', `事件 ${event.eventId} 未找到选项 ${optionId}。`, 'warn')
-        else {
-          applyEventEffects(g, option.effects, { suppressLogEffects: true })
-          const t = definition.tone
-          const logTone = t === 'danger' ? 'danger' : t === 'warn' ? 'warn' : t === 'ok' ? 'ok' : 'info'
-          addLog(g, `制度记录：${definition.title}`, buildInstitutionalEventLogDetail(option.effects), logTone)
+    } else {
+      // 优先使用 PendingEvent.options 中自带的 effects（支持动态事件和涌现事件）
+      const pendingOption = event.options.find(opt => opt.id === optionId)
+      if (pendingOption?.effects) {
+        applyEventEffects(g, pendingOption.effects, { suppressLogEffects: true })
+        if (event.eventId) {
+          const definition = ALL_EVENTS.find(def => def.id === event.eventId)
+          if (definition) {
+            const t = definition.tone
+            const logTone = t === 'danger' ? 'danger' : t === 'warn' ? 'warn' : t === 'ok' ? 'ok' : 'info'
+            addLog(g, `制度记录：${definition.title}`, buildInstitutionalEventLogDetail(pendingOption.effects), logTone)
+          }
+        }
+      } else if (event.eventId) {
+        // 降级：如果 PendingEvent 中没有 effects，尝试从 ALL_EVENTS 查找
+        const definition = ALL_EVENTS.find(def => def.id === event.eventId)
+        if (!definition) {
+          addLog(g, '事件配置异常', `未找到事件定义：${event.eventId}。`, 'warn')
+        } else {
+          const option = definition.options.find(opt => opt.id === optionId)
+          if (!option) addLog(g, '事件配置异常', `事件 ${event.eventId} 未找到选项 ${optionId}。`, 'warn')
+          else {
+            applyEventEffects(g, option.effects, { suppressLogEffects: true })
+            const t = definition.tone
+            const logTone = t === 'danger' ? 'danger' : t === 'warn' ? 'warn' : t === 'ok' ? 'ok' : 'info'
+            addLog(g, `制度记录：${definition.title}`, buildInstitutionalEventLogDetail(option.effects), logTone)
+          }
         }
       }
     }

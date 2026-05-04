@@ -30,13 +30,13 @@ describe('D-05/D-06/D-07 行动反馈规范（叙事优先 + 三项摘要 + 统�
     })
   })
 
-  it('行动反馈应写入主日志，且 detail 包含“叙事 + 摘要”', () => {
+  it('行动反馈应写入主日志，且 detail 包含“叙事 + 摘要”', async () => {
     const { game, act } = useGame()
     game.value = defaultState()
     game.value.started = true
 
     const beforeLen = game.value.logs.length
-    act('study')
+    await act('study')
 
     expect(game.value.logs.length).toBe(beforeLen + 1)
     const latest = game.value.logs[0]
@@ -44,12 +44,12 @@ describe('D-05/D-06/D-07 行动反馈规范（叙事优先 + 三项摘要 + 统�
     expect(latest.detail).toContain('｜')
   })
 
-  it('摘要默认仅三项核心变化（D-06: 三项摘要）', () => {
+  it('摘要默认仅三项核心变化（D-06: 三项摘要）', async () => {
     const { game, act } = useGame()
     game.value = defaultState()
     game.value.started = true
 
-    act('parttime')
+    await act('parttime')
 
     const latest = game.value.logs[0]
     const summary = latest.detail.split('摘要：')[1] || ''
@@ -61,14 +61,14 @@ describe('D-05/D-06/D-07 行动反馈规范（叙事优先 + 三项摘要 + 统�
     expect(itemCount).toBe(3)
   })
 
-  it('反馈全部汇入日志，不生成并行反馈容器（D-07: 统一日志）', () => {
+  it('反馈全部汇入日志，不生成并行反馈容器（D-07: 统一日志）', async () => {
     const { game, act } = useGame()
     game.value = defaultState()
     game.value.started = true
 
-    act('tuna')
-    act('buy')
-    act('rest')
+    await act('tuna')
+    await act('buy')
+    await act('rest')
 
     const latestThree = game.value.logs.slice(0, 3)
     expect(latestThree.every(log => typeof log.detail === 'string' && log.detail.length > 0)).toBe(true)

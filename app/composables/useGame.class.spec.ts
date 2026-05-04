@@ -46,10 +46,10 @@ function makeSeededGame(seed = 20260321) {
   return g
 }
 
-function settleToWeeklyBoundary(act: (id: 'rest') => void, gameRef: { value: ReturnType<typeof defaultState> }) {
+async function settleToWeeklyBoundary(act: (id: 'rest') => Promise<void>, gameRef: { value: ReturnType<typeof defaultState> }) {
   gameRef.value.school.day = 7
   gameRef.value.school.slot = 'night'
-  act('rest')
+  await act('rest')
 }
 
 function setTierProfile(gameRef: { value: ReturnType<typeof defaultState> }, profile: 'demo' | 'normal' | 'bottom') {
@@ -89,32 +89,32 @@ describe('CLASS-01/02 Wave 0 分班制度测试', () => {
     setupVueStateStubs()
   })
 
-  it('CLASS-02: 仅在每 7 天周结算触发考核分班，非周结算日不触发', () => {
+  it('CLASS-02: 仅在每 7 天周结算触发考核分班，非周结算日不触发', async () => {
     const { game, act } = useGame()
     game.value = makeSeededGame()
     const beforeScore = game.value.school.lastExamScore
 
     game.value.school.day = 2
     game.value.school.slot = 'night'
-    act('rest')
+    await act('rest')
 
     expect(game.value.school.day).toBe(3)
     expect(game.value.school.lastExamScore).toBe(beforeScore)
     expect(game.value.school.week).toBe(1)
 
-    settleToWeeklyBoundary(act, game)
+    await settleToWeeklyBoundary(act, game)
 
     expect(game.value.school.day).toBe(8)
     expect(game.value.school.lastExamScore).toBeGreaterThan(0)
     expect(game.value.school.week).toBe(2)
   })
 
-  it('CLASS-01/D-10: 分班变化会同步更新可追踪字段（classTier/perks/lastExamScore）', () => {
+  it('CLASS-01/D-10: 分班变化会同步更新可追踪字段（classTier/perks/lastExamScore）', async () => {
     const { game, act } = useGame()
     game.value = makeSeededGame()
     setTierProfile(game, 'demo')
 
-    settleToWeeklyBoundary(act, game)
+    await settleToWeeklyBoundary(act, game)
 
     expect(game.value.school.classTier).toBe('示范班')
     expect(game.value.school.perks.mealSubsidy).toBeGreaterThanOrEqual(120)
@@ -123,7 +123,7 @@ describe('CLASS-01/02 Wave 0 分班制度测试', () => {
     expect(game.value.logs.some((log) => log.title.includes('周结算通报'))).toBe(true)
   })
 
-  it('D-12: 示范班收益保持封顶，不出现单周滚雪球断层', () => {
+  it('D-12: 示范班收益保持封顶，不出现单周滚雪球断层', async () => {
     const { game, act } = useGame()
 
     game.value = makeSeededGame(1001)
@@ -131,7 +131,7 @@ describe('CLASS-01/02 Wave 0 分班制度测试', () => {
     game.value.school.classTier = '普通班'
     game.value.school.perks = { mealSubsidy: 40, focusBonus: 0 }
     const faLiBeforeNormal = game.value.stats.faLi
-    act('study')
+    await act('study')
     const normalGain = game.value.stats.faLi - faLiBeforeNormal
 
     game.value = makeSeededGame(1001)
@@ -139,14 +139,14 @@ describe('CLASS-01/02 Wave 0 分班制度测试', () => {
     game.value.school.classTier = '示范班'
     game.value.school.perks = { mealSubsidy: 160, focusBonus: 10 }
     const faLiBeforeDemo = game.value.stats.faLi
-    act('study')
+    await act('study')
     const demoGain = game.value.stats.faLi - faLiBeforeDemo
 
     expect(demoGain).toBeGreaterThan(normalGain)
     expect(demoGain / Math.max(0.0001, normalGain)).toBeLessThan(1.35)
   })
 
-  it('D-17~D-19: 末位班周结算后应额外抬升债务风险倍率（超出纯逾期基线）', () => {
+  it('D-17~D-19: 末位班周结算后应额外抬升债务风险倍率（超出纯逾期基线）', async () => {
     const { game, act, minPayment } = useGame()
     game.value = makeSeededGame(2222)
     setTierProfile(game, 'bottom')
@@ -156,7 +156,7 @@ describe('CLASS-01/02 Wave 0 分班制度测试', () => {
     const beforeRate = game.value.econ.dailyRate
     const policyOnlyRate = Number((beforeRate * delinquencyPolicy(2).rateStepMultiplier).toFixed(4))
 
-    settleToWeeklyBoundary(act, game)
+    await settleToWeeklyBoundary(act, game)
 
     expect(game.value.school.classTier).toBe('末位班')
     expect(game.value.econ.dailyRate).toBeGreaterThan(policyOnlyRate)

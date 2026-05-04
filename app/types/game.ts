@@ -210,6 +210,7 @@ export interface PendingEvent {
     id: string
     label: string
     tone?: 'normal' | 'danger' | 'primary'
+    effects?: EventEffect[]
   }>
   mandatory?: boolean
   tier?: 'critical' | 'normal'
