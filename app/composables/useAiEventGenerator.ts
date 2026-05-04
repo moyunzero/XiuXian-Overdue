@@ -154,25 +154,68 @@ function calculateRepeatRate(gameState: GameState): number {
  * 验证事件定义（Schema 验证）
  */
 export function validateEventDefinition(event: unknown): event is EventDefinition {
-  if (typeof event !== 'object' || event === null) return false
+  if (typeof event !== 'object' || event === null) {
+    console.warn('[AI校验] 事件不是有效对象:', event)
+    return false
+  }
 
   const e = event as Record<string, unknown>
 
   // 必需字段
-  if (typeof e.id !== 'string' || !e.id) return false
-  if (typeof e.title !== 'string' || !e.title) return false
-  if (typeof e.body !== 'string' || !e.body) return false
-  if (typeof e.type !== 'string' || !e.type) return false
+  if (typeof e.id !== 'string' || !e.id) {
+    console.warn('[AI校验] 缺少 id:', e.title)
+    return false
+  }
+  if (typeof e.title !== 'string' || !e.title) {
+    console.warn('[AI校验] 缺少 title:', e.id)
+    return false
+  }
+  if (typeof e.body !== 'string' || !e.body) {
+    console.warn('[AI校验] 缺少 body:', e.id)
+    return false
+  }
+  if (typeof e.type !== 'string' || !e.type) {
+    console.warn('[AI校验] 缺少 type:', e.id)
+    return false
+  }
 
   // options 校验
-  if (!Array.isArray(e.options) || e.options.length === 0) return false
+  if (!Array.isArray(e.options) || e.options.length === 0) {
+    console.warn('[AI校验] 缺少 options:', e.id)
+    return false
+  }
 
-  for (const opt of e.options) {
-    if (typeof opt !== 'object' || opt === null) return false
+  for (let i = 0; i < e.options.length; i++) {
+    const opt = e.options[i]
+    if (typeof opt !== 'object' || opt === null) {
+      console.warn(`[AI校验] option[${i}] 不是有效对象:`, e.id)
+      return false
+    }
     const option = opt as Record<string, unknown>
-    if (typeof option.id !== 'string' || !option.id) return false
-    if (typeof option.label !== 'string' || !option.label) return false
-    if (!Array.isArray(option.effects)) return false
+    if (typeof option.id !== 'string' || !option.id) {
+      console.warn(`[AI校验] option[${i}] 缺少 id:`, e.id)
+      return false
+    }
+    if (typeof option.label !== 'string' || !option.label) {
+      console.warn(`[AI校验] option[${i}] 缺少 label:`, e.id)
+      return false
+    }
+    if (!Array.isArray(option.effects)) {
+      console.warn(`[AI校验] option[${i}] 缺少 effects 数组:`, e.id, option.label)
+      return false
+    }
+    if (option.effects.length === 0) {
+      console.warn(`[AI校验] option[${i}] effects 数组为空:`, e.id, option.label)
+      return false
+    }
+    // 校验 effects 中的每个效果必须有 kind 字段
+    for (let j = 0; j < option.effects.length; j++) {
+      const effect = option.effects[j]
+      if (typeof effect !== 'object' || effect === null || !(effect as Record<string, unknown>).kind) {
+        console.warn(`[AI校验] option[${i}].effects[${j}] 缺少 kind:`, e.id, option.label)
+        return false
+      }
+    }
   }
 
   return true
@@ -269,13 +312,15 @@ async function doGeneration(context: ReturnType<typeof extractGenerationContext>
 
     const events: unknown[] = await response.json()
 
+    console.log(`[AI生成] 收到 ${events.length} 个事件`, events.length > 0 ? JSON.stringify(events[0]).slice(0, 200) : '')
+
     // 校验并约束
     const validEvents = events
       .filter(validateEventDefinition)
       .map(applyNumericalConstraints)
 
     if (validEvents.length === 0) {
-      console.warn('[AI生成] 无有效事件')
+      console.warn('[AI生成] 无有效事件，原始数据:', JSON.stringify(events).slice(0, 500))
       return 0
     }
 
