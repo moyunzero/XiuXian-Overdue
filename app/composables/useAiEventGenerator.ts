@@ -95,7 +95,7 @@ async function shouldTriggerGeneration(gameState: GameState): Promise<boolean> {
   // 检查动态池是否可用
   try {
     const pool = useDynamicEventPool()
-    const isReady = await pool.isReady?.() ?? true
+    const isReady = await (pool as unknown as Record<string, (() => Promise<boolean>) | undefined>).isReady?.() ?? true
     if (!isReady) return false
   } catch {
     return false // IndexedDB 不可用，不触发
@@ -149,6 +149,9 @@ function calculateRepeatRate(gameState: GameState): number {
   // 重复率 = (总触发次数 - 唯一事件数) / 总触发次数
   return (totalTriggers - uniqueEvents.size) / totalTriggers
 }
+
+const VALID_STAT_TARGETS = new Set(['daoXin', 'faLi', 'rouTi', 'fatigue', 'focus'])
+const VALID_ECON_TARGETS = new Set(['cash', 'collectionFee', 'debtPrincipal', 'debtInterestAccrued', 'delinquency'])
 
 /**
  * 验证事件定义（Schema 验证）
@@ -204,14 +207,28 @@ export function validateEventDefinition(event: unknown): event is EventDefinitio
       console.warn(`[AI校验] option[${i}] 缺少 effects 数组:`, e.id, option.label)
       return false
     }
-    if (option.effects.length === 0) {
-      console.warn(`[AI校验] option[${i}] effects 数组为空:`, e.id, option.label)
-      return false
+
+    // 过滤无效 target 的 effects（不报错，直接移除）
+    const rawEffects = option.effects as Array<Record<string, unknown>>
+    const filteredEffects = rawEffects.filter(effect => {
+      const kind = effect.kind as string
+      if (kind === 'stat') return VALID_STAT_TARGETS.has(effect.target as string)
+      if (kind === 'econ') return VALID_ECON_TARGETS.has(effect.target as string)
+      return kind === 'debt' || kind === 'log'
+    })
+
+    // 过滤后补兜底
+    if (filteredEffects.length === 0) {
+      option.effects = [{ kind: 'log', title: '系统记录', detail: '你做出了选择。', tone: 'info' }]
+    } else {
+      option.effects = filteredEffects
     }
+
     // 校验 effects 中的每个效果必须有 kind 字段
-    for (let j = 0; j < option.effects.length; j++) {
-      const effect = option.effects[j]
-      if (typeof effect !== 'object' || effect === null || !(effect as Record<string, unknown>).kind) {
+    const finalEffects = option.effects as Array<Record<string, unknown>>
+    for (let j = 0; j < finalEffects.length; j++) {
+      const effect = finalEffects[j]
+      if (typeof effect !== 'object' || effect === null || !effect.kind) {
         console.warn(`[AI校验] option[${i}].effects[${j}] 缺少 kind:`, e.id, option.label)
         return false
       }

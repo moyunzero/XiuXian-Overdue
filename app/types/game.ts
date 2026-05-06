@@ -330,6 +330,12 @@ export interface GameState {
   sessionMetrics?: SessionMetrics
   /** CEE: 隐藏变量（通过隐藏变量系统影响游戏） */
   hiddenVariables?: HiddenVariables
+
+  /**
+   * 上次触发随机事件的游戏日（用于干旱保底机制）
+   * 连续多天无事件时，概率会逐步提升，避免玩家长期无事件体验
+   */
+  lastEventDay?: number
 }
 // ========================================
 

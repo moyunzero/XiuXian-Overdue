@@ -223,6 +223,36 @@ export const MIN_EVENT_COOLDOWN_DAYS = 3
 /** 周结算游玩日上对非强制随机的概率乘数（D-04），区间 0.5～0.75 */
 export const WEEKLY_RANDOM_DOWNWEIGHT_K = 0.65
 
+/**
+ * 计算事件触发基础概率
+ *
+ * 设计目标：
+ * - 新玩家（无逾期）：每天约 40~50% 概率遇到事件（3个时段合计），有存在感但不轰炸
+ * - 高逾期玩家：概率提升但有上限，不会每个时段都触发
+ * - 干旱保底：连续 N 天无事件后概率线性提升，最多 5 天后必然触发
+ *
+ * 公式：
+ *   base = 0.15（基础 15%，单时段）
+ *   delinquencyBonus = delinquency × 0.05（逾期每级 +5%）
+ *   imbalanceBonus = 行为失衡时 +8%
+ *   droughtBonus = min(daysSinceLastEvent × 0.08, 0.40)（干旱保底，每天 +8%，最多 +40%）
+ *   final = clamp(base + delinquencyBonus + imbalanceBonus + droughtBonus, 0.15, 0.70)
+ *
+ * 单时段概率范围：15%（新玩家无干旱）~ 70%（高逾期+长干旱）
+ * 一天三时段不触发概率：(1-0.15)³ ≈ 61%，即每天约 39% 遇到事件（正常状态）
+ * 干旱 3 天后单时段：0.15+0.24=0.39，一天三时段约 77% 遇到事件
+ * 干旱 5 天后单时段：0.15+0.40=0.55，一天三时段约 91% 遇到事件（接近保底）
+ */
+export function calculateEventProbability(g: GameState, imbalanceBoost: number): number {
+  const base = 0.15
+  const delinquencyBonus = g.econ.delinquency * 0.05
+  const daysSinceLastEvent = g.lastEventDay !== undefined
+    ? Math.max(0, g.school.day - g.lastEventDay - 1)
+    : Math.min(g.school.day - 1, 5) // 新游戏按已过天数计算，最多 5 天
+  const droughtBonus = Math.min(daysSinceLastEvent * 0.08, 0.40)
+  return clamp(base + delinquencyBonus + imbalanceBoost + droughtBonus, 0.15, 0.70)
+}
+
 export function effectiveEventCooldownDays(event: EventDefinition): number {
   const raw = event.cooldownDays
   if (raw === undefined || raw <= 0) return 0

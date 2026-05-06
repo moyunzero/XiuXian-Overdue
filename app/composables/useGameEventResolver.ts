@@ -160,12 +160,13 @@ export function useGameEventResolver(
         tier: emergentEvent.tier,
         mandatory: false
       }
+      g.lastEventDay = g.school.day
       return pending
     }
 
-    // 概率门控
+    // 概率门控（含干旱保底机制）
     const imbBoost = Engine.imbalanceEventProbabilityBoost(g)
-    let baseP = clamp(0.04 + g.econ.delinquency * 0.04 + imbBoost, 0, 0.42)
+    let baseP = Engine.calculateEventProbability(g, imbBoost)
     baseP = Engine.applyWeeklyRandomDownweightToProbability(baseP, g)
     if (rand() > baseP) return undefined
 
@@ -173,8 +174,9 @@ export function useGameEventResolver(
     try {
       const selectionResult = await selectEvent(g, 'afterAction', rand)
       if (selectionResult) {
-        // 记录触发历史
+        // 记录触发历史和干旱保底计数器
         Engine.recordEventTrigger(g, selectionResult.event)
+        g.lastEventDay = g.school.day
         return toPendingEventFromSelection(selectionResult)
       }
     } catch (e) {
@@ -196,6 +198,7 @@ export function useGameEventResolver(
     if (!picked) return undefined
 
     Engine.recordEventTrigger(g, picked)
+    g.lastEventDay = g.school.day
 
     return Engine.toPendingEvent(picked)
   }

@@ -131,10 +131,18 @@ const g = computed(() => game.value)
 const started = computed(() => g.value.started)
 const actionsLocked = computed(() => Boolean(g.value.pendingEvent))
 
+// 用 isMounted 标志位防止 hydration 阶段误触发重定向：
+// useState('game') 初始值是 defaultState()（started=false），
+// 客户端 hydration 完成前 watch immediate 会误判为"未开局"并跳回首页。
+const isMounted = ref(false)
+onMounted(() => {
+  isMounted.value = true
+})
+
 watch(
   started,
   (isStarted) => {
-    if (!isStarted && !import.meta.server) {
+    if (!isStarted && isMounted.value) {
       navigateTo('/')
     }
   },
@@ -154,7 +162,7 @@ const selectedLogId = ref<string | null>(null)
 const playerStats = computed(() => [
   {
     name: '道心',
-    value: `${g.value.stats.daoXin}级`,
+    value: `${g.value.stats.daoXin.toFixed(2)}级`,
     description: '决定你能否跨过筑基门槛（10级）'
   },
   {
