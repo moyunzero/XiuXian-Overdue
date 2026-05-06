@@ -71,7 +71,15 @@ export function useGameEconomyActions(
     if (g.econ.cash <= 0) return
 
     if (Engine.isDebtLocked(g)) {
-      addLog(g, '还款被拒绝', '该债务已被系统锁定，必须通过身体抵押方式偿还。现金无法直接抵扣。', 'warn')
+      const redemptionCost = Engine.calculateRedemptionCost(g)
+      let detail = '该债务已被系统锁定，现金无法直接抵扣。'
+      if (redemptionCost > 0) {
+        detail += ` 赎身所需：¥${redemptionCost.toLocaleString()}（你的现金：¥${g.econ.cash.toLocaleString()}）`
+        if (g.econ.cash < redemptionCost) {
+          detail += ` 还需要 ¥${(redemptionCost - g.econ.cash).toLocaleString()}`
+        }
+      }
+      addLog(g, '还款被拒绝', detail, 'warn')
       storage.saveToSlot(storage.activeSlot.value)
       return
     }
@@ -100,9 +108,24 @@ export function useGameEconomyActions(
     storage.saveToSlot(storage.activeSlot.value)
   }
 
+  const redeem = () => {
+    const g = game.value
+    const result = Engine.executeRedemption(g)
+
+    if (result.success) {
+      addLog(g, '赎身完成', result.message, 'ok')
+      gameComputed.refreshProfileSnapshot()
+    } else {
+      addLog(g, '赎身失败', result.message, 'danger')
+    }
+
+    storage.saveToSlot(storage.activeSlot.value)
+  }
+
   return {
     creditLimit,
     borrow,
-    repay
+    repay,
+    redeem
   }
 }

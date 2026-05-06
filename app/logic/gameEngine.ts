@@ -595,6 +595,80 @@ export function getLockedDebtAmount(g: GameState): number {
   return g.econ.lockedDebtAmount ?? 0
 }
 
+// ========== 赎身机制 ==========
+
+/**
+ * 计算当前赎身所需金额
+ * 公式：赎身金额 = lockedDebtAmount × 倍率
+ * 倍率 = 1.5 × 2^(n-1)，n 为累计抵押次数
+ */
+export function calculateRedemptionCost(g: GameState): number {
+  if (g.econ.debtLock !== 'bodyLocked') return 0
+
+  const lockedAmount = g.econ.lockedDebtAmount ?? 0
+  if (lockedAmount <= 0) return 0
+
+  // 计算累计抵押次数
+  const repaidParts = g.bodyPartRepayment ?? {}
+  const mortgageCount = Object.values(repaidParts).filter(Boolean).length
+
+  // 倍率 = 1.5 × 2^(n-1)
+  const multiplier = 1.5 * Math.pow(2, mortgageCount - 1)
+
+  return Math.floor(lockedAmount * multiplier)
+}
+
+/**
+ * 检查是否可以赎身
+ */
+export function canRedeem(g: GameState): boolean {
+  const cost = calculateRedemptionCost(g)
+  return cost > 0 && g.econ.cash >= cost
+}
+
+/**
+ * 执行赎身
+ * 返回：{ success, cost, message }
+ */
+export function executeRedemption(g: GameState): {
+  success: boolean
+  cost: number
+  message: string
+} {
+  if (g.econ.debtLock !== 'bodyLocked') {
+    return { success: false, cost: 0, message: '债务未锁定，无需赎身' }
+  }
+
+  const cost = calculateRedemptionCost(g)
+  if (g.econ.cash < cost) {
+    return {
+      success: false,
+      cost,
+      message: `现金不足：需要 ¥${cost.toLocaleString()}，你有 ¥${g.econ.cash.toLocaleString()}`
+    }
+  }
+
+  // 扣除现金
+  g.econ.cash -= cost
+
+  // 解除锁定
+  g.econ.debtLock = null
+  g.econ.lockedDebtAmount = 0
+
+  // 记录日志
+  g.logs.unshift({
+    id: `log_${Date.now()}`,
+    day: g.school.day,
+    title: '赎身完成',
+    detail: `你花费 ¥${cost.toLocaleString()} 赎回了还款自由。但抵押出去的身体部位没有回来。钱花了，伤痕还在。`,
+    tone: 'warn'
+  })
+  if (g.logs.length > 120) g.logs.pop()
+
+  return { success: true, cost, message: '赎身成功，债务已解锁' }
+}
+
+
 export function contractWouldTrigger(g: GameState, action: ActionId, rand: () => number) {
   if (!g.contract.active) return false
   // D-06：麻木休息在 act() 内先分流；此处「休息」不再 100% 反噬，与其他行动共用 strict 概率带

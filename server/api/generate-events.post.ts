@@ -78,6 +78,22 @@ export function buildGenerationPrompt(context: Record<string, unknown>): string 
   const fatigue = (gameState?.stats as Record<string, unknown>)?.fatigue as number | undefined
   const classTier = (gameState?.school as Record<string, unknown>)?.classTier as string | undefined
 
+  // 提取派生状态
+  const derivedState = (gameState?.derivedState as Record<string, unknown>) ?? {}
+  const totalDebt = derivedState.totalDebt as number | undefined
+  const debtToCashRatio = derivedState.debtToCashRatio as number | undefined
+  const survivalPressure = derivedState.survivalPressure as number | undefined
+  const attributeCrisis = derivedState.attributeCrisis as Record<string, string> | undefined
+  const eventSeverity = derivedState.eventSeverity as string | undefined
+  const daysSinceLastPayment = derivedState.daysSinceLastPayment as number | undefined
+
+  // 属性危急描述
+  const crisisDesc = attributeCrisis
+    ? Object.entries(attributeCrisis)
+        .map(([k, v]) => `${k === 'fatigue' ? '疲劳' : k === 'focus' ? '专注' : k}处于${v === 'critical' ? '危急' : '警告'}状态`)
+        .join('；')
+    : '无'
+
   // 近期已触发事件
   const recentEventList = Array.isArray(recentEvents)
     ? recentEvents.slice(0, 10).map(e => `- ${e.family ?? 'unknown'}: ${e.title ?? 'unknown'}`).join('\n')
@@ -96,9 +112,15 @@ export function buildGenerationPrompt(context: Record<string, unknown>): string 
 - 当前天数：${schoolDay ?? '未知'}
 - 班级：${classTier ?? '未知'}
 - 现金：¥${cash ?? 0}
-- 债务：¥${debt ?? 0}
+- 债务本金：¥${debt ?? 0}
+- 总债务（本金+利息+费用）：¥${totalDebt ?? (debt ?? 0)}
 - 逾期等级：${delinquency ?? 0}
 - 疲劳值：${fatigue ?? 0}/100
+- 债务/现金比：${debtToCashRatio ?? '未知'}
+- 生存压力指数：${survivalPressure ?? 0}/100
+- 距离上次还款：${daysSinceLastPayment ?? '未知'} 天
+- 属性危急：${crisisDesc}
+- 适合事件严重程度：${eventSeverity ?? 'unknown'}
 
 ## 近期已触发事件（避免重复）
 ${recentEventList}
@@ -113,6 +135,58 @@ ${recentEventList}
    - 制度压迫类（社会信用体系、校园霸凌、权力滥用）
    - 身体偿还类（器官抵押、医疗剥削）
    - 社交关系类（人际关系异化、朋友背叛、利益交换）
+
+## 数值设计指南（核心，必须遵守）
+
+生成的数值必须与玩家当前状态和事件严重程度相匹配：
+
+### 现金相关
+- 玩家当前现金：¥${cash ?? 0}，总债务：¥${totalDebt ?? (debt ?? 0)}
+- 如果现金 < 500，避免生成 -300 以上的支出选项（玩家付不起）
+- 如果债务 > 50000，现金收益应在 1000~3000 才有意义
+- 如果债务 < 5000，现金收益 200~500 就足够有吸引力
+- 支出选项不应让玩家现金变负（除非是债务相关事件）
+- 债务/现金比 > 10 时，事件应围绕"搞钱"或"拖延"，避免大额支出
+
+### 属性相关
+- 当前疲劳：${fatigue ?? 0}/100，专注：待补充
+- 疲劳 > 80 时，避免生成 +15 以上疲劳的选项（可能崩溃）
+- 专注 < 20 时，避免生成 -10 以上专注的选项
+- 法力/肉体变化应在 0.1~0.5 之间（长期累积指标）
+- 道心变化应在 -2~+2 之间（稀有且重要）
+
+### 事件严重程度匹配
+- 日常小事（催收电话、同学闲聊）：现金 ±50~200，属性 ±2~5
+- 中等事件（打工机会、黑市交易）：现金 ±200~1000，属性 ±5~10
+- 重大事件（身体抵押、契约签订）：现金 ±1000~5000，属性 ±10~20
+
+### 选项之间的权衡
+- "安全选项"：小损失或小收益，风险低
+- "冒险选项"：大收益但伴随大代价（高现金+高疲劳）
+- "拒绝选项"：无物质变化，但有心理代价（focus -2~-5）
+- 同一事件的不同选项，effects 必须不同且体现实质差异
+
+## 状态感知指令
+
+根据玩家生存压力指数调整事件设计：
+
+### 当前生存压力：${survivalPressure ?? 0}/100
+
+如果生存压力 > 70：
+- 生成更多"绝望选择"事件（两难困境）
+- 数值幅度应该更大，反映紧迫性
+- 选项之间的代价差异应该更极端
+- 例如："借高利贷还债" vs "卖器官" vs "逃跑"
+
+如果生存压力 30~70：
+- 混合生成"机会"和"陷阱"事件
+- 数值幅度适中，给玩家选择空间
+- 例如："打工赚快钱但伤身" vs "稳扎稳打修炼"
+
+如果生存压力 < 30：
+- 生成更多"诱惑类"事件（看似机会实为陷阱）
+- 可以包含一些正面事件（意外收入、贵人相助）
+- 数值幅度较小，让玩家有容错空间
 
 ## 选项设计要求（核心，必须遵守）
 

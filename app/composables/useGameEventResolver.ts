@@ -238,7 +238,8 @@ export function useGameEventResolver(
       }
     } else if (optionId === 'immediate_payment') {
       if (Engine.isDebtLocked(g)) {
-        addLog(g, '还款被拒绝', '该债务已被系统锁定，必须通过身体抵押方式偿还。', 'warn')
+        const cost = Engine.calculateRedemptionCost(g)
+        addLog(g, '还款被拒绝', `该债务已被系统锁定。赎身所需：¥${cost.toLocaleString()}。`, 'warn')
       } else {
         const pay = gameComputed.accumulatedMinPayment
         if (g.econ.cash >= pay) {
