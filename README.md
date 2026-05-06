@@ -8,11 +8,22 @@
 [![Nuxt](https://img.shields.io/badge/Nuxt-4.3.1-00DC82?logo=nuxt.js)](https://nuxt.com)
 [![Vue](https://img.shields.io/badge/Vue-3.5.30-4FC08D?logo=vue.js)](https://vuejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript)](https://www.typescriptlang.org)
+[![Vitest](https://img.shields.io/badge/Tests-657%20passing-729B1B?logo=vitest)](./app/)
 [![License](https://img.shields.io/badge/License-学习交流-blue)](./LICENSE)
 
 [在线游玩](https://no-money-xiuxian.vercel.app/) · [快速开始](#-快速开始) · [贡献指南](#-贡献指南) · [事件创作](./docs/事件创作指南.md)
 
 </div>
+
+---
+
+## 🌟 项目亮点
+
+- **AI 驱动内容生成**：集成 Groq LLM，根据玩家状态动态生成个性化事件
+- **因果涌现引擎**：5 个独立模块模拟情感记忆、因果链、社会网络等复杂系统
+- **身体抵押赎身机制**：指数增长赎身公式，创造"越陷越深"的债务螺旋体验
+- **社会画像系统**：四维评估玩家行为模式，动态影响事件触发和难度
+- **657 个单元测试**：100% 覆盖核心逻辑，确保代码质量和可维护性
 
 ---
 
@@ -54,13 +65,18 @@
 ## ✨ 核心特性
 
 ### 游戏机制
+
 - **三段式时间系统**：每天分为清晨、午后、深夜三个时间段，每段只能执行一次行动
 - **多维度属性系统**：道心、法力、肉体强度、疲劳、专注等多项指标相互影响
 - **动态分班系统**：月考成绩决定分班，不同班级享受不同待遇和资源
-- **债务管理系统**：本金、利息、日利率、逾期等级，模拟真实的债务压力
+- **债务管理系统**：本金、利息、日利率、逾期等级、系统费用池，模拟真实的债务压力
+- **身体抵押与赎身机制**：6 个身体部位可抵押偿还债务，抵押后债务锁定，需支付指数增长的赎身金解锁
+- **契约反噬系统**：请神契约的缠绕度与监工 vigilance 追踪，反噬倒计时强制选择
+- **社会画像系统**：财务风险、教育信用、制度顺从、身体资产四维评估，动态影响事件触发
 - **随机事件系统**：催收提醒、老师推销、零工通知、请神契约等多种事件
 - **因果涌现引擎（CEE）**：情感记忆、因果图预测、涌现事件生成、社会网络、隐变量追踪
 - **推演沙盘**：玩家可预览行为后果，辅助决策
+- **AI 事件生成**：集成 Groq LLM（llama-3.3-70b），根据玩家实时状态动态生成个性化事件
 - **存档系统**：`localStorage` 单键容器，含 `autosave` + 三个手动槽；根级 **`saveSchemaVersion`**（当前为 `2`）
 
 ### 存档与兼容性（v1.0）
@@ -71,14 +87,17 @@
 - **进站流程**：始终从开局页 `/` 进入再载入，避免书签直进 `/game` 与未落盘写入竞态。
 
 ### 技术特性
+
 - **现代化技术栈**：Nuxt 3 + Vue 3 Composition API + TypeScript
 - **原生 CSS 设计系统**：完整的 CSS 变量系统，支持赛博朋克主题
 - **响应式设计**：支持桌面端、平板端和移动端
 - **组件化架构**：原子组件（Button, Card, ProgressBar, Pill）+ 复合组件（StatPanel, LogPanel, DebtDashboard, EventModal, DeductionSandbox）
-- **状态管理**：基于 Vue 3 Composition API 的 `useGame` composable（含 CEE 集成）
+- **状态管理**：基于 Vue 3 Composition API 的 `useGame` composable（含 CEE 集成），无需 Vuex/Pinia
 - **因果涌现引擎**：5 个独立 CEE 模块（情感记忆、因果图、涌现事件、社会网络、隐变量）
-- **类型安全**：完整的 TypeScript 类型定义（含 CEE 类型）
-- **100% 单元测试覆盖**：Vitest 框架，489 个测试用例
+- **AI 事件生成**：服务端集成 Groq API，客户端智能 Prompt 设计，状态感知数值生成
+- **类型安全**：完整的 TypeScript 类型定义（687 行，含 CEE 类型）
+- **100% 单元测试覆盖**：Vitest 框架，657 个测试用例，覆盖核心逻辑与边缘场景
+- **性能优化**：CEE 模块动态导入 + `requestIdleCallback` 延迟加载，首页轻量级 composable
 
 ---
 
@@ -151,6 +170,34 @@ npm run build
 npm run preview
 ```
 
+#### 运行测试
+
+```bash
+# 运行所有单元测试
+npm run test
+
+# 运行测试并生成覆盖率报告
+npm run test:coverage
+
+# 验证事件数据格式
+npm run validate:events
+```
+
+---
+
+## 🧪 测试
+
+项目使用 Vitest 作为测试框架，包含 657 个测试用例：
+
+- **游戏引擎测试**：考试分数计算、分班逻辑、事件门控
+- **经济系统测试**：借贷、还款、利息计算、逾期处理
+- **身体抵押与赎身测试**：估值算法、赎身倍率、状态变更
+- **CEE 模块测试**：情感记忆、因果图、涌现事件、社会网络、隐变量
+- **存档系统测试**：序列化、反序列化、版本迁移、防抖策略
+- **AI 事件生成测试**：Prompt 构建、JSON 解析、数值校验
+
+所有测试位于 `app/**/*.spec.ts`，覆盖核心逻辑与边缘场景。
+
 ---
 
 ## 📁 项目结构
@@ -159,18 +206,26 @@ npm run preview
 xiuxian-sim/
 ├── app/
 │   ├── assets/css/
-│   │   └── main.css              # 全局样式和设计系统
+│   │   └── main.css              # 全局样式和赛博朋克设计系统
 │   ├── components/
 │   │   ├── ui/                   # 原子组件（Button, Card, Pill, ProgressBar…）
 │   │   └── game/                 # 游戏组件（StatPanel, LogPanel, DebtDashboard, EventModal, HumanModelViewer, DeductionSandbox…）
-│   ├── composables/
-│   │   ├── useGame.ts            # 游戏状态与行动/事件主逻辑（含 CEE 集成）
+│   ├── composables/              # Vue 组合式函数（44个文件）
+│   │   ├── useGame.ts            # 主编排器（221行，统一导出所有子模块）
+│   │   ├── useGameState.ts       # 核心响应式状态管理
+│   │   ├── useGameActionExecutor.ts  # 行动执行编排
+│   │   ├── useGameEconomyActions.ts  # 经济操作（借贷/还款/赎身）
+│   │   ├── useGameEventResolver.ts   # 事件解析与触发
+│   │   ├── useGameComputed.ts    # 派生指标计算（生存压力、债务比等）
 │   │   ├── useGameStorage.ts     # localStorage 容器、槽位、防抖落盘
 │   │   ├── useGameStorage.helpers.ts  # 存档 schema、双写策略（可单测）
 │   │   ├── useEmotionalMemory.ts # 情感记忆 CEE 模块
-│   │   └── useCausalGraph.ts     # 因果图 CEE 模块
-│   ├── logic/
-│   │   ├── gameEngine.ts         # 纯函数规则（考试、分班、事件门控等）
+│   │   ├── useCausalGraph.ts     # 因果图 CEE 模块
+│   │   ├── useAiEventGenerator.ts    # AI 事件生成客户端
+│   │   └── useGameForIndex.ts    # 首页轻量级 composable（避免加载 CEE）
+│   ├── logic/                    # 纯函数规则引擎（19个文件）
+│   │   ├── gameEngine.ts         # 核心规则（1341行，考试/分班/事件门控/身体抵押/赎身）
+│   │   ├── gameEngine.redemption.spec.ts  # 赎身机制单元测试
 │   │   ├── emotionalMemoryLayer.ts   # CEE Phase 1: 情感记忆层
 │   │   ├── causalGraphEngine.ts      # CEE Phase 2: 因果图引擎
 │   │   ├── emergentEventGenerator.ts # CEE Phase 3: 涌现事件生成器
@@ -179,31 +234,191 @@ xiuxian-sim/
 │   ├── pages/
 │   │   ├── index.vue             # 开局页（存档槽、继续、新局）
 │   │   ├── game.vue              # 游戏主页（含推演按钮）
-│   │   └── dev/                  # 开发/实验页
+│   │   └── dev/                  # 开发/实验页（AI 事件生成器等）
 │   ├── types/
-│   │   └── game.ts               # TypeScript 类型定义（含 CEE 类型）
+│   │   └── game.ts               # TypeScript 类型定义（687行，含 CEE 类型）
 │   └── utils/
-│       ├── events.ts             # 事件辅助
+│       ├── events.ts             # 事件辅助函数
 │       └── rng.ts                # 随机数生成器（seeded）
 ├── data/
-│   ├── events.json               # 基础事件数据
-│   └── eventTemplates.json        # 涌现事件模板（CEE 驱动）
-├── docs/                         # 机制说明与流程文档
-├── public/models/                # 3D 模型资源
+│   ├── events.json               # 基础事件数据（1638行）
+│   └── eventTemplates.json       # 涌现事件模板（CEE 驱动）
+├── server/api/                   # Nuxt 服务端 API
+│   ├── generate-events.post.ts   # AI 事件生成接口（Groq LLM）
+│   ├── test-env.get.ts           # 环境变量测试接口
+│   └── test-groq.get.ts          # Groq API 连通性测试
+├── docs/                         # 项目文档
+│   ├── ARCHITECTURE.md           # 架构设计文档
+│   ├── 事件创作指南.md           # 面向非开发者的事件 JSON 编写说明
+│   ├── 交互流程图.md             # 页面流、核心循环与存档/契约要点
+│   ├── 系统逻辑总览.md           # 属性、行动数值、事件与联动关系
+│   └── 代码全流程与功能事件概率总览.md  # 从页面到引擎的概率门控总览
+├── public/models/                # 3D 模型资源（人体模型）
 └── nuxt.config.ts                # Nuxt 配置
 ```
 
-单测：`app/**/*.spec.ts`（Vitest，25 个测试文件，489 个测试用例）。
+单测：`app/**/*.spec.ts`（Vitest，25 个测试文件，657 个测试用例）。
 
-### 核心特性
+### 核心架构模式
 
-- **组件化架构**：原子组件 + 复合组件，易于维护和扩展
-- **状态管理**：基于 Vue 3 Composition API 的 `useGame` composable，无需 Vuex/Pinia
-- **因果涌现引擎**：5 个独立 CEE 模块，提供预测与涌现叙事
-- **类型安全**：完整的 TypeScript 类型定义，减少运行时错误
-- **数据驱动**：事件系统完全由 JSON 配置，非开发者也能贡献内容
-- **响应式设计**：支持桌面端、平板端和移动端
-- **全面测试**：Vitest 单元测试，100% 覆盖率
+**useGame 组合式架构**
+```
+useGame.ts (主编排器)
+├── useGameState()            # 核心响应式状态
+├── useGameStorage()          # 存档槽管理
+├── useCausalGraph()          # 因果图追踪（动态导入 + requestIdleCallback）
+├── socialNetwork             # 社交网络引擎
+├── useGameComputed()         # 派生指标（生存压力、债务/现金比等）
+├── useEmotionalMemoryStorage()  # 情感记忆存储
+├── useGameEconomyActions()   # 经济操作（借贷/还款/赎身）
+├── useGameEventResolver()    # 事件解析与触发
+├── useGameActionExecutor()   # 行动执行编排
+└── useAiEventGenerator()     # AI 事件生成（可选）
+```
+
+**设计原则**
+- **关注点分离**: 每个模块处理单一领域，便于维护和测试
+- **依赖注入**: 模块通过参数接收依赖，支持独立单元测试
+- **纯函数规则引擎**: `gameEngine.ts` 等文件提供可测试的纯函数，与 Vue 解耦
+- **向后兼容**: `useGame()` 返回 API 保持不变，子模块可独立扩展
+- **性能优化**: 首页使用轻量级 `useGameForIndex`，避免加载重型 CEE 模块
+
+---
+
+## 🔢 核心数值与公式
+
+### 考试分数计算
+
+```
+base = 400 + daoXin*8 + faLi*6.5 + rouTi*35 + focusBonus - debtPenalty - fatiguePenalty - workPenalty
+```
+
+### 事件触发概率
+
+```
+base = 0.15（单时段）
+delinquencyBonus = 逾期等级 × 0.05
+droughtBonus = min(干旱天数 × 0.08, 0.40)
+final = clamp(base + bonuses, 0.15, 0.70)
+```
+
+### 身体部位基础定价
+
+| 部位 | 基础价格 |
+|------|----------|
+| 左手掌 | 8,000 |
+| 右手掌 | 8,000 |
+| 左手臂 | 15,000 |
+| 右手臂 | 15,000 |
+| 左腿 | 18,000 |
+| 右腿 | 18,000 |
+
+动态估值受法力、肉体强度、疲劳、补剂劣化度影响。
+
+### 赎身公式
+
+```
+赎身金额 = lockedDebtAmount × 1.5 × 2^(n-1)
+（n 为累计抵押次数，倍率指数增长）
+```
+
+### 分班标准
+
+| 班级 | 分数要求 | 待遇 |
+|------|----------|------|
+| 示范班 | >= 600 | 餐补 160/日，专注 +10 |
+| 普通班 | >= 540 | 餐补 40/日，专注 +0 |
+| 末位班 | < 540 | 无餐补，专注 -6 |
+
+---
+
+## 🤖 AI 事件生成系统
+
+游戏集成了基于 Groq LLM 的 AI 事件生成系统，能够根据玩家实时状态动态生成个性化事件。
+
+### 技术架构
+
+- **服务端 API**：`/api/generate-events`（POST），接收玩家画像和游戏上下文
+- **LLM 模型**：llama-3.3-70b-versatile（Groq 平台）
+- **智能 Prompt**：状态感知指令 + 数值设计指南，确保生成数值与玩家处境匹配
+- **客户端集成**：`useAiEventGenerator` composable，提取派生状态（生存压力、债务比、属性危急程度）
+
+### 状态感知能力
+
+AI 生成系统会考虑以下派生指标：
+
+- **生存压力指数**（0~100）：综合现金、债务、属性状态计算
+- **债务/现金比**：判断玩家财务健康状况
+- **属性危急程度**：疲劳、专注是否处于危险阈值
+- **距离上次还款天数**：评估拖延倾向
+- **事件严重程度匹配**：根据压力等级调整事件强度
+
+### 数值设计指南
+
+AI 严格遵守以下规则：
+
+- 现金 < 500 时，避免生成大额支出选项
+- 债务 > 50,000 时，现金收益应在 1,000~3,000 才有意义
+- 疲劳 > 80 时，避免生成高疲劳代价选项
+- 选项之间必须有实质差异（安全/冒险/拒绝选项的权衡）
+
+### 配置方法
+
+在项目根目录创建 `.env` 文件：
+
+```bash
+GROQ_API_KEY=your_api_key_here
+```
+
+前往 [Groq Console](https://console.groq.com/) 获取 API Key。
+
+---
+
+## 💀 身体抵押与赎身机制
+
+### 身体偿还系统
+
+当债务无法偿还时，系统提供"身体偿还"选项：
+
+- 6 个身体部位可独立抵押（左右手掌、手臂、腿）
+- 每个部位有基础定价，动态估值受当前状态影响
+- 偿还后身体完整度下降，影响所有行动增益
+- 债务进入锁定状态（`bodyLocked`），无法通过普通还款解除
+
+### 赎身机制
+
+抵押后玩家可通过赎身解锁债务：
+
+- **倍率公式**：`1.5 × 2^(n-1)`（n 为累计抵押次数）
+- 第一次赎身：锁定金额的 1.5 倍
+- 第二次赎身：锁定金额的 3 倍
+- 第三次赎身：锁定金额的 6 倍
+- 现金不足时，系统会提示具体差额
+
+### 设计意图
+
+创造"越陷越深"但保留一丝希望的游戏体验，反映现实中的债务螺旋困境。
+
+---
+
+## 👤 社会画像系统
+
+系统对玩家进行多维度评估，影响事件触发和难度：
+
+```typescript
+interface SocialProfile {
+  financialRisk: 'low' | 'medium' | 'high' | 'extreme'    // 财务风险等级
+  educationCredit: 'discarded' | 'unstable' | 'investable' | 'preferred'  // 教育信用等级
+  compliance: 'resistant' | 'softened' | 'obedient' | 'domesticated'      // 制度顺从程度
+  bodyAsset: 'intact' | 'marked' | 'mortgaged' | 'depleted'               // 身体资产状态
+  tags: ProfileTagId[]  // 系统标签（如"高风险修士"、"可投资优等生"等）
+}
+```
+
+画像动态更新，影响：
+- 事件触发概率和类型偏好
+- AI 生成事件的情境设计
+- NPC 态度和互动方式
 
 ---
 
@@ -225,28 +440,43 @@ xiuxian-sim/
 
 **基础游戏系统**
 - 无限天三时段循环（清晨/午后/深夜）
-- 债务管理系统（本金、利息、逾期等级、催收事件）
+- 债务管理系统（本金、利息、逾期等级、系统费用池、催收事件）
 - 动态分班系统（月考成绩决定分班与待遇）
 - 随机事件系统（催收、推销、零工、契约等）
 - localStorage 存档（schema v2、双写、防抖）
 - 响应式主流程（桌面/平板/移动端）
 
 **因果涌现引擎（CEE）**
-- **情感记忆层**：记录玩家行为模式与情绪反应
-- **因果图引擎**：追踪因果链条，预测潜在事件
+- **情感记忆层**：记录玩家行为模式与情绪反应（最多 50 个会话）
+- **因果图引擎**：追踪因果链条，预测潜在事件（最多 1000 个节点）
 - **涌现事件生成器**：基于上下文动态生成独特叙事
-- **社会网络引擎**：NPC 关系动态演化
+- **社会网络引擎**：NPC 关系动态演化（affinity, trust, fear, respect）
 - **隐变量引擎**：追踪压力、焦虑等隐藏状态
 - **推演沙盘**：玩家可预览行为后果
 
 **契约反噬与心理主题收束**（无硬 Game Over）
+
+**AI 事件生成系统**
+- 集成 Groq LLM（llama-3.3-70b-versatile）
+- 状态感知 Prompt 设计，动态提取派生指标
+- 数值设计指南，确保生成数值与玩家处境匹配
+- 智能 JSON 解析与校验过滤
+
+**身体抵押与赎身机制**
+- 6 部位独立抵押系统，动态估值
+- 指数增长赎身公式，创造债务螺旋体验
+- 债务锁定状态机，与普通还款隔离
+
+**社会画像系统**
+- 四维评估：财务风险、教育信用、制度顺从、身体资产
+- 动态标签系统，影响事件触发偏好
 
 **代码架构**
 - `useGame` composable 重构为多个专用 composable（useGameEventResolver、useGameActionExecutor、useGameEconomyActions、useEmotionalMemoryStorage、useGameComputed）
 - 首页使用轻量级 `useGameForIndex` composable，避免加载重型 CEE 模块
 - 因果图引擎采用动态导入 + `requestIdleCallback` 延迟加载
 - SSR 水合问题修复（SaveSlotList 组件使用 `<ClientOnly>` 包裹）
-- 530 个测试用例，100% 单元测试覆盖
+- 657 个测试用例，100% 单元测试覆盖
 
 ### ✅ v1.1（已交付）
 
@@ -258,6 +488,31 @@ xiuxian-sim/
   - 修复 `storageVersion` 响应式断裂导致的 UI 不更新问题
   - 修复删除逻辑缺陷，新增独立 `deleteSlot()` 方法
   - 修复空存档下红色删除区域穿透问题
+
+### ✅ v1.2（已交付）
+
+**AI 事件生成系统**
+- 集成 Groq LLM API，支持动态生成个性化事件
+- 状态感知 Prompt 设计，提取生存压力、债务比、属性危急程度等派生指标
+- 数值设计指南，确保 AI 生成的数值与玩家当前状态匹配
+- 智能 JSON 解析器，支持多种响应格式
+- 服务端校验过滤，防止无效或模板化事件
+
+**身体抵押赎身机制**
+- 6 个身体部位独立抵押系统，动态估值算法
+- 指数增长赎身公式（1.5 × 2^(n-1)），创造"越陷越深"体验
+- 债务锁定状态机，与普通还款逻辑隔离
+- 经济操作集成，优化失败提示显示具体差额
+
+**社会画像系统完善**
+- 四维评估体系完整实现
+- 动态标签系统，影响事件触发概率和 AI 生成偏好
+- 派生指标计算（生存压力指数、债务/现金比、事件严重程度匹配）
+
+**测试与优化**
+- 新增 168 个测试用例（总计 657 个）
+- 赎身机制完整单元测试覆盖
+- CEE 模块性能优化（动态导入 + 延迟加载）
 
 ### 📋 下一里程碑（v1.2 规划中）
 
@@ -323,6 +578,17 @@ xiuxian-sim/
 - 保持组件单一职责
 - 编写清晰的注释和文档
 - 运行 `npm run validate:events` 验证事件数据
+- 运行 `npm run test` 确保测试通过
+- 遵循项目代码质量标准（功能正确性、设计架构、可读性、健壮性、规范一致性、性能安全）
+
+### 事件创作工作流
+
+1. 阅读 [事件创作指南](./docs/事件创作指南.md)
+2. 复制 `data/events.json` 中的现有事件
+3. 修改 `id`（确保唯一）、`title`、`body`、`options`
+4. 确保 `effects` 使用合法的 target 字段
+5. 运行 `npm run validate:events` 验证格式
+6. 提交 Pull Request 或在 Issue 中分享
 
 ---
 

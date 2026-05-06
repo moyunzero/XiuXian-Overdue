@@ -43,6 +43,39 @@ function extractGenerationContext(gameState: GameState) {
   // 提取近期触发事件（用于避免重复）
   const recentEvents = extractRecentEvents(gameState)
 
+  // 计算派生状态
+  const totalDebt = gameState.econ.debtPrincipal + gameState.econ.debtInterestAccrued + gameState.econ.collectionFee
+  const cash = gameState.econ.cash
+  const debtToCashRatio = cash > 0 ? Math.round(totalDebt / cash * 10) / 10 : 999
+  const daysSinceLastPayment = gameState.school.day - gameState.econ.lastPaymentDay
+
+  // 生存压力指数 (0-100)
+  const fatiguePressure = gameState.stats.fatigue
+  const debtPressure = Math.min(100, Math.log10(1 + totalDebt / 1000) * 25)
+  const delinquencyPressure = gameState.econ.delinquency * 15
+  const focusPressure = 100 - gameState.stats.focus
+  const survivalPressure = Math.round(
+    fatiguePressure * 0.25 + debtPressure * 0.3 + delinquencyPressure * 0.25 + focusPressure * 0.2
+  )
+
+  // 属性危急程度
+  const attributeCrisis: Record<string, string> = {}
+  if (gameState.stats.fatigue > 85) attributeCrisis.fatigue = 'critical'
+  else if (gameState.stats.fatigue > 70) attributeCrisis.fatigue = 'warning'
+  
+  if (gameState.stats.focus < 15) attributeCrisis.focus = 'critical'
+  else if (gameState.stats.focus < 30) attributeCrisis.focus = 'warning'
+
+  // 当前适合的事件严重程度
+  let eventSeverity: 'minor' | 'moderate' | 'major'
+  if (survivalPressure > 70 || gameState.econ.delinquency >= 3) {
+    eventSeverity = 'major'
+  } else if (survivalPressure > 40 || gameState.econ.delinquency >= 1) {
+    eventSeverity = 'moderate'
+  } else {
+    eventSeverity = 'minor'
+  }
+
   return {
     profile,
     gameState: {
@@ -60,6 +93,14 @@ function extractGenerationContext(gameState: GameState) {
         focus: gameState.stats.focus,
         faLi: gameState.stats.faLi,
         rouTi: gameState.stats.rouTi
+      },
+      derivedState: {
+        totalDebt: Math.round(totalDebt),
+        debtToCashRatio,
+        survivalPressure,
+        attributeCrisis,
+        eventSeverity,
+        daysSinceLastPayment
       }
     },
     recentEvents

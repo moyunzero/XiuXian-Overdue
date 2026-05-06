@@ -296,7 +296,7 @@ describe('任务 9: AI 生成流程集成测试', () => {
           title: '大额事件',
           body: '描述',
           type: 'collection',
-          options: [{ id: 'o1', label: '选项', effects: [{ kind: 'econ' as const, delta: 10000 }] }]
+          options: [{ id: 'o1', label: '选项', effects: [{ kind: 'econ' as const, target: 'cash', delta: 10000 }] }]
         }
       ]
 
