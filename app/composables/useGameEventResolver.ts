@@ -301,15 +301,23 @@ export function useGameEventResolver(
       // 优先使用 PendingEvent.options 中自带的 effects（支持动态事件和涌现事件）
       const pendingOption = event.options.find(opt => opt.id === optionId)
       if (pendingOption?.effects) {
+        // 提取叙事文本
+        const logEffects = pendingOption.effects.filter(e => e.kind === 'log')
+        const narrativeText = logEffects.map(e => e.detail).join(' ')
+
+        // 应用所有效果（压制内部 log，由下方统一处理）
         applyEventEffects(g, pendingOption.effects, { suppressLogEffects: true })
-        if (event.eventId) {
-          const definition = ALL_EVENTS.find(def => def.id === event.eventId)
-          if (definition) {
-            const t = definition.tone
-            const logTone = t === 'danger' ? 'danger' : t === 'warn' ? 'warn' : t === 'ok' ? 'ok' : 'info'
-            addLog(g, `制度记录：${definition.title}`, buildInstitutionalEventLogDetail(pendingOption.effects), logTone)
-          }
-        }
+
+        // 生成数值摘要
+        const numericSummary = buildInstitutionalEventLogDetail(pendingOption.effects)
+
+        // 剧情反馈：叙事文本 + 数值变化
+        const logTitle = logEffects.length > 0 ? logEffects[0].title : '事件记录'
+        const fullDetail = narrativeText
+          ? `${narrativeText}（${numericSummary.replace('变更摘要：', '').replace('。', '')}）`
+          : numericSummary
+        const logToneFromNarrative = logEffects.length > 0 ? logEffects[0].tone : 'info'
+        addLog(g, logTitle, fullDetail, logToneFromNarrative)
       } else if (event.eventId) {
         // 降级：如果 PendingEvent 中没有 effects，尝试从 ALL_EVENTS 查找
         const definition = ALL_EVENTS.find(def => def.id === event.eventId)
@@ -319,10 +327,23 @@ export function useGameEventResolver(
           const option = definition.options.find(opt => opt.id === optionId)
           if (!option) addLog(g, '事件配置异常', `事件 ${event.eventId} 未找到选项 ${optionId}。`, 'warn')
           else {
+            // 提取叙事文本
+            const logEffects = option.effects.filter(e => e.kind === 'log')
+            const narrativeText = logEffects.map(e => e.detail).join(' ')
+
+            // 应用所有效果（压制内部 log，由下方统一处理）
             applyEventEffects(g, option.effects, { suppressLogEffects: true })
-            const t = definition.tone
-            const logTone = t === 'danger' ? 'danger' : t === 'warn' ? 'warn' : t === 'ok' ? 'ok' : 'info'
-            addLog(g, `制度记录：${definition.title}`, buildInstitutionalEventLogDetail(option.effects), logTone)
+
+            // 生成数值摘要
+            const numericSummary = buildInstitutionalEventLogDetail(option.effects)
+
+            // 剧情反馈：叙事文本 + 数值变化
+            const logTitle = logEffects.length > 0 ? logEffects[0].title : '事件记录'
+            const fullDetail = narrativeText
+              ? `${narrativeText}（${numericSummary.replace('变更摘要：', '').replace('。', '')}）`
+              : numericSummary
+            const logToneFromNarrative = logEffects.length > 0 ? logEffects[0].tone : 'info'
+            addLog(g, logTitle, fullDetail, logToneFromNarrative)
           }
         }
       }
