@@ -5,7 +5,7 @@
 import type { EventDefinition } from '~/types/game'
 
 const DB_NAME = 'xiuxian-events-db'
-const DB_VERSION = 1
+const DB_VERSION = 2
 const STORE_NAME = 'dynamic-events'
 const SEED_IMPORTED_KEY = '__seed_imported_flag__'
 
