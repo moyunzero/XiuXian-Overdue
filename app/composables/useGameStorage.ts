@@ -251,6 +251,31 @@ export function useGameStorage() {
       }
     }
 
+    // 方案 A：画像历史记录迁移（制度档案）
+    if (!Array.isArray(state.profileHistory)) {
+      state.profileHistory = []
+      // 如果旧档有 profileSnapshot 但无历史，自动创建第一条记录
+      if (state.profileSnapshot && typeof state.profileSnapshot === 'object') {
+        try {
+          const { calculateRiskScore, generateSystemNote, buildProfileDigest } = Engine
+          const profile = state.profileSnapshot.profile
+          const digest = buildProfileDigest(state, undefined)
+          const riskScore = calculateRiskScore(profile)
+          const systemNote = generateSystemNote(profile)
+          state.profileHistory.push({
+            timestamp: Date.now(),
+            digest,
+            riskScore,
+            trigger: '旧档迁移',
+            systemNote
+          })
+        } catch {
+          // 迁移失败不影响游戏运行
+          state.profileHistory = []
+        }
+      }
+    }
+
     game.value = state
     activeSlot.value = id
     return true

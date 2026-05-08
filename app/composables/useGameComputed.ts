@@ -35,11 +35,43 @@ export function useGameComputed(game: Ref<GameState>) {
   const refreshProfileSnapshot = () => {
     const g = game.value
     const currentProfile = Engine.buildSocialProfile(g)
-    const version = (g.profileSnapshot?.profileVersion ?? 0) + 1
+    const prevSnapshot = g.profileSnapshot
+    const version = (prevSnapshot?.profileVersion ?? 0) + 1
+
+    // 检测画像是否发生变化
+    const hasProfileChanged = !prevSnapshot || 
+      JSON.stringify(prevSnapshot.profile) !== JSON.stringify(currentProfile)
+
     g.profileSnapshot = {
       profile: currentProfile,
       lastProfileUpdateDay: g.school.day,
       profileVersion: version
+    }
+
+    // 如果画像变化，记录到历史
+    if (hasProfileChanged) {
+      const digest = Engine.buildProfileDigest(g, prevSnapshot?.profile)
+      const riskScore = Engine.calculateRiskScore(currentProfile)
+      const systemNote = Engine.generateSystemNote(currentProfile)
+
+      const historyEntry = {
+        timestamp: Date.now(),
+        digest,
+        riskScore,
+        trigger: prevSnapshot ? '画像变更' : '初始建档',
+        systemNote
+      }
+
+      if (!g.profileHistory) {
+        g.profileHistory = []
+      }
+
+      g.profileHistory.push(historyEntry)
+
+      // 限制历史记录最多50条
+      if (g.profileHistory.length > 50) {
+        g.profileHistory = g.profileHistory.slice(-50)
+      }
     }
   }
 

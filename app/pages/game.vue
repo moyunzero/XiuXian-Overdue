@@ -358,6 +358,7 @@ watch(
       </Pill>
       <span class="Spacer" />
       <Pill>存档：{{ activeSlot }}</Pill>
+      <Button size="sm" variant="secondary" @click="navigateTo('/profile')">档案</Button>
       <Button
         v-if="summaryAvailable"
         size="sm"

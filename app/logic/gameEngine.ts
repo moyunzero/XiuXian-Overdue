@@ -1243,6 +1243,72 @@ export function buildProfileDigest(g: GameState, prevProfile?: SocialProfile): P
   }
 }
 
+/** 制度档案：综合风险评分计算（0-100） */
+export function calculateRiskScore(profile: SocialProfile): number {
+  const weights = {
+    financialRisk: 0.35,
+    educationCredit: 0.20,
+    bodyAsset: 0.25,
+    compliance: 0.20
+  }
+
+  const scoreMap: Record<string, Record<string, number>> = {
+    financialRisk: { low: 10, medium: 40, high: 70, extreme: 95 },
+    educationCredit: { preferred: 10, investable: 40, unstable: 70, discarded: 90 },
+    bodyAsset: { intact: 5, marked: 30, mortgaged: 65, depleted: 95 },
+    compliance: { resistant: 70, softened: 50, obedient: 30, domesticated: 85 }
+  }
+
+  const score =
+    weights.financialRisk * (scoreMap.financialRisk[profile.financialRisk] ?? 50) +
+    weights.educationCredit * (scoreMap.educationCredit[profile.educationCredit] ?? 50) +
+    weights.bodyAsset * (scoreMap.bodyAsset[profile.bodyAsset] ?? 50) +
+    weights.compliance * (scoreMap.compliance[profile.compliance] ?? 50)
+
+  return Math.round(Math.max(0, Math.min(100, score)))
+}
+
+/** 制度档案：系统评语生成 */
+export function generateSystemNote(profile: SocialProfile): string {
+  const tags = profile.tags
+  const hasTag = (tag: string) => tags.includes(tag as any)
+
+  // 高风险 + 身体抵押
+  if (hasTag('高风险修士') && (hasTag('已标记资产') || hasTag('身体估值下降'))) {
+    return '该对象已进入身体偿债阶段，风险等级极高，建议加强催收频率'
+  }
+
+  // 高风险 + 可投资
+  if (hasTag('高风险修士') && hasTag('可投资优等生')) {
+    return '该对象呈现矛盾特征：债务风险高但教育价值突出，建议持续观察'
+  }
+
+  // 驯化 + 稳定
+  if (hasTag('已进入稳定驯化区') && hasTag('低偿付能力')) {
+    return '该对象表现良好，符合制度预期，维持当前待遇'
+  }
+
+  // 催收优先级
+  if (hasTag('催收优先级上升')) {
+    return '该对象偿付意愿下降，建议提升催收强度'
+  }
+
+  // 深度拆解
+  if (hasTag('深度拆解候选')) {
+    return '该对象已具备完整拆解条件，可进入资产处置流程'
+  }
+
+  // 默认评语
+  const riskLabels: Record<string, string> = {
+    low: '低风险',
+    medium: '中等风险',
+    high: '高风险',
+    extreme: '极高风险'
+  }
+
+  return `该对象当前评级：${riskLabels[profile.financialRisk] || '未知'}，建议按标准流程处理`
+}
+
 // ========== 方案 A：反画像路线 ==========
 
 export type AntiProfileActionType = 'resist_domination' | 'maintain_autonomy' | 'exploit_gaps' | 'false_compliance'

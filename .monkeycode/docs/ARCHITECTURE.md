@@ -10,6 +10,7 @@
 graph TB
     subgraph "Presentation Layer 表现层"
         PAGES[pages/game.vue<br>游戏主页面]
+        PROFILE[pages/profile.vue<br>制度档案页面]
         DEDUCTION[components/game/<br>DeductionSandbox.vue<br>推演沙盘]
         EVENT_MODAL[components/game/<br>EventModal.vue<br>事件弹窗]
         HUMAN_VIEWER[components/<br>HumanViewer.vue<br>3D人体模型]
@@ -26,6 +27,7 @@ graph TB
         useGameEvents[useGame.events.ts<br>事件处理]
         useGameEconomy[useGame.economy.ts<br>经济系统]
         useGameDayCycle[useGame.dayCycle.ts<br>日期循环]
+        useGameComputed[useGameComputed.ts<br>派生指标计算]
     end
 
     subgraph "Logic Layer 逻辑引擎层"
@@ -45,6 +47,8 @@ graph TB
     end
 
     PAGES --> useGame
+    PROFILE --> useGame
+    PROFILE --> gameEngine
     DEDUCTION --> useCausalGraph
     EVENT_MODAL --> useGame
     HUMAN_VIEWER --> useGame
@@ -57,11 +61,13 @@ graph TB
     useGame --> useCausalGraph
     useGame --> useEmotionalMemory
     useGame --> useGameStorage
+    useGame --> useGameComputed
 
     useGameActions --> gameEngine
     useGameEvents --> gameEngine
     useGameEconomy --> gameEngine
     useGameDayCycle --> gameEngine
+    useGameComputed --> gameEngine
 
     useCausalGraph --> causalGraphEngine
     useEmotionalMemory --> emotionalMemoryLayer

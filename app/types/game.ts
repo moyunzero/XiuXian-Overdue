@@ -319,6 +319,9 @@ export interface GameState {
   /** 方案 A：画像快照（持久化） */
   profileSnapshot?: ProfileSnapshot
 
+  /** 方案 A：画像历史记录（制度档案） */
+  profileHistory?: ProfileHistoryEntry[]
+
   /** 方案 A：反画像路线追踪 - 连续偏离画像评估的天数 */
   antiProfileDayStreak?: number
 
@@ -413,6 +416,15 @@ export interface ProfileDigest {
   primaryLabel: string
   tagsSummary: string
   recentChanges: string[]
+}
+
+/** 制度档案：画像历史记录条目 */
+export interface ProfileHistoryEntry {
+  timestamp: number           // 评估时间戳
+  digest: ProfileDigest       // 画像快照（四维等级+标签列表）
+  riskScore: number           // 综合风险评分
+  trigger: string             // 触发评估的原因
+  systemNote: string          // 系统备注（根据画像生成的评语）
 }
 
 // ========================================
