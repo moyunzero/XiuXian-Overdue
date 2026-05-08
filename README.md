@@ -1,5 +1,7 @@
 # 修仙欠费中
 
+<div align="center">
+
 > **在压迫中挣扎求存 · 在绝望中寻找出路**  
 > 一款探索修仙世界中阶级固化、债务螺旋与生存压力的赛博朋克风格模拟经营游戏
 
@@ -8,7 +10,7 @@
 [![Nuxt](https://img.shields.io/badge/Nuxt-4.3.1-00DC82?logo=nuxt.js)](https://nuxt.com)
 [![Vue](https://img.shields.io/badge/Vue-3.5.30-4FC08D?logo=vue.js)](https://vuejs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript)](https://www.typescriptlang.org)
-[![Vitest](https://img.shields.io/badge/Tests-657%20passing-729B1B?logo=vitest)](./app/)
+[![Vitest](https://img.shields.io/badge/Tests-655%20passing-729B1B?logo=vitest)](./app/)
 [![License](https://img.shields.io/badge/License-学习交流-blue)](./LICENSE)
 
 [在线游玩](https://no-money-xiuxian.vercel.app/) · [快速开始](#-快速开始) · [贡献指南](#-贡献指南) · [事件创作](./docs/事件创作指南.md)
@@ -23,7 +25,8 @@
 - **因果涌现引擎**：5 个独立模块模拟情感记忆、因果链、社会网络等复杂系统
 - **身体抵押赎身机制**：指数增长赎身公式，创造"越陷越深"的债务螺旋体验
 - **社会画像系统**：四维评估玩家行为模式，动态影响事件触发和难度
-- **657 个单元测试**：100% 覆盖核心逻辑，确保代码质量和可维护性
+- **制度档案页面**：记录画像历史、风险评分演变与标签时间线，赛博朋克风格可视化
+- **655 个单元测试**：100% 覆盖核心逻辑，确保代码质量和可维护性
 
 ---
 
@@ -73,6 +76,7 @@
 - **身体抵押与赎身机制**：6 个身体部位可抵押偿还债务，抵押后债务锁定，需支付指数增长的赎身金解锁
 - **契约反噬系统**：请神契约的缠绕度与监工 vigilance 追踪，反噬倒计时强制选择
 - **社会画像系统**：财务风险、教育信用、制度顺从、身体资产四维评估，动态影响事件触发
+- **制度档案页面**：`/profile` 路由，风险评分仪表盘（conic-gradient 圆形仪表盘）、标签时间线、评估历史表格、系统评语生成，赛博朋克深色主题
 - **随机事件系统**：催收提醒、老师推销、零工通知、请神契约等多种事件
 - **因果涌现引擎（CEE）**：情感记忆、因果图预测、涌现事件生成、社会网络、隐变量追踪
 - **推演沙盘**：玩家可预览行为后果，辅助决策
@@ -88,7 +92,7 @@
 
 ### 技术特性
 
-- **现代化技术栈**：Nuxt 3 + Vue 3 Composition API + TypeScript
+- **现代化技术栈**：Nuxt 4 + Vue 3 Composition API + TypeScript
 - **原生 CSS 设计系统**：完整的 CSS 变量系统，支持赛博朋克主题
 - **响应式设计**：支持桌面端、平板端和移动端
 - **组件化架构**：原子组件（Button, Card, ProgressBar, Pill）+ 复合组件（StatPanel, LogPanel, DebtDashboard, EventModal, DeductionSandbox）
@@ -96,7 +100,7 @@
 - **因果涌现引擎**：5 个独立 CEE 模块（情感记忆、因果图、涌现事件、社会网络、隐变量）
 - **AI 事件生成**：服务端集成 Groq API，客户端智能 Prompt 设计，状态感知数值生成
 - **类型安全**：完整的 TypeScript 类型定义（687 行，含 CEE 类型）
-- **100% 单元测试覆盖**：Vitest 框架，657 个测试用例，覆盖核心逻辑与边缘场景
+- **100% 单元测试覆盖**：Vitest 框架，655 个测试用例，覆盖核心逻辑与边缘场景
 - **性能优化**：CEE 模块动态导入 + `requestIdleCallback` 延迟加载，首页轻量级 composable
 
 ---
@@ -139,8 +143,8 @@
 
 ```bash
 # 克隆仓库
-git clone https://github.com/your-username/xiuxian-sim.git
-cd xiuxian-sim
+git clone https://github.com/moyunzero/XiuXian-Overdue.git
+cd XiuXian-Overdue
 
 # 安装依赖（选择一种）
 npm install
@@ -187,7 +191,7 @@ npm run validate:events
 
 ## 🧪 测试
 
-项目使用 Vitest 作为测试框架，包含 657 个测试用例：
+项目使用 Vitest 作为测试框架，包含 655 个测试用例（35 个测试文件）：
 
 - **游戏引擎测试**：考试分数计算、分班逻辑、事件门控
 - **经济系统测试**：借贷、还款、利息计算、逾期处理
@@ -234,6 +238,7 @@ xiuxian-sim/
 │   ├── pages/
 │   │   ├── index.vue             # 开局页（存档槽、继续、新局）
 │   │   ├── game.vue              # 游戏主页（含推演按钮）
+│   │   ├── profile.vue           # 制度档案页（风险仪表盘、标签时间线、评估历史）
 │   │   └── dev/                  # 开发/实验页（AI 事件生成器等）
 │   ├── types/
 │   │   └── game.ts               # TypeScript 类型定义（687行，含 CEE 类型）
@@ -250,14 +255,12 @@ xiuxian-sim/
 ├── docs/                         # 项目文档
 │   ├── ARCHITECTURE.md           # 架构设计文档
 │   ├── 事件创作指南.md           # 面向非开发者的事件 JSON 编写说明
-│   ├── 交互流程图.md             # 页面流、核心循环与存档/契约要点
-│   ├── 系统逻辑总览.md           # 属性、行动数值、事件与联动关系
-│   └── 代码全流程与功能事件概率总览.md  # 从页面到引擎的概率门控总览
+│   └── screenshots/              # 游戏截图资源
 ├── public/models/                # 3D 模型资源（人体模型）
 └── nuxt.config.ts                # Nuxt 配置
 ```
 
-单测：`app/**/*.spec.ts`（Vitest，25 个测试文件，657 个测试用例）。
+单测：`app/**/*.spec.ts`（Vitest，35 个测试文件，655 个测试用例）。
 
 ### 核心架构模式
 
@@ -425,113 +428,70 @@ interface SocialProfile {
 ## 📚 文档
 
 - [事件创作指南](./docs/事件创作指南.md) — 面向非开发者的事件 JSON 编写说明
-- [交互流程图](./docs/交互流程图.md) — 页面流、核心循环与存档/契约要点
-- [系统逻辑总览](./docs/系统逻辑总览.md) — 属性、行动数值、事件与联动关系
-- [代码全流程与功能事件概率总览](./docs/代码全流程与功能事件概率总览.md) — 从页面到 `useGame` / 引擎与概率门控的总览（适合评审与 onboarding）
-- [UI/UX 设计规范](./.kiro/specs/ui-ux-game-optimization/) — UI/UX 设计系统（若目录存在）
+- [架构设计文档](./docs/ARCHITECTURE.md) — 系统架构与技术选型
 
 ---
 
 ## 🎯 产品路线图
 
-### ✅ v1.0（已交付）
+> **核心叙事**: "修仙不是逆天改命，而是无休止的还贷"
 
-单机 Web 可玩版本，包含以下核心功能：
+### ✅ v1.0 ~ v1.2（已交付）
 
-**基础游戏系统**
-- 无限天三时段循环（清晨/午后/深夜）
-- 债务管理系统（本金、利息、逾期等级、系统费用池、催收事件）
-- 动态分班系统（月考成绩决定分班与待遇）
-- 随机事件系统（催收、推销、零工、契约等）
-- localStorage 存档（schema v2、双写、防抖）
-- 响应式主流程（桌面/平板/移动端）
+详见上方「核心特性」章节。
 
-**因果涌现引擎（CEE）**
-- **情感记忆层**：记录玩家行为模式与情绪反应（最多 50 个会话）
-- **因果图引擎**：追踪因果链条，预测潜在事件（最多 1000 个节点）
-- **涌现事件生成器**：基于上下文动态生成独特叙事
-- **社会网络引擎**：NPC 关系动态演化（affinity, trust, fear, respect）
-- **隐变量引擎**：追踪压力、焦虑等隐藏状态
-- **推演沙盘**：玩家可预览行为后果
+### 📋 v1.3 画像驱动世界（近阶段）
 
-**契约反噬与心理主题收束**（无硬 Game Over）
+**让画像从隐藏规则层，变成玩家能持续感知的制度身份系统。**
 
-**AI 事件生成系统**
-- 集成 Groq LLM（llama-3.3-70b-versatile）
-- 状态感知 Prompt 设计，动态提取派生指标
-- 数值设计指南，确保生成数值与玩家处境匹配
-- 智能 JSON 解析与校验过滤
+- **画像标签可见化**: 主界面「身份标识」区域，按类型着色（红/蓝/绿/紫），悬停显示标签含义
+- **画像驱动事件池分流**: 不同画像进入不同事件池，同一事件呈现不同语气和方案
+- **NPC 差异化反馈**: 借贷面板信用评估、打工面板任务分配、NPC 对话文案随画像标签变化
+- **画像变更结算报告**: 周结算时显示旧标签 → 新标签、触发原因、影响说明，用冷制度口吻呈现
 
-**身体抵押与赎身机制**
-- 6 部位独立抵押系统，动态估值
-- 指数增长赎身公式，创造债务螺旋体验
-- 债务锁定状态机，与普通还款隔离
+### 📋 v1.4 身体资产金融化（中阶段前期）
 
-**社会画像系统**
-- 四维评估：财务风险、教育信用、制度顺从、身体资产
-- 动态标签系统，影响事件触发偏好
+**让身体抵押从"惩罚性减债"升级为被金融化、分级定价和持续折旧的资产系统。**
 
-**代码架构**
-- `useGame` composable 重构为多个专用 composable（useGameEventResolver、useGameActionExecutor、useGameEconomyActions、useEmotionalMemoryStorage、useGameComputed）
-- 首页使用轻量级 `useGameForIndex` composable，避免加载重型 CEE 模块
-- 因果图引擎采用动态导入 + `requestIdleCallback` 延迟加载
-- SSR 水合问题修复（SaveSlotList 组件使用 `<ClientOnly>` 包裹）
-- 657 个测试用例，100% 单元测试覆盖
+- **部位差异化用途**: 手掌影响精细操作、手臂影响力量行动、腿影响移动类行动
+- **身体折旧与估值市场**: 随时间折旧，定期生成"身体资产评估报告"
+- **画像标签联动**: 身体资产维度扩展为 5 级细粒度，NPC 称呼随标签变化
+- **世界反馈变化**: 解锁"身体黑市"事件池、学校"残障修士勤工俭学项目"
 
-### ✅ v1.1（已交付）
+### 📋 v1.5 制度命运切片（中阶段后期）
 
-**首页存档列表 UI 重新设计**
-- 响应式网格布局（桌面 4 列 → 平板 3 列 → 移动端 2 列 → 小屏 1 列）
-- 存档卡片视觉重构（内边距/圆角优化、债务压力进度条动态渐变、空状态圆形虚线容器、活跃状态勾选徽章）
-- SwipeableCard 滑动删除交互集成（带确认弹窗）
-- 存档管理 Bug 修复：
-  - 修复 `storageVersion` 响应式断裂导致的 UI 不更新问题
-  - 修复删除逻辑缺陷，新增独立 `deleteSlot()` 方法
-  - 修复空存档下红色删除区域穿透问题
+**让每局结束后，玩家得到一份能够被分享、被讨论、被记住的"命运报告"。**
 
-### ✅ v1.2（已交付）
+- **命运判定卡升级**: 多页面制度档案报告（封面/画像轨迹/身体资产/债务总结/标签词云）
+- **可分享卡片生成**: 赛博朋克风格长图，关键数据高亮，底部带 slogan
+- **多周目命运摘要**: 存档列表页显示已完成局数的简要摘要
+- **驯化与麻木归档卡**: 记录契约进度、精神崩溃次数，表达"越有效率越不像人"
 
-**AI 事件生成系统**
-- 集成 Groq LLM API，支持动态生成个性化事件
-- 状态感知 Prompt 设计，提取生存压力、债务比、属性危急程度等派生指标
-- 数值设计指南，确保 AI 生成的数值与玩家当前状态匹配
-- 智能 JSON 解析器，支持多种响应格式
-- 服务端校验过滤，防止无效或模板化事件
+### 📋 v2.0 多周目命运档案（远阶段）
 
-**身体抵押赎身机制**
-- 6 个身体部位独立抵押系统，动态估值算法
-- 指数增长赎身公式（1.5 × 2^(n-1)），创造"越陷越深"体验
-- 债务锁定状态机，与普通还款逻辑隔离
-- 经济操作集成，优化失败提示显示具体差额
+**把项目从单局体验推向"多局命运实验"——世界记得你，而不是只记得你的数值。**
 
-**社会画像系统完善**
-- 四维评估体系完整实现
-- 动态标签系统，影响事件触发概率和 AI 生成偏好
-- 派生指标计算（生存压力指数、债务/现金比、事件严重程度匹配）
+- **轮回继承系统**: 信用残留、身体记忆、制度标签继承、反向继承（反画像路线）
+- **世界记得你**: NPC 对话中的"前世记忆"片段，特定轨迹解锁专属事件
+- **命运档案库**: 时间轴展示所有周目，支持跨周目画像轨迹对比
+- **挣脱系统识别路线**: 连续反画像路线触发"系统无法归类"特殊事件链，导向隐藏结局
 
-**测试与优化**
-- 新增 168 个测试用例（总计 657 个）
-- 赎身机制完整单元测试覆盖
-- CEE 模块性能优化（动态导入 + 延迟加载）
+### 版本判断标准
 
-### 📋 下一里程碑（v1.2 规划中）
+每个功能上线前，必须通过以下四问检验：
+1. 是否强化了"被定义感"？
+2. 是否让画像对世界反馈更真实？
+3. 是否增加了短利与长锁的张力？
+4. 是否提高了项目的可辨识度？
 
-- **成就系统**：记录玩家的"生存轨迹"
-- **AI 辅助事件生成工具**：集成免费本地大模型（WebLLM/Qwen2.5），开发 `/dev/event-generator` 页面，辅助批量创作高质量事件 JSON
-- **更多涌现事件模板**：结合 AI 工具丰富事件多样性，目标新增 20-30 个涌现事件
-- **NPC 关系追踪面板**：可视化展示 NPC 态度变化
-- **隐变量 UI**：压力/焦虑等状态可视化
-- **高级设置表单交互优化**：提升配置体验
+### 不优先做的功能
 
-### 📋 长期设想（v2.0+）
-- **试功/试药系统**：企业试功事件，可能造成内伤/奖励现金/获得新功法
-- **法赛系统**：奖金驱动的竞赛，投入资源冲刺 vs 保守稳债
-- **灵根租赁系统**：短期效率暴涨 vs 债务与副作用上升
-- **静室系统**：付费获得更好的修炼环境
-- **老师推销系统扩展**：更多"正规货"与羞辱选项
-- **债务重组系统扩展**：学校补助、班主任介入
-- **多结局系统**：根据玩家选择触发不同结局
-- **云存档与账号系统**（需评估与「孤立受压」主题的一致性）
+- 成就系统、签到系统（与主轴无关）
+- 战力排行榜（不符合反爽文定位）
+- 云存档与账号系统（核心机制未站稳前不优先）
+- 多玩家互动/排行榜（破坏孤立受压的主题一致性）
+
+> 详细路线图设计参考: [docs/plans/2026-05-08-product-roadmap-design.md](./docs/plans/2026-05-08-product-roadmap-design.md)
 
 ---
 
@@ -551,14 +511,14 @@ interface SocialProfile {
 
 #### 2. 报告 Bug
 
-在 [Issues](https://github.com/your-username/xiuxian-sim/issues) 中提交 Bug 报告，请包含：
+在 [Issues](https://github.com/moyunzero/XiuXian-Overdue/issues) 中提交 Bug 报告，请包含：
 - 复现步骤
 - 预期行为 vs 实际行为
 - 截图或录屏（如果可能）
 
 #### 3. 提出建议
 
-在 [Discussions](https://github.com/your-username/xiuxian-sim/discussions) 中分享你的想法：
+在 [Discussions](https://github.com/moyunzero/XiuXian-Overdue/discussions) 中分享你的想法：
 - 新的游戏机制
 - UI/UX 改进建议
 - 平衡性调整
@@ -624,9 +584,9 @@ interface SocialProfile {
 
 如有问题或建议，欢迎通过以下方式联系：
 
-- 提交 [Issue](https://github.com/your-username/xiuxian-sim/issues)
-- 发起 [Discussion](https://github.com/your-username/xiuxian-sim/discussions)
-- 提交 [Pull Request](https://github.com/your-username/xiuxian-sim/pulls)
+- 提交 [Issue](https://github.com/moyunzero/XiuXian-Overdue/issues)
+- 发起 [Discussion](https://github.com/moyunzero/XiuXian-Overdue/discussions)
+- 提交 [Pull Request](https://github.com/moyunzero/XiuXian-Overdue/pulls)
 
 ---
 
@@ -634,7 +594,7 @@ interface SocialProfile {
 
 如果你喜欢这个项目，请给我们一个 Star ⭐️
 
-[![Star History Chart](https://api.star-history.com/svg?repos=your-username/xiuxian-sim&type=Date)](https://star-history.com/#your-username/xiuxian-sim&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=moyunzero/XiuXian-Overdue&type=Date)](https://star-history.com/#moyunzero/XiuXian-Overdue&Date)
 
 ---
 
