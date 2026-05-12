@@ -5,7 +5,7 @@
 > **在压迫中挣扎求存 · 在绝望中寻找出路**  
 > 一款探索修仙世界中阶级固化、债务螺旋与生存压力的赛博朋克风格模拟经营游戏
 
-[![在线体验](https://img.shields.io/badge/🎮_在线体验-no--money--xiuxian.vercel.app-00DC82?style=for-the-badge)](https://no-money-xiuxian.vercel.app/)
+[![在线体验](https://img.shields.io/badge/🎮_在线体验-no--money--xiuxian.vercel.app-00DC82?style=for-the-badge)](https://debt-xiuxian.online/)
 
 [![Nuxt](https://img.shields.io/badge/Nuxt-4.3.1-00DC82?logo=nuxt.js)](https://nuxt.com)
 [![Vue](https://img.shields.io/badge/Vue-3.5.30-4FC08D?logo=vue.js)](https://vuejs.org)
@@ -13,7 +13,7 @@
 [![Vitest](https://img.shields.io/badge/Tests-655%20passing-729B1B?logo=vitest)](./app/)
 [![License](https://img.shields.io/badge/License-学习交流-blue)](./LICENSE)
 
-[在线游玩](https://no-money-xiuxian.vercel.app/) · [快速开始](#-快速开始) · [贡献指南](#-贡献指南) · [事件创作](./docs/事件创作指南.md)
+[在线游玩](https://debt-xiuxian.online/) · [快速开始](#-快速开始) · [贡献指南](#-贡献指南) · [事件创作](./docs/事件创作指南.md)
 
 </div>
 
@@ -131,7 +131,7 @@
 
 ### 在线体验（推荐）
 
-直接访问 [https://no-money-xiuxian.vercel.app/](https://no-money-xiuxian.vercel.app/)，无需安装任何东西。
+直接访问 [https://debt-xiuxian.online/](https://debt-xiuxian.online/)，无需安装任何东西。
 
 ### 本地运行
 
@@ -602,7 +602,7 @@ interface SocialProfile {
 
 **记住：欠费不停，修仙不止。**
 
-[立即体验](https://no-money-xiuxian.vercel.app/) · [查看文档](./docs/) · [贡献代码](#-贡献指南)
+[立即体验](https://debt-xiuxian.online/) · [查看文档](./docs/) · [贡献代码](#-贡献指南)
 
 Made with 💀 by the Xiuxian Sim Team
 
