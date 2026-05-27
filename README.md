@@ -13,7 +13,7 @@
 [![Vitest](https://img.shields.io/badge/Tests-655%20passing-729B1B?logo=vitest)](./app/)
 [![License](https://img.shields.io/badge/License-学习交流-blue)](./LICENSE)
 
-[在线游玩](https://debt-xiuxian.online/) · [快速开始](#-快速开始) · [贡献指南](#-贡献指南) · [事件创作](./docs/事件创作指南.md)
+[在线游玩](https://debt-xiuxian.online/) · [快速开始](#-快速开始) · [贡献指南](#-贡献指南) · [文档索引](./docs/README.md)
 
 </div>
 
@@ -252,9 +252,11 @@ xiuxian-sim/
 │   ├── generate-events.post.ts   # AI 事件生成接口（Groq LLM）
 │   ├── test-env.get.ts           # 环境变量测试接口
 │   └── test-groq.get.ts          # Groq API 连通性测试
-├── docs/                         # 项目文档
-│   ├── ARCHITECTURE.md           # 架构设计文档
-│   ├── 事件创作指南.md           # 面向非开发者的事件 JSON 编写说明
+├── docs/                         # 项目文档（见 docs/README.md 索引）
+│   ├── README.md                 # 文档目录
+│   ├── 事件贡献指南.md           # 无需编程的贡献流程
+│   ├── 事件创作指南.md           # 事件 JSON 字段与规则
+│   ├── ARCHITECTURE.md           # Composable 架构
 │   └── screenshots/              # 游戏截图资源
 ├── public/models/                # 3D 模型资源（人体模型）
 └── nuxt.config.ts                # Nuxt 配置
@@ -427,8 +429,13 @@ interface SocialProfile {
 
 ## 📚 文档
 
-- [事件创作指南](./docs/事件创作指南.md) — 面向非开发者的事件 JSON 编写说明
-- [架构设计文档](./docs/ARCHITECTURE.md) — 系统架构与技术选型
+完整索引见 **[docs/README.md](./docs/README.md)**。常用入口：
+
+| 文档 | 说明 |
+|------|------|
+| [事件贡献指南](./docs/事件贡献指南.md) | 无需编程，在 GitHub 上提交事件 |
+| [事件创作指南](./docs/事件创作指南.md) | 事件 JSON 字段与校验规则 |
+| [ARCHITECTURE.md](./docs/ARCHITECTURE.md) | Composable 架构说明 |
 
 ---
 
@@ -491,8 +498,6 @@ interface SocialProfile {
 - 云存档与账号系统（核心机制未站稳前不优先）
 - 多玩家互动/排行榜（破坏孤立受压的主题一致性）
 
-> 详细路线图设计参考: [docs/plans/2026-05-08-product-roadmap-design.md](./docs/plans/2026-05-08-product-roadmap-design.md)
-
 ---
 
 ## 🤝 贡献指南
@@ -507,7 +512,7 @@ interface SocialProfile {
 - 复制现有事件，修改文案和数值
 - 提交 Pull Request 或在 Issue 中分享你的点子
 
-详见 [事件创作指南](./docs/事件创作指南.md)。
+详见 [事件贡献指南](./docs/事件贡献指南.md) 与 [事件创作指南](./docs/事件创作指南.md)。
 
 #### 2. 报告 Bug
 
@@ -543,7 +548,7 @@ interface SocialProfile {
 
 ### 事件创作工作流
 
-1. 阅读 [事件创作指南](./docs/事件创作指南.md)
+1. 阅读 [事件贡献指南](./docs/事件贡献指南.md) 与 [事件创作指南](./docs/事件创作指南.md)
 2. 复制 `data/events.json` 中的现有事件
 3. 修改 `id`（确保唯一）、`title`、`body`、`options`
 4. 确保 `effects` 使用合法的 target 字段

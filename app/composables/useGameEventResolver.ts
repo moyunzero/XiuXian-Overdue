@@ -312,7 +312,7 @@ export function useGameEventResolver(
         const numericSummary = buildInstitutionalEventLogDetail(pendingOption.effects)
 
         // 剧情反馈：叙事文本 + 数值变化
-        const logTitle = logEffects.length > 0 ? logEffects[0].title : '事件记录'
+        const logTitle = logEffects.length > 0 ? logEffects[0].title : '制度记录'
         const fullDetail = narrativeText
           ? `${narrativeText}（${numericSummary.replace('变更摘要：', '').replace('。', '')}）`
           : numericSummary
@@ -338,7 +338,7 @@ export function useGameEventResolver(
             const numericSummary = buildInstitutionalEventLogDetail(option.effects)
 
             // 剧情反馈：叙事文本 + 数值变化
-            const logTitle = logEffects.length > 0 ? logEffects[0].title : '事件记录'
+            const logTitle = logEffects.length > 0 ? logEffects[0].title : '制度记录'
             const fullDetail = narrativeText
               ? `${narrativeText}（${numericSummary.replace('变更摘要：', '').replace('。', '')}）`
               : numericSummary

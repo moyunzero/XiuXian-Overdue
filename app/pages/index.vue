@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import type { Background, Talent } from '~/types/game'
+import type { Background, StartConfig, Talent } from '~/types/game'
 import { useGameForIndex } from '~/composables/useGameForIndex'
 import type { SaveSlotId } from '~/composables/useGameForIndex'
-import { computed, ref, nextTick } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { navigateTo } from '#app'
+import { useAct1Storage } from '~/composables/useAct1Storage'
+import { carryoverFromPersist } from '~/logic/act1/act1Carryover'
+import Act1ArchivePanel from '~/components/home/Act1ArchivePanel.vue'
 import HeroSection from '~/components/home/HeroSection.vue'
 import IdentitySelector from '~/components/home/IdentitySelector.vue'
 import QuickStartButton from '~/components/home/QuickStartButton.vue'
@@ -34,14 +37,64 @@ const showAdvanced = ref(false)
 
 const canContinue = computed(() => game.value.started)
 
-async function onStart() {
-  startNew({
+const act1StartConfig = useState<StartConfig | null>('act1StartConfig', () => null)
+const act1SlotId = useState<'slot1' | 'slot2' | 'slot3'>('act1SlotId', () => 'slot1')
+const act1PriorMetaUnlocks = useState<string[]>('act1PriorMetaUnlocks', () => [])
+
+function buildStartConfig(): StartConfig {
+  return {
     playerName: playerName.value.trim() || '无名氏',
     background: background.value,
     talent: talent.value,
     initialDebt: initialDebt.value,
     startingCity: startingCity.value.trim() || '嵩阳市'
-  })
+  }
+}
+
+const act1Storage = useAct1Storage()
+const savedAct1Slot = ref<'slot1' | 'slot2' | 'slot3' | null>(null)
+
+const settledAct1ForSlot = computed(() => {
+  const saved = act1Storage.loadAct1(selectedNewGameSlot.value)
+  return saved?.settled ? saved : null
+})
+
+const act1CarryoverForStart = computed(() =>
+  settledAct1ForSlot.value ? carryoverFromPersist(settledAct1ForSlot.value) : undefined
+)
+
+const slotLabel = (id: string) => (id === 'slot1' ? '存档槽 1' : id === 'slot2' ? '存档槽 2' : '存档槽 3')
+
+onMounted(() => {
+  for (const slot of ['slot1', 'slot2', 'slot3'] as const) {
+    const saved = act1Storage.loadAct1(slot)
+    if (saved && !saved.settled) {
+      savedAct1Slot.value = slot
+      break
+    }
+  }
+})
+
+async function onStartAct1() {
+  const prev = act1Storage.loadAct1(selectedNewGameSlot.value)
+  act1PriorMetaUnlocks.value = prev?.settled ? [...(prev.metaUnlocks ?? [])] : []
+  act1StartConfig.value = buildStartConfig()
+  act1SlotId.value = selectedNewGameSlot.value
+  await navigateTo('/act1')
+}
+
+async function onContinueAct1() {
+  if (!savedAct1Slot.value) return
+  const saved = act1Storage.loadAct1(savedAct1Slot.value)
+  if (!saved) return
+  act1StartConfig.value = saved.startConfig
+  act1SlotId.value = savedAct1Slot.value
+  await navigateTo('/act1')
+}
+
+async function onStart() {
+  const cfg = buildStartConfig()
+  startNew(cfg, act1CarryoverForStart.value)
   const slot = selectedNewGameSlot.value
   const n = slot.slice(-1)
   saveToSlot(slot, `第${n}局·${playerName.value.trim() || '无名氏'}`)
@@ -98,10 +151,39 @@ const slotData = computed(() =>
       />
 
       <div class="IndexPage__start">
+        <Act1ArchivePanel
+          v-if="settledAct1ForSlot"
+          :persist="settledAct1ForSlot"
+          :slot-label="slotLabel(selectedNewGameSlot)"
+        />
+
         <QuickStartButton
           :disabled="!selectedNewGameSlot"
+          :text="settledAct1ForSlot ? '进入昆墟高中（周目 2）' : '开始这局'"
+          :subtitle="settledAct1ForSlot ? '继承入学前夜制度档案与利率修正' : ''"
           @click="onStart"
         />
+
+        <Button
+          v-if="savedAct1Slot"
+          variant="primary"
+          size="md"
+          full-width
+          class="IndexPage__act1"
+          @click="onContinueAct1"
+        >
+          继续入学前夜（{{ savedAct1Slot }}）
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="md"
+          full-width
+          class="IndexPage__act1"
+          @click="onStartAct1"
+        >
+          {{ savedAct1Slot ? '新开局 · 入学前夜' : '入学前夜（试玩）' }}
+        </Button>
 
         <button
           class="IndexPage__advanced-toggle"
@@ -213,6 +295,11 @@ const slotData = computed(() =>
   align-items: center;
   gap: 16px;
   margin-top: 32px;
+}
+
+.IndexPage__act1 {
+  width: 100%;
+  max-width: 320px;
 }
 
 .IndexPage__advanced-toggle {

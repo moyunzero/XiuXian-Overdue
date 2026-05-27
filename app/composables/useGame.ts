@@ -6,6 +6,8 @@ import type {
   StartConfig,
   HiddenModifiers
 } from '~/types/game'
+import type { Act1Carryover } from '~/types/act1'
+import { applyAct1CarryoverToGame } from '~/logic/act1/act1Carryover'
 import { computed, ref } from 'vue'
 import { round1, uid } from '~/utils/rng'
 import * as Engine from '~/logic/gameEngine'
@@ -123,7 +125,7 @@ export function useGame() {
     recordGameAction
   )
 
-  const startNew = (cfg: StartConfig) => {
+  const startNew = (cfg: StartConfig, act1Carryover?: Act1Carryover) => {
     emotionalMemory.recordCurrentSession(game.value)
 
     const { initializeGraph } = useCausalGraph()
@@ -178,6 +180,10 @@ export function useGame() {
 
     const stateWithMemory = applyMemoryToState(memory, g)
     Object.assign(g, stateWithMemory)
+
+    if (act1Carryover) {
+      applyAct1CarryoverToGame(g, act1Carryover)
+    }
 
     emotionalStorage.updateSessionStartDay(g.school.day)
     emotionalStorage.sessionStartTime.value = Date.now()

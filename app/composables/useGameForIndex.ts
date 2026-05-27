@@ -1,4 +1,6 @@
-import type { GameState } from '~/types/game'
+import type { Act1Carryover } from '~/types/act1'
+import type { GameState, StartConfig } from '~/types/game'
+import { applyAct1CarryoverToGame } from '~/logic/act1/act1Carryover'
 import { useState } from '#app'
 import { defaultState } from './useGameState'
 import type { SaveSlotId } from '~/composables/useGameStorage'
@@ -215,13 +217,7 @@ export function useGameForIndex() {
     activeSlot.value = 'autosave'
   }
 
-  const startNew = (cfg: {
-    playerName: string
-    background: string
-    talent: string
-    initialDebt: number
-    startingCity: string
-  }) => {
+  const startNew = (cfg: StartConfig, act1Carryover?: Act1Carryover) => {
     const g = defaultState()
     g.started = true
     g.startConfig = cfg
@@ -244,6 +240,19 @@ export function useGameForIndex() {
     g.stats.daoXin = 1
     g.stats.rouTi = 0.6
     g.school.classTier = '普通班'
+    g.logs = [
+      {
+        id: `log-start-${g.seed}`,
+        day: 1,
+        title: '开局',
+        detail: `你叫"${cfg.playerName}"。城市：${cfg.startingCity}。出身：${cfg.background}。天赋：${cfg.talent}。制度债¥${g.econ.debtPrincipal.toLocaleString()}。`,
+        tone: 'info'
+      }
+    ]
+
+    if (act1Carryover) {
+      applyAct1CarryoverToGame(g, act1Carryover)
+    }
 
     game.value = g
   }

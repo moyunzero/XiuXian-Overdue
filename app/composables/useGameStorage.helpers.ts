@@ -4,7 +4,7 @@
 import type { GameState } from '~/types/game'
 
 /** D-03：与 localStorage 键 `kunxu_sim_save_v2` 并存的根级版本号 */
-export const SAVE_SCHEMA_VERSION = 2
+export const SAVE_SCHEMA_VERSION = 3
 
 /** D-05：防抖窗口（毫秒） */
 export const SAVE_DEBOUNCE_MS = 500

@@ -1,0 +1,97 @@
+{
+  "$schema": "./manifest.schema.json",
+  "version": 1,
+  "description": "Machine-readable verification gates for AI agents and CI. Run via: yarn harness:verify",
+  "pev": {
+    "planArtifact": ".harness/PEV.md",
+    "progressArtifact": ".harness/progress.md"
+  },
+  "gates": [
+    {
+      "id": "architecture",
+      "title": "分层与依赖边界",
+      "command": "node scripts/harness/architecture-check.mjs",
+      "required": true,
+      "triggerPaths": [
+        "app/logic/**",
+        "app/composables/**",
+        "app/pages/**",
+        "app/components/**",
+        "scripts/harness/**"
+      ]
+    },
+    {
+      "id": "test",
+      "title": "Vitest 全量",
+      "command": "yarn test",
+      "required": true,
+      "triggerPaths": [
+        "app/logic/**",
+        "app/composables/**",
+        "vitest.config.ts"
+      ],
+      "excludeFromQuick": false
+    },
+    {
+      "id": "test:act1",
+      "title": "Act1 逻辑回归（含防卡点）",
+      "command": "yarn test:act1",
+      "required": true,
+      "triggerPaths": [
+        "app/logic/act1/**",
+        "app/components/act1/**",
+        "app/composables/useAct1Session.ts",
+        "app/pages/act1/**",
+        "app/types/act1.ts"
+      ]
+    },
+    {
+      "id": "validate:events",
+      "title": "events.json 结构校验",
+      "command": "yarn validate:events",
+      "required": true,
+      "triggerPaths": ["data/events.json", "data/eventTemplates.json", "scripts/validate-events.mjs"]
+    },
+    {
+      "id": "test:storage",
+      "title": "存档读写回归",
+      "command": "yarn vitest --run app/composables/useGameStorage.spec.ts",
+      "required": false,
+      "triggerPaths": [
+        "app/composables/useGameStorage.ts",
+        "app/types/game.ts",
+        "app/types/act1.ts"
+      ]
+    },
+    {
+      "id": "build",
+      "title": "Nuxt 生产构建",
+      "command": "yarn build",
+      "required": false,
+      "slow": true,
+      "triggerPaths": [
+        "app/**",
+        "nuxt.config.ts",
+        "package.json"
+      ],
+      "excludeFromQuick": true
+    }
+  ],
+  "contracts": [
+    {
+      "id": "act1-family-flow",
+      "spec": "app/logic/act1/act1FamilyFlow.spec.ts",
+      "doc": "AGENTS.md#act1--家庭账本防卡点契约",
+      "triggerPaths": [
+        "app/logic/act1/familyLedger.ts",
+        "app/components/act1/modules/FamilyModule.vue",
+        "app/composables/useAct1Session.ts"
+      ]
+    },
+    {
+      "id": "act1-compliance",
+      "spec": "app/logic/act1/act1Compliance.spec.ts",
+      "triggerPaths": ["app/logic/act1/**", "app/components/act1/**"]
+    }
+  ]
+}

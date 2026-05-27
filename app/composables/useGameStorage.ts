@@ -1,3 +1,4 @@
+import type { Act1Persist } from '~/types/act1'
 import type { GameState } from '~/types/game'
 import { ref } from 'vue'
 import * as Engine from '~/logic/gameEngine'
@@ -33,6 +34,8 @@ export interface SaveContainer {
   activeSlot: SaveSlotId
   saveSchemaVersion: number
   slots: Partial<Record<SaveSlotId, { meta: SaveSlotMeta; state: GameState }>>
+  /** Act1 周目进度（与主局 GameState 并存，v3+） */
+  act1BySlot?: Partial<Record<SaveSlotId, Act1Persist>>
 }
 
 const storageVersion = ref(0)
@@ -102,6 +105,11 @@ export function useGameStorage() {
       if (typeof parsed.saveSchemaVersion !== 'number' || parsed.saveSchemaVersion < 1) {
         parsed.saveSchemaVersion = SAVE_SCHEMA_VERSION
       }
+      if (parsed.saveSchemaVersion < SAVE_SCHEMA_VERSION) {
+        parsed.saveSchemaVersion = SAVE_SCHEMA_VERSION
+        if (!parsed.act1BySlot) parsed.act1BySlot = {}
+      }
+      if (!parsed.act1BySlot) parsed.act1BySlot = {}
       return parsed
     } catch {
       try {

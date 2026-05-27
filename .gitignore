@@ -6,7 +6,6 @@
 .cache
 .planning
 .cursor
-docs
 dist
 
 # Node dependencies
@@ -26,11 +25,11 @@ logs
 .env.*
 !.env.example
 
-# Development documentation (internal use only)
-events-data.md
-*SUMMARY*.md
-*REPORT*.md
-*GUIDE*.md
-*VERIFICATION*.md
-*COMPLETE*.md
+# Local scratch / backup
 *.backup
+best.md
+
+# Harness runtime artifacts (templates in .harness/*.template.md stay tracked)
+.harness/last-verify.json
+.harness/PEV.md
+.harness/progress.md

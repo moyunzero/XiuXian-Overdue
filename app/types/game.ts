@@ -1,3 +1,5 @@
+import type { Act1Carryover } from '~/types/act1'
+
 export type Background = '贫民' | '中产' | '富户'
 export type Talent = '无灵根' | '伪灵根' | '天灵根'
 
@@ -223,6 +225,8 @@ export interface GameState {
   started: boolean
   seed: number
   startConfig?: StartConfig
+  /** 入学前夜结算结转（周目 2） */
+  act1Carryover?: Act1Carryover
   stats: PlayerStats
   econ: EconomyState
   school: SchoolState
