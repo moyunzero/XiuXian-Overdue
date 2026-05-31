@@ -580,7 +580,6 @@ export interface PredictionResult {
 // ========================================
 
 export type TemplateOperator = 'gt' | 'lt' | 'eq' | 'gte' | 'lte' | 'in' | 'contains'
-export type EventTone = 'info' | 'warn' | 'danger' | 'ok'
 
 export interface TemplateCondition {
   variable: string

@@ -1,0 +1,124 @@
+{
+  "realms": [
+    {
+      "id": "qi",
+      "displayName": "练气",
+      "order": 0,
+      "capitalismSkin": {
+        "rankingLabel": "灵根纯度榜",
+        "employerLabel": "外门执事",
+        "loanProductNames": ["灵息周转贷", "吐纳备用额度"],
+        "maintenanceLabels": ["洞府租", "丹药订阅"]
+      },
+      "maintenanceCoeff": 1,
+      "harvestRate": 0.14,
+      "pressureDeckId": "work",
+      "breakthroughKpi": {
+        "minDaoXin": 1.2,
+        "minFaLi": 7,
+        "minRouTi": 0.5,
+        "minDaysInRealm": 3
+      },
+      "loanProducts": [
+        {
+          "id": "qi-bridge",
+          "maxDraw": 30000,
+          "dailyRate": 0.007,
+          "teaseCopy": "破境前最后一笔——系统说你「差一口气」。"
+        }
+      ],
+      "celebrationCopy": "练气圆满，宗门赐印。你听见钟声，以为是自由。",
+      "billCopy": "庆典灯未灭，账单先到：洞府租与吐纳订阅并入新境维护费。"
+    },
+    {
+      "id": "foundation",
+      "displayName": "筑基",
+      "order": 1,
+      "capitalismSkin": {
+        "rankingLabel": "筑基公示榜",
+        "employerLabel": "内门管事",
+        "loanProductNames": ["筑基过桥贷", "灵根租续签"],
+        "maintenanceLabels": ["灵脉占用费", "功法订阅"]
+      },
+      "maintenanceCoeff": 1.12,
+      "harvestRate": 0.18,
+      "pressureDeckId": "work",
+      "breakthroughKpi": {
+        "minDaoXin": 2.1,
+        "minFaLi": 9,
+        "minRouTi": 0.7,
+        "minDaysInRealm": 6
+      },
+      "loanProducts": [
+        {
+          "id": "foundation-bridge",
+          "maxDraw": 80000,
+          "dailyRate": 0.008,
+          "teaseCopy": "紫府门槛前，利率「优待」只对你生效一次。"
+        }
+      ],
+      "celebrationCopy": "筑基大典，同门举杯。你发现自己的席位离主台越来越远。",
+      "billCopy": "恭喜筑基——灵脉占用费与功法订阅已按紫府标准预扣。"
+    },
+    {
+      "id": "purple",
+      "displayName": "紫府",
+      "order": 2,
+      "capitalismSkin": {
+        "rankingLabel": "紫府贡献榜",
+        "employerLabel": "峰主座下",
+        "loanProductNames": ["紫府授信", "护山大阵分摊贷"],
+        "maintenanceLabels": ["阵法维护", "丹炉分时"]
+      },
+      "maintenanceCoeff": 1.15,
+      "harvestRate": 0.22,
+      "pressureDeckId": "work",
+      "breakthroughKpi": {
+        "minDaoXin": 2.4,
+        "minFaLi": 11,
+        "minRouTi": 0.85,
+        "minDaysInRealm": 6
+      },
+      "loanProducts": [
+        {
+          "id": "purple-bridge",
+          "maxDraw": 150000,
+          "dailyRate": 0.009,
+          "teaseCopy": "结丹前夜，系统给你「峰值额度」。"
+        }
+      ],
+      "celebrationCopy": "紫府开府，灵雨三日。雨停后，催收短信也到了。",
+      "billCopy": "紫府维护费与护山分摊并入结丹境债权——没有「还清」选项。"
+    },
+    {
+      "id": "core",
+      "displayName": "结丹",
+      "order": 3,
+      "capitalismSkin": {
+        "rankingLabel": "金丹品相榜",
+        "employerLabel": "宗门长老会",
+        "loanProductNames": ["金丹周转", "天劫保险贷"],
+        "maintenanceLabels": ["劫云租赁", "护道者派遣费"]
+      },
+      "maintenanceCoeff": 1.12,
+      "harvestRate": 0.26,
+      "pressureDeckId": "work",
+      "breakthroughKpi": {
+        "minDaoXin": 2.8,
+        "minFaLi": 13,
+        "minRouTi": 1,
+        "minDaysInRealm": 4
+      },
+      "loanProducts": [
+        {
+          "id": "core-bridge",
+          "maxDraw": 300000,
+          "dailyRate": 0.01,
+          "teaseCopy": "元婴门槛在广告里，利率在合同里。"
+        }
+      ],
+      "celebrationCopy": "结丹成功，全宗通告。你成了报表里的「优质资产」。",
+      "billCopy": "金丹庆典后 60 秒：劫云租赁与护道者费用已挂账——下一境只会更贵。"
+    }
+  ]
+}

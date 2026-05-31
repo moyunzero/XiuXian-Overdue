@@ -229,8 +229,12 @@ function onIconClick(id: Act1WindowId) {
   flex: 1;
   width: 100%;
   min-height: 0;
+  min-width: 0;
   display: grid;
-  grid-template-columns: clamp(76px, 7vw, 112px) minmax(0, 1fr) clamp(220px, 20vw, 300px);
+  grid-template-columns:
+    clamp(72px, 6vw, 112px)
+    minmax(0, 1fr)
+    clamp(200px, 18vw, 320px);
   grid-template-rows: minmax(0, 1fr);
 }
 
@@ -398,7 +402,23 @@ function onIconClick(id: Act1WindowId) {
 
 @media (min-width: 1280px) {
   .Act1Desktop__shell {
-    grid-template-columns: clamp(88px, 6vw, 120px) minmax(0, 1fr) clamp(260px, 18vw, 340px);
+    grid-template-columns:
+      clamp(88px, 5vw, 120px)
+      minmax(0, 1fr)
+      clamp(240px, 16vw, 360px);
+  }
+}
+
+@media (min-width: 1600px) {
+  .Act1Desktop__shell {
+    grid-template-columns:
+      clamp(96px, 5vw, 128px)
+      minmax(0, 1fr)
+      clamp(260px, 14vw, 380px);
+  }
+
+  .Act1Desktop__workspace-grid {
+    grid-template-columns: minmax(0, 1.55fr) minmax(280px, 0.85fr);
   }
 }
 

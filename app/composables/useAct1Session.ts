@@ -43,6 +43,11 @@ import {
   totalDebtPrincipal
 } from '~/logic/act1/moduleProgress'
 import { useAct1Storage } from '~/composables/useAct1Storage'
+import { usePlayStorage } from '~/composables/usePlayStorage'
+import { createPlayRunFromStartConfig } from '~/logic/play/createPlayRun'
+import { settleAct1IntoPlayRun } from '~/logic/act1/act1PlayTransition'
+import type { PlayRunState } from '~/types/play'
+import { mergePriorMetaUnlocks } from '~/logic/play/playMeta'
 
 const WINDOW_LABELS: Record<Act1WindowId, string> = {
   interview: '入学面试',
@@ -64,6 +69,7 @@ export function useAct1Session() {
   const startConfig = useState<StartConfig | null>('act1StartConfig', () => null)
   const slotId = useState<SaveSlotId>('act1SlotId', () => 'slot1')
   const storage = useAct1Storage()
+  const playStorage = usePlayStorage()
 
   const act1 = ref<Act1State | null>(null)
   const settled = ref(false)
@@ -154,6 +160,10 @@ export function useAct1Session() {
       : openWindows.value[0]!
     mobileTab.value = activeWindow.value
     syncLoanPopup()
+    const globalPrior = playStorage.getPlayMeta().priorMetaUnlocks
+    if (globalPrior.length) {
+      priorMetaUnlocks.value = [...new Set([...priorMetaUnlocks.value, ...globalPrior])]
+    }
     ready.value = true
   }
 
@@ -336,14 +346,33 @@ export function useAct1Session() {
     persist()
   }
 
-  const finishSettlement = async () => {
-    if (act1.value) {
-      metaUnlocks.value = deriveMetaUnlocks(act1.value)
-      permanentModifiers.value = derivePermanentModifiers(act1.value)
-    }
+  const finishSettlement = async (): Promise<PlayRunState | null> => {
+    if (!startConfig.value || !act1.value) return null
+    metaUnlocks.value = deriveMetaUnlocks(act1.value)
+    permanentModifiers.value = derivePermanentModifiers(act1.value)
     settled.value = true
     persist()
-    await navigateTo('/')
+
+    let run =
+      playStorage.getActiveRun()?.slotId === slotId.value
+        ? playStorage.getActiveRun()
+        : playStorage.ensureRunForSlot(slotId.value)
+    if (!run) {
+      run = createPlayRunFromStartConfig(startConfig.value, slotId.value)
+    }
+
+    const hsRun = settleAct1IntoPlayRun(run, {
+      startConfig: startConfig.value,
+      act1: act1.value,
+      metaUnlocks: metaUnlocks.value,
+      permanentModifiers: permanentModifiers.value,
+      settled: true
+    })
+    playStorage.setActiveRun(hsRun)
+    priorMetaUnlocks.value = [...metaUnlocks.value]
+    const merged = mergePriorMetaUnlocks(playStorage.getPlayMeta(), metaUnlocks.value)
+    playStorage.updatePlayMeta({ priorMetaUnlocks: merged.priorMetaUnlocks, hiddenStandardsRevealed: merged.hiddenStandardsRevealed })
+    return hsRun
   }
 
   const debtTotal = computed(() => (act1.value ? totalDebtPrincipal(act1.value) : 0))

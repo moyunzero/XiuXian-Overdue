@@ -117,8 +117,18 @@ watch(
     </template>
 
     <template v-else>
-      <div v-if="showRecycle" class="InterviewModule__recycle" aria-live="polite">
-        <p>简历已拖入回收站。</p>
+      <div v-if="showRecycle" class="InterviewModule__recycle-scene" aria-live="polite">
+        <div class="InterviewModule__recycle-stage">
+          <div class="InterviewModule__recycle-card">
+            <span class="InterviewModule__recycle-card-title">电子简历</span>
+            <span>{{ startConfig.playerName || '你' }}</span>
+          </div>
+          <div class="InterviewModule__recycle-bin" aria-hidden="true">
+            <span class="InterviewModule__recycle-bin-lid" />
+            <span class="InterviewModule__recycle-bin-body">回收站</span>
+          </div>
+        </div>
+        <p class="InterviewModule__recycle-msg">简历已拖入回收站并粉碎。</p>
         <p class="InterviewModule__recycle-sub">系统评语：未达优秀样本阈值，已开通末位借读通道。</p>
       </div>
       <div v-else class="InterviewModule__result">
@@ -237,6 +247,97 @@ watch(
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+}
+.InterviewModule__recycle-scene {
+  padding: 20px;
+  border: 1px solid var(--danger);
+  border-radius: 8px;
+  background: rgba(255, 59, 59, 0.08);
+  overflow: hidden;
+}
+.InterviewModule__recycle-stage {
+  position: relative;
+  height: 120px;
+  margin-bottom: 12px;
+}
+.InterviewModule__recycle-card {
+  position: absolute;
+  left: 12%;
+  top: 8px;
+  width: min(200px, 55%);
+  padding: 10px 12px;
+  border: 1px dashed var(--border-default);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.35);
+  font-family: var(--mono);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  animation: resumeToBin 2s ease forwards;
+}
+.InterviewModule__recycle-card-title {
+  display: block;
+  color: var(--neon-cyan);
+  margin-bottom: 4px;
+}
+.InterviewModule__recycle-bin {
+  position: absolute;
+  right: 10%;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.InterviewModule__recycle-bin-lid {
+  width: 72px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--text-muted);
+  transform-origin: left center;
+  animation: binLidOpen 2s ease forwards;
+}
+.InterviewModule__recycle-bin-body {
+  width: 64px;
+  padding: 14px 8px 8px;
+  border: 1px solid var(--text-muted);
+  border-radius: 0 0 6px 6px;
+  font-family: var(--mono);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-align: center;
+}
+.InterviewModule__recycle-msg {
+  margin: 0;
+  font-weight: 600;
+  color: var(--danger);
+}
+.InterviewModule__recycle-sub {
+  margin: 8px 0 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+@keyframes resumeToBin {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg);
+  }
+  55% {
+    opacity: 1;
+    transform: translate(42vw, 36px) rotate(8deg) scale(0.92);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(48vw, 52px) rotate(12deg) scale(0.4);
+  }
+}
+@keyframes binLidOpen {
+  0%,
+  40% {
+    transform: rotate(0deg);
+  }
+  70%,
+  100% {
+    transform: rotate(-28deg);
+  }
 }
 .InterviewModule__recycle {
   padding: 24px;

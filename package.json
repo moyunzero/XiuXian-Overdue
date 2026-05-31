@@ -9,12 +9,19 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "validate:events": "node scripts/validate-events.mjs",
+    "validate:pressure-cards": "node scripts/validate-pressure-cards.mjs",
+    "validate:inbox-templates": "node scripts/validate-inbox-templates.mjs",
+    "validate:jobs": "node scripts/validate-jobs.mjs",
+    "validate:realm-templates": "node scripts/validate-realm-templates.mjs",
+    "analyze:collapse-distribution": "node scripts/simulate-collapse-distribution.mjs",
     "test": "vitest --run",
     "test:act1": "vitest --run app/logic/act1",
     "harness:verify": "node scripts/harness/verify.mjs",
     "harness:verify:full": "node scripts/harness/verify.mjs --full",
     "harness:verify:quick": "node scripts/harness/verify.mjs --quick",
-    "harness:architecture": "node scripts/harness/architecture-check.mjs"
+    "harness:architecture": "node scripts/harness/architecture-check.mjs",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
@@ -27,6 +34,7 @@
     "vue-router": "^4.6.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "fast-check": "^4.6.0",
     "jsdom": "^29.1.1",
     "vitest": "^4.1.0"

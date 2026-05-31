@@ -1,0 +1,34 @@
+{
+  "endings": [
+    {
+      "id": "collapse-delinquency",
+      "trigger": { "minDelinquency": 85, "minBreakthroughs": 2 },
+      "title": "征信熔断",
+      "archiveVerdict": "逾期档位触顶，权限与灵脉同时断开——你仍在系统里，但已无法操作。"
+    },
+    {
+      "id": "collapse-dao",
+      "trigger": { "maxDaoXin": 0.7, "minBreakthroughs": 2, "minDaysInRealm": 8 },
+      "title": "道心归零",
+      "archiveVerdict": "道心跌破底线，修炼资格被回收，债务保留。"
+    },
+    {
+      "id": "collapse-liens",
+      "trigger": { "minLienCount": 4, "minBreakthroughs": 3 },
+      "title": "抵押物堆叠",
+      "archiveVerdict": "不可逆留置过多，系统判定你为「可拆分资产包」。"
+    },
+    {
+      "id": "collapse-fatigue",
+      "trigger": { "minFatigue": 104, "minBreakthroughs": 2, "minDaysInRealm": 10 },
+      "title": "机体报废",
+      "archiveVerdict": "疲劳触顶，肉体强度从榜单除名，债权转入遗产清算流程。"
+    },
+    {
+      "id": "collapse-lie-flat",
+      "trigger": { "minLieFlatStreak": 3 },
+      "title": "躺平档案入库",
+      "archiveVerdict": "连续登记「不冲 KPI」，系统将你归类为低维护资产并提前清算。"
+    }
+  ]
+}

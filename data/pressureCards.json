@@ -1,0 +1,419 @@
+[
+  {
+    "id": "hs-study",
+    "title": "刷题到闭馆",
+    "description": "把睡眠换成排名小数点。系统记录你的投入。",
+    "lifeStages": ["hs"],
+    "tags": ["study"],
+    "effectsOnPlay": [
+      { "kind": "stat", "payload": { "target": "faLi", "op": "add", "value": 0.08 } },
+      { "kind": "stat", "payload": { "target": "focus", "op": "add", "value": 3 } },
+      { "kind": "stat", "payload": { "target": "fatigue", "op": "add", "value": 6 } },
+      { "kind": "log", "payload": { "title": "刷题", "detail": "法力微涨，疲劳也在涨。", "tone": "info" } }
+    ],
+    "effectsOnSkip": [
+      { "kind": "log", "payload": { "title": "发酵", "detail": "你跳过了刷题——排名窗口在收窄。", "tone": "warn" } }
+    ]
+  },
+  {
+    "id": "hs-tuna",
+    "title": "吐纳调息",
+    "description": "呼吸拧成线，法力像细流汇入气海。",
+    "lifeStages": ["hs"],
+    "tags": ["rest"],
+    "effectsOnPlay": [
+      { "kind": "stat", "payload": { "target": "faLi", "op": "add", "value": 0.1 } },
+      { "kind": "stat", "payload": { "target": "fatigue", "op": "add", "value": -4 } },
+      { "kind": "log", "payload": { "title": "吐纳", "detail": "气海略稳，但时间已从牌堆溜走。", "tone": "ok" } }
+    ]
+  },
+  {
+    "id": "hs-train",
+    "title": "炼体公示",
+    "description": "肉体强度会上榜。受伤也会被记录。",
+    "lifeStages": ["hs"],
+    "tags": ["train"],
+    "effectsOnPlay": [
+      { "kind": "stat", "payload": { "target": "rouTi", "op": "add", "value": 0.07 } },
+      { "kind": "stat", "payload": { "target": "fatigue", "op": "add", "value": 10 } },
+      { "kind": "stat", "payload": { "target": "focus", "op": "add", "value": -2 } },
+      { "kind": "log", "payload": { "title": "炼体", "detail": "肉体+0.07，公示栏又多了一个数字。", "tone": "info" } }
+    ],
+    "effectsOnSkip": [
+      { "kind": "stat", "payload": { "target": "rouTi", "op": "add", "value": -0.02 } },
+      { "kind": "log", "payload": { "title": "发酵", "detail": "未炼体——公示栏把你标为「懈怠样本」。", "tone": "warn" } }
+    ]
+  },
+  {
+    "id": "hs-parttime",
+    "title": "零工换现",
+    "description": "时薪羞辱，但现金立刻到账。",
+    "lifeStages": ["hs"],
+    "tags": ["work"],
+    "effectsOnPlay": [
+      { "kind": "econ", "payload": { "target": "cash", "op": "add", "value": 280 } },
+      { "kind": "stat", "payload": { "target": "fatigue", "op": "add", "value": 12 } },
+      { "kind": "stat", "payload": { "target": "focus", "op": "add", "value": -3 } },
+      { "kind": "log", "payload": { "title": "零工", "detail": "¥280 入账。制度备注：可压榨。", "tone": "info" } }
+    ],
+    "effectsOnSkip": [
+      { "kind": "econ", "payload": { "target": "delinquency", "op": "add", "value": 1 } },
+      { "kind": "log", "payload": { "title": "发酵", "detail": "本回合未打工——逾期档位上浮。", "tone": "danger" } }
+    ]
+  },
+  {
+    "id": "hs-buy-supplies",
+    "title": "补给采购",
+    "description": "丹药、符纸、复印费——每一笔都算消费贷候选。",
+    "lifeStages": ["hs"],
+    "tags": ["buy"],
+    "requires": { "minCash": 120 },
+    "effectsOnPlay": [
+      { "kind": "econ", "payload": { "target": "cash", "op": "add", "value": -150 } },
+      { "kind": "stat", "payload": { "target": "focus", "op": "add", "value": 8 } },
+      { "kind": "stat", "payload": { "target": "fatigue", "op": "add", "value": -3 } },
+      { "kind": "log", "payload": { "title": "采购", "detail": "专注回升，现金-150。", "tone": "info" } }
+    ]
+  },
+  {
+    "id": "hs-rest",
+    "title": "硬睡四小时",
+    "description": "睡眠不是权利，是恢复产能的维护窗口。",
+    "lifeStages": ["hs"],
+    "tags": ["rest"],
+    "effectsOnPlay": [
+      { "kind": "stat", "payload": { "target": "fatigue", "op": "add", "value": -18 } },
+      { "kind": "stat", "payload": { "target": "focus", "op": "add", "value": 5 } },
+      { "kind": "log", "payload": { "title": "休息", "detail": "疲劳下降，但一天的有效牌位又少了一张。", "tone": "ok" } }
+    ]
+  },
+  {
+    "id": "hs-borrow",
+    "title": "灵贷续命",
+    "description": "广告说「备用功力」，合同写「复利」。",
+    "lifeStages": ["hs"],
+    "tags": ["risk"],
+    "effectsOnPlay": [
+      { "kind": "econ", "payload": { "target": "cash", "op": "add", "value": 800 } },
+      { "kind": "econ", "payload": { "target": "debtPrincipal", "op": "add", "value": 1000 } },
+      { "kind": "tag", "payload": { "tag": "以贷养贷" } },
+      { "kind": "log", "payload": { "title": "借贷", "detail": "现金+800，本金+1000。欢迎回到循环。", "tone": "warn" } }
+    ]
+  },
+  {
+    "id": "hs-repay",
+    "title": "最低还款",
+    "description": "还一点，让催收话术降半档。",
+    "lifeStages": ["hs"],
+    "tags": ["risk"],
+    "requires": { "minCash": 200 },
+    "effectsOnPlay": [
+      { "kind": "econ", "payload": { "target": "cash", "op": "add", "value": -300 } },
+      { "kind": "econ", "payload": { "target": "debtInterestAccrued", "op": "add", "value": -200 } },
+      { "kind": "econ", "payload": { "target": "delinquency", "op": "add", "value": -1 } },
+      { "kind": "log", "payload": { "title": "还款", "detail": "利息-200，逾期可能下降。", "tone": "ok" } }
+    ]
+  },
+  {
+    "id": "hs-exam-cram",
+    "title": "月考冲刺",
+    "description": "排名屏在倒计时。你可以感到虚假希望。",
+    "lifeStages": ["hs"],
+    "tags": ["study"],
+    "effectsOnPlay": [
+      { "kind": "stat", "payload": { "target": "faLi", "op": "add", "value": 0.12 } },
+      { "kind": "stat", "payload": { "target": "fatigue", "op": "add", "value": 8 } },
+      { "kind": "school", "payload": { "target": "lastExamScore", "op": "add", "value": 4 } },
+      { "kind": "log", "payload": { "title": "冲刺", "detail": "月考分+4。大屏会记住。", "tone": "info" } }
+    ],
+    "effectsOnSkip": [
+      { "kind": "school", "payload": { "target": "lastRank", "op": "add", "value": 15 } },
+      { "kind": "log", "payload": { "title": "发酵", "detail": "未冲刺——排名预估下滑。", "tone": "danger" } }
+    ]
+  },
+  {
+    "id": "hs-social",
+    "title": "同窗社交",
+    "description": "信息差、人情债、谁请客谁欠谁。",
+    "lifeStages": ["hs"],
+    "tags": ["social"],
+    "effectsOnPlay": [
+      { "kind": "econ", "payload": { "target": "cash", "op": "add", "value": -80 } },
+      { "kind": "stat", "payload": { "target": "focus", "op": "add", "value": 4 } },
+      { "kind": "tag", "payload": { "tag": "人情债" } },
+      { "kind": "log", "payload": { "title": "社交", "detail": "现金-80，换来一点情报。", "tone": "info" } }
+    ]
+  },
+  {
+    "id": "hs-dodge-collection",
+    "title": "躲催收话术",
+    "description": "不接灵信、不回家人——档位不会自己消失。",
+    "lifeStages": ["hs"],
+    "tags": ["risk"],
+    "effectsOnPlay": [
+      { "kind": "econ", "payload": { "target": "delinquency", "op": "add", "value": 1 } },
+      { "kind": "stat", "payload": { "target": "focus", "op": "add", "value": -5 } },
+      { "kind": "log", "payload": { "title": "躲避", "detail": "短期清净，长期加价。", "tone": "warn" } }
+    ],
+    "effectsOnSkip": [
+      { "kind": "econ", "payload": { "target": "collectionFee", "op": "add", "value": 120 } },
+      { "kind": "log", "payload": { "title": "发酵", "detail": "催收服务费+120——躲掉的电话变成账单。", "tone": "danger" } }
+    ]
+  },
+  {
+    "id": "hs-library",
+    "title": "图书馆占座",
+    "description": "免费空调，付费焦虑。",
+    "lifeStages": ["hs"],
+    "tags": ["study"],
+    "effectsOnPlay": [
+      { "kind": "stat", "payload": { "target": "faLi", "op": "add", "value": 0.05 } },
+      { "kind": "stat", "payload": { "target": "focus", "op": "add", "value": 6 } },
+      { "kind": "stat", "payload": { "target": "fatigue", "op": "add", "value": 3 } },
+      { "kind": "log", "payload": { "title": "占座", "detail": "专注+6，法力微涨。", "tone": "ok" } }
+    ]
+  },
+  {
+    "id": "hs-body-check",
+    "title": "体测抽检",
+    "description": "肉体强度低于均值会被标记「可抵押」。",
+    "lifeStages": ["hs"],
+    "tags": ["train"],
+    "effectsOnPlay": [
+      { "kind": "stat", "payload": { "target": "rouTi", "op": "add", "value": 0.04 } },
+      { "kind": "tag", "payload": { "tag": "体测记录在案" } },
+      { "kind": "log", "payload": { "title": "体测", "detail": "数据已上传资产池。", "tone": "warn" } }
+    ],
+    "excludesCardIds": ["hs-train"]
+  },
+  {
+    "id": "uni-closed-cultivation",
+    "title": "闭关筑基",
+    "description": "把现金换成道心进度，订阅照扣。",
+    "lifeStages": ["uni"],
+    "tags": ["study"],
+    "effectsOnPlay": [
+      { "kind": "stat", "payload": { "target": "daoXin", "op": "add", "value": 0.15 } },
+      { "kind": "stat", "payload": { "target": "fatigue", "op": "add", "value": 8 } },
+      { "kind": "log", "payload": { "title": "闭关", "detail": "道心+0.15，疲劳累积。", "tone": "info" } }
+    ]
+  },
+  {
+    "id": "uni-method-sub",
+    "title": "功法订阅加练",
+    "description": "付费课程解锁下一层心法演示。",
+    "lifeStages": ["uni"],
+    "tags": ["study"],
+    "effectsOnPlay": [
+      { "kind": "stat", "payload": { "target": "faLi", "op": "add", "value": 0.12 } },
+      { "kind": "econ", "payload": { "target": "cash", "op": "add", "value": -200 } },
+      { "kind": "log", "payload": { "title": "加练", "detail": "法力+0.12，现金-200。", "tone": "info" } }
+    ]
+  },
+  {
+    "id": "uni-spirit-lease",
+    "title": "灵根租续费窗口",
+    "description": "本周灵根租已入账，法力通道稳定。",
+    "lifeStages": ["uni"],
+    "tags": ["rest"],
+    "effectsOnPlay": [
+      { "kind": "stat", "payload": { "target": "faLi", "op": "add", "value": 0.06 } },
+      { "kind": "stat", "payload": { "target": "focus", "op": "add", "value": 4 } },
+      { "kind": "log", "payload": { "title": "灵根租", "detail": "通道稳定，专注+4。", "tone": "ok" } }
+    ]
+  },
+  {
+    "id": "uni-sect-task",
+    "title": "宗门杂务",
+    "description": "积分换现金，尊严另算。",
+    "lifeStages": ["uni"],
+    "tags": ["work"],
+    "effectsOnPlay": [
+      { "kind": "econ", "payload": { "target": "cash", "op": "add", "value": 320 } },
+      { "kind": "stat", "payload": { "target": "fatigue", "op": "add", "value": 10 } },
+      { "kind": "log", "payload": { "title": "杂务", "detail": "¥320 入账，积分已登记。", "tone": "info" } }
+    ],
+    "effectsOnSkip": [
+      { "kind": "stat", "payload": { "target": "daoXin", "op": "add", "value": -0.05 } },
+      { "kind": "log", "payload": { "title": "发酵", "detail": "未接杂务——宗门备注「不配合」。", "tone": "warn" } }
+    ]
+  },
+  {
+    "id": "uni-harvest-fee",
+    "title": "抽成公示",
+    "description": "制度展示本宗 harvest 上限，你感到被定价。",
+    "lifeStages": ["uni"],
+    "tags": ["risk"],
+    "effectsOnPlay": [
+      { "kind": "econ", "payload": { "target": "collectionFee", "op": "add", "value": 80 } },
+      { "kind": "stat", "payload": { "target": "focus", "op": "add", "value": -4 } },
+      { "kind": "log", "payload": { "title": "抽成", "detail": "服务费+80，专注下滑。", "tone": "warn" } }
+    ]
+  },
+  {
+    "id": "uni-alchemy-lab",
+    "title": "丹房勤工",
+    "description": "炼废一炉也要签字认账。",
+    "lifeStages": ["uni"],
+    "tags": ["work"],
+    "effectsOnPlay": [
+      { "kind": "econ", "payload": { "target": "cash", "op": "add", "value": 180 } },
+      { "kind": "stat", "payload": { "target": "rouTi", "op": "add", "value": 0.05 } },
+      { "kind": "stat", "payload": { "target": "fatigue", "op": "add", "value": 14 } },
+      { "kind": "log", "payload": { "title": "丹房", "detail": "肉体+0.05，疲劳+14。", "tone": "info" } }
+    ]
+  },
+  {
+    "id": "uni-rank-pressure",
+    "title": "积分榜公示",
+    "description": "尾段观察榜不是警告，是预告。",
+    "lifeStages": ["uni"],
+    "tags": ["risk"],
+    "effectsOnPlay": [
+      { "kind": "stat", "payload": { "target": "focus", "op": "add", "value": -6 } },
+      { "kind": "stat", "payload": { "target": "daoXin", "op": "add", "value": 0.08 } },
+      { "kind": "log", "payload": { "title": "公示", "detail": "道心+0.08，焦虑+6 专注。", "tone": "warn" } }
+    ]
+  },
+  {
+    "id": "uni-rest-hall",
+    "title": "静室硬睡",
+    "description": "订阅不停，睡眠只是暂停键。",
+    "lifeStages": ["uni"],
+    "tags": ["rest"],
+    "effectsOnPlay": [
+      { "kind": "stat", "payload": { "target": "fatigue", "op": "add", "value": -8 } },
+      { "kind": "stat", "payload": { "target": "rouTi", "op": "add", "value": 0.04 } },
+      { "kind": "log", "payload": { "title": "静室", "detail": "疲劳-8，肉体微恢复。", "tone": "ok" } }
+    ]
+  },
+  {
+    "id": "endless-lie-flat",
+    "title": "登记躺平",
+    "description": "向管事声明本回合不冲 KPI。系统会记一笔，抽成不会手软。",
+    "lifeStages": ["work"],
+    "tags": ["lie-flat", "risk"],
+    "effectsOnPlay": [
+      { "kind": "stat", "payload": { "target": "fatigue", "op": "add", "value": -6 } },
+      { "kind": "stat", "payload": { "target": "focus", "op": "add", "value": 3 } },
+      { "kind": "log", "payload": { "title": "躺平", "detail": "疲劳略降，但破境进度本回合冻结。", "tone": "warn" } }
+    ]
+  },
+  {
+    "id": "work-rest",
+    "title": "工位硬睡",
+    "description": "午休计入考勤，睡眠不计入尊严。",
+    "lifeStages": ["work"],
+    "tags": ["rest"],
+    "effectsOnPlay": [
+      { "kind": "stat", "payload": { "target": "fatigue", "op": "add", "value": -18 } },
+      { "kind": "stat", "payload": { "target": "focus", "op": "add", "value": 4 } },
+      { "kind": "log", "payload": { "title": "午休", "detail": "疲劳下降，KPI 窗口仍在倒计时。", "tone": "ok" } }
+    ]
+  },
+  {
+    "id": "work-overtime",
+    "title": "自愿加班",
+    "description": "合同脚注：加班费并入五险一金池，不进你的口袋。",
+    "lifeStages": ["work"],
+    "tags": ["work"],
+    "effectsOnPlay": [
+      { "kind": "econ", "payload": { "target": "cash", "op": "add", "value": 420 } },
+      { "kind": "stat", "payload": { "target": "fatigue", "op": "add", "value": 12 } },
+      { "kind": "econ", "payload": { "target": "collectionFee", "op": "add", "value": 60 } },
+      { "kind": "log", "payload": { "title": "加班", "detail": "现金+420，五险一金池+60。", "tone": "warn" } }
+    ],
+    "effectsOnSkip": [
+      { "kind": "econ", "payload": { "target": "delinquency", "op": "add", "value": 1 } },
+      { "kind": "log", "payload": { "title": "发酵", "detail": "拒加班——HR 备注「不配合」。", "tone": "danger" } }
+    ]
+  },
+  {
+    "id": "work-kpi-review",
+    "title": "KPI 约谈",
+    "description": "会议室玻璃透明，你的学历标签被投屏。",
+    "lifeStages": ["work"],
+    "tags": ["risk"],
+    "effectsOnPlay": [
+      { "kind": "stat", "payload": { "target": "focus", "op": "add", "value": -8 } },
+      { "kind": "econ", "payload": { "target": "collectionFee", "op": "add", "value": 120 } },
+      { "kind": "log", "payload": { "title": "约谈", "detail": "专注下滑，五险一金池再涨。", "tone": "warn" } }
+    ]
+  },
+  {
+    "id": "work-shame-gig",
+    "title": "羞辱兼职",
+    "description": "时薪更低，但系统记录你「仍有生产力」。",
+    "lifeStages": ["work"],
+    "tags": ["work"],
+    "effectsOnPlay": [
+      { "kind": "econ", "payload": { "target": "cash", "op": "add", "value": 260 } },
+      { "kind": "stat", "payload": { "target": "fatigue", "op": "add", "value": 8 } },
+      { "kind": "tag", "payload": { "tag": "work-shame-event" } },
+      { "kind": "log", "payload": { "title": "兼职", "detail": "现金+260，档案备注羞辱计数+1。", "tone": "danger" } }
+    ]
+  },
+  {
+    "id": "work-paycheck",
+    "title": "发薪日扣款",
+    "description": "工资到账前先扣五险一金与灵贷代扣。",
+    "lifeStages": ["work"],
+    "tags": ["work"],
+    "effectsOnPlay": [
+      { "kind": "econ", "payload": { "target": "cash", "op": "add", "value": 1200 } },
+      { "kind": "econ", "payload": { "target": "collectionFee", "op": "add", "value": 200 } },
+      { "kind": "stat", "payload": { "target": "fatigue", "op": "add", "value": -4 } },
+      { "kind": "log", "payload": { "title": "发薪", "detail": "现金+1200，池子也同步抽水。", "tone": "info" } }
+    ]
+  },
+  {
+    "id": "work-insurance-pool",
+    "title": "五险一金入账",
+    "description": "制度公示：你的还款义务进入企业代缴池。",
+    "lifeStages": ["work"],
+    "tags": ["risk"],
+    "effectsOnPlay": [
+      { "kind": "econ", "payload": { "target": "collectionFee", "op": "add", "value": 150 } },
+      { "kind": "stat", "payload": { "target": "focus", "op": "add", "value": -5 } },
+      { "kind": "log", "payload": { "title": "代缴", "detail": "五险一金池+150，你还款压力显性上升。", "tone": "warn" } }
+    ]
+  },
+  {
+    "id": "work-min-repay",
+    "title": "最低还款",
+    "description": "还一点，让催收话术降半档。",
+    "lifeStages": ["work"],
+    "tags": ["risk"],
+    "requires": { "minCash": 300 },
+    "effectsOnPlay": [
+      { "kind": "econ", "payload": { "target": "cash", "op": "add", "value": -400 } },
+      { "kind": "econ", "payload": { "target": "debtInterestAccrued", "op": "add", "value": -250 } },
+      { "kind": "econ", "payload": { "target": "delinquency", "op": "add", "value": -1 } },
+      { "kind": "log", "payload": { "title": "还款", "detail": "利息-250，逾期可能下降。", "tone": "ok" } }
+    ]
+  },
+  {
+    "id": "work-salary-advance",
+    "title": "预支薪水",
+    "description": "HR 通道：今天多拿，明天多欠。",
+    "lifeStages": ["work"],
+    "tags": ["risk"],
+    "effectsOnPlay": [
+      { "kind": "econ", "payload": { "target": "cash", "op": "add", "value": 1500 } },
+      { "kind": "econ", "payload": { "target": "debtPrincipal", "op": "add", "value": 1800 } },
+      { "kind": "log", "payload": { "title": "预支", "detail": "现金+1500，本金+1800。", "tone": "warn" } }
+    ]
+  },
+  {
+    "id": "work-hr-shame",
+    "title": "学历标签公示",
+    "description": "档案标签被 HR 朗读——羞辱是流程的一部分。",
+    "lifeStages": ["work"],
+    "tags": ["risk"],
+    "effectsOnPlay": [
+      { "kind": "stat", "payload": { "target": "focus", "op": "add", "value": -6 } },
+      { "kind": "econ", "payload": { "target": "delinquency", "op": "add", "value": 1 } },
+      { "kind": "log", "payload": { "title": "公示", "detail": "逾期+1，专注下滑。", "tone": "danger" } }
+    ]
+  }
+]

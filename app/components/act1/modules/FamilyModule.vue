@@ -11,6 +11,7 @@ import {
   isCollectionEscalated,
   type FamilyExpenseId
 } from '~/logic/act1/familyLedger'
+import { COLLECTION_LADDER_LABELS, collectionLadderStage } from '~/logic/act1/s0Flow'
 
 const props = defineProps<{
   act1: Act1State
@@ -27,6 +28,8 @@ const showEndingChoices = computed(() => hasFamilyEndingChoices(props.act1))
 const escalationProgress = computed(() =>
   Math.min(100, Math.round((props.act1.familyMeta.moneyRequests / COLLECTION_ESCALATION_REQUESTS) * 100))
 )
+
+const ladderStage = computed(() => collectionLadderStage(props.act1))
 
 const outcomeLabels: Record<string, string> = {
   left: '家人离场',
@@ -48,6 +51,21 @@ function expenseHint(id: FamilyExpenseId) {
         家庭账本 · 韧性 {{ act1.familyResilience }} / 100。每张卡片 =
         <strong>向家里要一笔钱</strong>（入账给你，消耗家庭韧性）。
       </p>
+
+      <ol class="FamilyModule__ladder" aria-label="催收阶梯 0 至 3">
+        <li
+          v-for="(label, i) in COLLECTION_LADDER_LABELS"
+          :key="label"
+          class="FamilyModule__ladder-step"
+          :class="{
+            'FamilyModule__ladder-step--done': ladderStage > i,
+            'FamilyModule__ladder-step--current': ladderStage === i
+          }"
+        >
+          <span class="FamilyModule__ladder-dot" />
+          <span>{{ label }}</span>
+        </li>
+      </ol>
 
       <div class="FamilyModule__meter" aria-label="催收升级进度">
         <div class="FamilyModule__meter-label">
@@ -147,6 +165,40 @@ function expenseHint(id: FamilyExpenseId) {
 </template>
 
 <style scoped>
+.FamilyModule__ladder {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+}
+.FamilyModule__ladder-step {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.FamilyModule__ladder-step--done {
+  border-color: rgba(0, 255, 136, 0.35);
+  color: var(--success);
+}
+.FamilyModule__ladder-step--current {
+  border-color: rgba(255, 210, 74, 0.5);
+  color: var(--warning);
+  background: rgba(255, 210, 74, 0.08);
+}
+.FamilyModule__ladder-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
 .FamilyModule__meter {
   margin-bottom: 16px;
   padding: 12px;

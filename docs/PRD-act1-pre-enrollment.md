@@ -2,7 +2,7 @@
 
 | 字段 | 内容 |
 |------|------|
-| 状态 | Draft v0.1 |
+| 状态 | Draft v0.1（**体验结构以 [ROADMAP-next-iterations.md](./ROADMAP-next-iterations.md) v2 为准**；本文档作机制/变量参考） |
 | 对齐文档 | [AGENTS.md](../AGENTS.md)、[README.md](../README.md) |
 | 路由（计划） | `/` 开局 → `/act1` 桌面模拟 → 结算 → （未来）周目 2 `/game` |
 | 单局时长目标 | 15～25 分钟 |

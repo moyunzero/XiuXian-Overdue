@@ -1,0 +1,40 @@
+{
+  "jobs": [
+    {
+      "id": "errand-runner",
+      "title": "灵材跑腿",
+      "minEducationTags": [],
+      "hourlyPay": 22,
+      "harvestRate": 0.12,
+      "pressureCardUnlocks": [],
+      "description": "无门槛，日结按件；抽成照扣。"
+    },
+    {
+      "id": "warehouse-sort",
+      "title": "库房灵力分拣",
+      "minEducationTags": ["hs-graduated"],
+      "hourlyPay": 38,
+      "harvestRate": 0.18,
+      "pressureCardUnlocks": ["work-overtime"],
+      "description": "需高中档案；夜班加成写在合同脚注里。"
+    },
+    {
+      "id": "sect-desk",
+      "title": "宗门文书岗",
+      "minEducationTags": ["hs-graduated", "uni-enrolled"],
+      "hourlyPay": 52,
+      "harvestRate": 0.22,
+      "pressureCardUnlocks": ["work-kpi-review"],
+      "description": "预科结业标签优先；KPI 与五险一金池绑定。"
+    },
+    {
+      "id": "elite-pipeline",
+      "title": "精英班外包通道",
+      "minEducationTags": ["hs-graduated", "tier-elite"],
+      "hourlyPay": 68,
+      "harvestRate": 0.28,
+      "pressureCardUnlocks": ["work-kpi-review", "work-shame-gig"],
+      "description": "尖子班履历仍可能被 HR 备注「重点高中，学历仍不够」。"
+    }
+  ]
+}

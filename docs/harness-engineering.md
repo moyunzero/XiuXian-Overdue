@@ -110,6 +110,9 @@ yarn harness:architecture
 - [ ] 是否更新 `manifest.json` 的 `triggerPaths`（若新目录）？
 - [ ] 是否跑 `yarn harness:verify` 并在回复中贴 `HARNESS_OK`？
 - [ ] 是否避免「请用户手动测 3 遍流程」？
+- [ ] 关口/setpiece 确认后是否走 `setpieceFlow.ts`（勿在 composable 复制 `beginNextRoundAfterResolve` 条件）？
+- [ ] 新玩家卡点是否新增 `*Flow.spec.ts` 并登记 `manifest.contracts`？
+- [ ] 展示 `profileTags` / `educationTags` 时是否经 `formatPlayerFacingTagLine`（禁止直接 `.join`）？
 
 ---
 
@@ -122,6 +125,10 @@ yarn harness:architecture
 | [scripts/harness/verify.mjs](../scripts/harness/verify.mjs) | 验证编排 |
 | [scripts/harness/architecture-check.mjs](../scripts/harness/architecture-check.mjs) | 分层检查 |
 | [app/logic/act1/act1FamilyFlow.spec.ts](../app/logic/act1/act1FamilyFlow.spec.ts) | 家庭线防卡点范例 |
+| [app/logic/play/setpieceFlow.ts](../app/logic/play/setpieceFlow.ts) | 关口后开回合 / 读档补回合（HS + Uni） |
+| [app/logic/play/playerFacingCopy.ts](../app/logic/play/playerFacingCopy.ts) | 玩家可见标签中文化 + 断言 |
+| [app/logic/play/playCompliance.spec.ts](../app/logic/play/playCompliance.spec.ts) | 静态禁止 profileTags/educationTags 直接 join |
+| [app/logic/play/endlessFromDay1Flow.spec.ts](../app/logic/play/endlessFromDay1Flow.spec.ts) | Endless 单线：Act1 → HS 首轮 → 自动突破 → Uni 段 |
 
 ---
 

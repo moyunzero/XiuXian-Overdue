@@ -45,6 +45,7 @@ const emit = defineEmits<{
         v-else-if="windowId === 'loan'"
         :act1="act1"
         :modifiers="modifiers"
+        :prior-meta-unlocks="priorMetaUnlocks"
         @compare="emit('compareLoan')"
         @compare-tick="emit('compareLoanTick', $event)"
         @sign="emit('signLoan', $event)"

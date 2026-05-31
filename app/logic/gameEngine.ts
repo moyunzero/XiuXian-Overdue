@@ -522,15 +522,17 @@ export function applyBodyMortgageEffect(
 
   if (result.debtReduction > 0) {
     const rollingDebt = g.econ.collectionFee + g.econ.debtPrincipal + g.econ.debtInterestAccrued
-    const reduction = Math.min(result.debtReduction, rollingDebt)
-    const ratio = reduction / rollingDebt
-    g.econ.collectionFee = Math.floor(g.econ.collectionFee * (1 - ratio))
-    g.econ.debtPrincipal = Math.floor(g.econ.debtPrincipal * (1 - ratio))
-    g.econ.debtInterestAccrued = Math.floor(g.econ.debtInterestAccrued * (1 - ratio))
+    if (rollingDebt > 0) {
+      const reduction = Math.min(result.debtReduction, rollingDebt)
+      const ratio = reduction / rollingDebt
+      g.econ.collectionFee = Math.floor(g.econ.collectionFee * (1 - ratio))
+      g.econ.debtPrincipal = Math.floor(g.econ.debtPrincipal * (1 - ratio))
+      g.econ.debtInterestAccrued = Math.floor(g.econ.debtInterestAccrued * (1 - ratio))
 
-    // 方案 A：锁定债务 - 选择减债型身体抵押后，债务被锁定
-    g.econ.debtLock = 'bodyLocked'
-    g.econ.lockedDebtAmount = reduction
+      // 方案 A：锁定债务 - 选择减债型身体抵押后，债务被锁定
+      g.econ.debtLock = 'bodyLocked'
+      g.econ.lockedDebtAmount = reduction
+    }
   }
 
   if (result.cultivationBonus.faLi > 0) {
@@ -559,6 +561,9 @@ export function canTriggerBodyMortgage(g: GameState): boolean {
   const totalDebt = fullDebt(g)
   const delinquency = g.econ.delinquency
   const tier = g.school.classTier
+
+  // 无滚动负债时不走身体抵押（避免「无债仍割肉」与减债除零）
+  if (totalDebt <= 0) return false
 
   // 逾期等级 >= 3 时，风险极高，触发身体抵押通道
   if (delinquency >= 3) return true

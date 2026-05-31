@@ -1,31 +1,23 @@
 <script setup lang="ts">
 import type { Background, StartConfig, Talent } from '~/types/game'
-import { useGameForIndex } from '~/composables/useGameForIndex'
-import type { SaveSlotId } from '~/composables/useGameForIndex'
+import type { PlayRunState } from '~/types/play'
 import { computed, onMounted, ref } from 'vue'
 import { navigateTo } from '#app'
 import { useAct1Storage } from '~/composables/useAct1Storage'
+import { usePlayStorage } from '~/composables/usePlayStorage'
+import { emptyV4Save, LEGACY_SAVE_KEY } from '~/composables/usePlayStorage.helpers'
+import { createPlayRunFromStartConfig } from '~/logic/play/createPlayRun'
 import { carryoverFromPersist } from '~/logic/act1/act1Carryover'
+import { formatMetaUnlocksLine } from '~/logic/act1/metaUnlockLabels'
+import { mergePriorMetaForNewRun } from '~/logic/play/playMeta'
 import Act1ArchivePanel from '~/components/home/Act1ArchivePanel.vue'
 import HeroSection from '~/components/home/HeroSection.vue'
 import IdentitySelector from '~/components/home/IdentitySelector.vue'
 import QuickStartButton from '~/components/home/QuickStartButton.vue'
-import SaveSlotList from '~/components/home/SaveSlotList.vue'
 import ParticleBackground from '~/components/home/ParticleBackground.vue'
 import Button from '~/components/ui/Button.vue'
 import Card from '~/components/ui/Card.vue'
 import Pill from '~/components/ui/Pill.vue'
-
-const { game, startNew, reset, listSlots, loadFromSlot, saveToSlot, activeSlot, deleteSlot } = useGameForIndex()
-
-const saveSlotOrder: SaveSlotId[] = ['autosave', 'slot1', 'slot2', 'slot3']
-
-const slotRows = computed(() =>
-  saveSlotOrder.map((id, idx) => ({
-    id,
-    meta: listSlots.value[idx] ?? null
-  }))
-)
 
 const selectedNewGameSlot = ref<'slot1' | 'slot2' | 'slot3'>('slot1')
 const playerName = ref('龙傲天')
@@ -35,11 +27,41 @@ const startingCity = ref('xx市')
 const initialDebt = ref(20_000)
 const showAdvanced = ref(false)
 
-const canContinue = computed(() => game.value.started)
-
 const act1StartConfig = useState<StartConfig | null>('act1StartConfig', () => null)
 const act1SlotId = useState<'slot1' | 'slot2' | 'slot3'>('act1SlotId', () => 'slot1')
 const act1PriorMetaUnlocks = useState<string[]>('act1PriorMetaUnlocks', () => [])
+const playHsCarryover = useState<ReturnType<typeof carryoverFromPersist> | null>('playHsCarryover', () => null)
+const playRunMode = useState('playRunMode', () => 'endless')
+const aiEventsEnabled = ref(true)
+
+const globalMetaLine = computed(() => {
+  const ids = playStorage.getPlayMeta().priorMetaUnlocks
+  return ids.length ? formatMetaUnlocksLine(ids, 5) : ''
+})
+
+const hasActiveRun = computed(() => !!activePlayRun.value)
+const hasAct1InProgress = computed(() => !activePlayRun.value && !!savedAct1Slot.value)
+const showNewGameSetup = computed(() => !hasActiveRun.value)
+
+const continuePlayLabel = computed(() => {
+  if (activePlayRun.value) return `继续修行 · ${activePlayRunLabel.value}`
+  if (savedAct1Slot.value) return `继续修行 · 入学前夜（${slotLabel(savedAct1Slot.value)}）`
+  return '继续修行'
+})
+
+const activePlayRunLabel = computed(() => {
+  const r = activePlayRun.value
+  if (!r) return ''
+  const stage =
+    r.lifeStage === 'pre'
+      ? '入学前夜'
+      : r.lifeStage === 'hs'
+        ? '高中'
+        : r.lifeStage === 'uni'
+          ? '大学预科'
+          : r.lifeStage
+  return `${stage} · ${r.start.playerName}`
+})
 
 function buildStartConfig(): StartConfig {
   return {
@@ -52,6 +74,8 @@ function buildStartConfig(): StartConfig {
 }
 
 const act1Storage = useAct1Storage()
+const playStorage = usePlayStorage()
+const activePlayRun = ref<PlayRunState | null>(null)
 const savedAct1Slot = ref<'slot1' | 'slot2' | 'slot3' | null>(null)
 
 const settledAct1ForSlot = computed(() => {
@@ -59,13 +83,19 @@ const settledAct1ForSlot = computed(() => {
   return saved?.settled ? saved : null
 })
 
-const act1CarryoverForStart = computed(() =>
-  settledAct1ForSlot.value ? carryoverFromPersist(settledAct1ForSlot.value) : undefined
-)
-
 const slotLabel = (id: string) => (id === 'slot1' ? '存档槽 1' : id === 'slot2' ? '存档槽 2' : '存档槽 3')
 
 onMounted(() => {
+  activePlayRun.value = playStorage.getActiveRun()
+  if (activePlayRun.value) {
+    selectedNewGameSlot.value = activePlayRun.value.slotId
+    playerName.value = activePlayRun.value.start.playerName
+    background.value = activePlayRun.value.start.background
+    talent.value = activePlayRun.value.start.talent
+    startingCity.value = activePlayRun.value.start.startingCity
+    initialDebt.value = activePlayRun.value.start.initialDebt
+  }
+  aiEventsEnabled.value = playStorage.getPlayMeta().aiEventsEnabled
   for (const slot of ['slot1', 'slot2', 'slot3'] as const) {
     const saved = act1Storage.loadAct1(slot)
     if (saved && !saved.settled) {
@@ -75,12 +105,38 @@ onMounted(() => {
   }
 })
 
-async function onStartAct1() {
-  const prev = act1Storage.loadAct1(selectedNewGameSlot.value)
-  act1PriorMetaUnlocks.value = prev?.settled ? [...(prev.metaUnlocks ?? [])] : []
-  act1StartConfig.value = buildStartConfig()
+async function onStartJourney() {
+  if (activePlayRun.value) {
+    const ok = window.confirm(
+      `将用当前自定义项在「${slotLabel(selectedNewGameSlot.value)}」开新局，并覆盖进行中的「${activePlayRunLabel.value}」进度。确定？`
+    )
+    if (!ok) return
+  }
+
+  const cfg = buildStartConfig()
+  act1StartConfig.value = cfg
   act1SlotId.value = selectedNewGameSlot.value
-  await navigateTo('/act1')
+  playRunMode.value = 'endless'
+
+  const prev = act1Storage.loadAct1(selectedNewGameSlot.value)
+  const fromSlot = prev?.settled ? (prev.metaUnlocks ?? []) : []
+  act1PriorMetaUnlocks.value = mergePriorMetaForNewRun(playStorage.getPlayMeta(), fromSlot)
+
+  const run = createPlayRunFromStartConfig(cfg, selectedNewGameSlot.value, {
+    runMode: 'endless'
+  })
+  playStorage.setActiveRun(run)
+  await navigateTo('/play')
+}
+
+async function onContinuePlay() {
+  if (activePlayRun.value) {
+    await onContinuePlayRun()
+    return
+  }
+  if (savedAct1Slot.value) {
+    await onContinueAct1()
+  }
 }
 
 async function onContinueAct1() {
@@ -89,52 +145,46 @@ async function onContinueAct1() {
   if (!saved) return
   act1StartConfig.value = saved.startConfig
   act1SlotId.value = savedAct1Slot.value
-  await navigateTo('/act1')
+  const run = playStorage.ensureRunForSlot(savedAct1Slot.value)
+  if (run) {
+    playRunMode.value = run.runMode
+    playStorage.setActiveRun(run)
+  }
+  await navigateTo('/play')
 }
 
-async function onStart() {
-  const cfg = buildStartConfig()
-  startNew(cfg, act1CarryoverForStart.value)
-  const slot = selectedNewGameSlot.value
-  const n = slot.slice(-1)
-  saveToSlot(slot, `第${n}局·${playerName.value.trim() || '无名氏'}`)
-  activeSlot.value = slot
-  await navigateTo('/game')
-}
-
-async function resume(slotId: SaveSlotId) {
-  const ok = loadFromSlot(slotId)
-  if (ok) await navigateTo('/game')
+async function onContinuePlayRun() {
+  const run = playStorage.getActiveRun()
+  if (!run) return
+  act1StartConfig.value = run.start
+  act1SlotId.value = run.slotId
+  playRunMode.value = run.runMode
+  if (run.lifeStage === 'hs') {
+    playHsCarryover.value = run.carryoverFromAct1 ?? null
+  }
+  await navigateTo('/play')
 }
 
 function onClearSaves() {
   const ok = window.confirm(
-    '将清除本机「全部」存档槽位（含自动存档与手动槽）记录。该操作不可逆，按制度立即执行。'
+    '将清除本机全部修行存档（入学前夜、战役进度、v4 多周目与旧版槽位）。该操作不可逆。'
   )
-  if (ok) reset()
-}
-
-function onDeleteSlot(slotId: SaveSlotId) {
-  const slotLabel = slotId === 'autosave' ? '自动存档' : slotId
-  const ok = window.confirm(`确定要删除「${slotLabel}」吗？该操作不可逆。`)
-  if (ok) {
-    deleteSlot(slotId)
+  if (!ok) return
+  playStorage.writeContainer(emptyV4Save())
+  for (const slot of ['slot1', 'slot2', 'slot3'] as const) {
+    act1Storage.clearAct1(slot)
   }
+  if (import.meta.client) {
+    try {
+      localStorage.removeItem(LEGACY_SAVE_KEY)
+    } catch {
+      /* ignore */
+    }
+  }
+  activePlayRun.value = null
+  savedAct1Slot.value = null
+  aiEventsEnabled.value = true
 }
-
-const slotData = computed(() =>
-  saveSlotOrder.map((id, idx) => ({
-    id,
-    meta: listSlots.value[idx]
-      ? {
-          day: listSlots.value[idx]!.day,
-          tier: listSlots.value[idx]!.tier,
-          cash: listSlots.value[idx]!.cash,
-          debt: listSlots.value[idx]!.debt
-        }
-      : null
-  }))
-)
 </script>
 
 <template>
@@ -146,50 +196,63 @@ const slotData = computed(() =>
       <HeroSection />
 
       <IdentitySelector
+        v-if="showNewGameSetup"
         v-model="background"
         class="IndexPage__identity"
       />
 
       <div class="IndexPage__start">
-        <Act1ArchivePanel
-          v-if="settledAct1ForSlot"
-          :persist="settledAct1ForSlot"
-          :slot-label="slotLabel(selectedNewGameSlot)"
-        />
+        <template v-if="hasActiveRun">
+          <Card class="IndexPage__continueCard" padding="md">
+            <p class="IndexPage__continue-kicker">进行中的战役</p>
+            <p class="IndexPage__continue-title">{{ activePlayRunLabel }}</p>
+            <p v-if="globalMetaLine" class="IndexPage__continue-meta">{{ globalMetaLine }}</p>
+          </Card>
+          <QuickStartButton
+            :text="continuePlayLabel"
+            @click="onContinuePlay"
+          />
+          <button
+            type="button"
+            class="IndexPage__newRunLink"
+            @click="showAdvanced = true"
+          >
+            开新局（覆盖当前进度）
+          </button>
+        </template>
 
-        <QuickStartButton
-          :disabled="!selectedNewGameSlot"
-          :text="settledAct1ForSlot ? '进入昆墟高中（周目 2）' : '开始这局'"
-          :subtitle="settledAct1ForSlot ? '继承入学前夜制度档案与利率修正' : ''"
-          @click="onStart"
-        />
+        <template v-else>
+          <Act1ArchivePanel
+            v-if="settledAct1ForSlot"
+            :persist="settledAct1ForSlot"
+            :slot-label="slotLabel(selectedNewGameSlot)"
+          />
 
-        <Button
-          v-if="savedAct1Slot"
-          variant="primary"
-          size="md"
-          full-width
-          class="IndexPage__act1"
-          @click="onContinueAct1"
-        >
-          继续入学前夜（{{ savedAct1Slot }}）
-        </Button>
+          <Card v-if="globalMetaLine" class="IndexPage__meta" padding="md">
+            <p class="IndexPage__mode-label">跨周目制度备注</p>
+            <p class="IndexPage__meta-line">{{ globalMetaLine }}</p>
+          </Card>
 
-        <Button
-          variant="ghost"
-          size="md"
-          full-width
-          class="IndexPage__act1"
-          @click="onStartAct1"
-        >
-          {{ savedAct1Slot ? '新开局 · 入学前夜' : '入学前夜（试玩）' }}
-        </Button>
+          <QuickStartButton
+            v-if="hasAct1InProgress"
+            :text="continuePlayLabel"
+            @click="onContinuePlay"
+          />
+
+          <QuickStartButton
+            :disabled="!selectedNewGameSlot"
+            :text="hasAct1InProgress ? '开新局' : '开始修行'"
+            :subtitle="hasAct1InProgress ? '' : '入学前夜 → 高中 → 预科 → 职场 → 无尽境'"
+            @click="onStartJourney"
+          />
+        </template>
 
         <button
+          v-if="showNewGameSetup || hasActiveRun"
           class="IndexPage__advanced-toggle"
           @click="showAdvanced = !showAdvanced"
         >
-          {{ showAdvanced ? '收起高级选项' : '自定义角色' }}
+          {{ showAdvanced ? '收起' : '高级设置' }}
           <svg
             class="IndexPage__chevron"
             :class="{ 'IndexPage__chevron--up': showAdvanced }"
@@ -256,18 +319,28 @@ const slotData = computed(() =>
               身份、天赋、出身与债务将共同决定系统对您的初始画像评估。
             </p>
           </div>
+
+          <label class="IndexPage__ai-toggle">
+            <input
+              v-model="aiEventsEnabled"
+              type="checkbox"
+              @change="playStorage.updatePlayMeta({ aiEventsEnabled: aiEventsEnabled })"
+            />
+            启用 AI 瞬间文案（关闭则不插入瞬间；开启时无 API Key 仍用本地模板）
+          </label>
+
+          <Button
+            v-if="hasActiveRun"
+            variant="secondary"
+            size="md"
+            full-width
+            class="IndexPage__confirmNewRun"
+            @click="onStartJourney"
+          >
+            确认开新局
+          </Button>
         </Card>
       </Transition>
-
-      <ClientOnly>
-        <SaveSlotList
-          :slots="slotData"
-          :active-slot="activeSlot"
-          class="IndexPage__saves"
-          @select="resume"
-          @delete="onDeleteSlot"
-        />
-      </ClientOnly>
 
       <div class="IndexPage__footer">
         <Button variant="ghost" size="sm" @click="onClearSaves">
@@ -297,9 +370,98 @@ const slotData = computed(() =>
   margin-top: 32px;
 }
 
-.IndexPage__act1 {
+.IndexPage__continueCard {
+  width: 100%;
+  max-width: 420px;
+  text-align: left;
+}
+.IndexPage__continue-kicker {
+  margin: 0 0 6px;
+  font-family: var(--mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.08em;
+  color: var(--neon-cyan);
+}
+.IndexPage__continue-title {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.IndexPage__continue-meta {
+  margin: 10px 0 0;
+  font-family: var(--mono);
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+.IndexPage__newRunLink {
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: var(--mono);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.IndexPage__newRunLink:hover {
+  color: var(--text-secondary);
+}
+
+.IndexPage__devLink {
   width: 100%;
   max-width: 320px;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: var(--text-xs);
+  color: rgba(180, 220, 255, 0.85);
+  text-decoration: none;
+  padding: 8px 12px;
+  border: 1px dashed rgba(120, 200, 255, 0.35);
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+.IndexPage__devLink:hover {
+  color: var(--neon-cyan);
+  border-color: rgba(120, 200, 255, 0.55);
+}
+
+.IndexPage__mode {
+  width: 100%;
+  max-width: 420px;
+}
+
+.IndexPage__mode-label {
+  margin: 0 0 12px;
+  font-size: var(--text-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--neon-cyan);
+  font-family: var(--mono);
+}
+
+.IndexPage__meta-line {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: var(--text-xs);
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.IndexPage__confirmNewRun {
+  margin-top: 16px;
+}
+
+.IndexPage__ai-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-family: var(--mono);
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  color: var(--text-secondary);
+  cursor: pointer;
 }
 
 .IndexPage__advanced-toggle {
@@ -349,10 +511,6 @@ const slotData = computed(() =>
   margin-top: 20px;
   padding-top: 16px;
   border-top: 1px solid var(--border-default);
-}
-
-.IndexPage__saves {
-  margin-top: 32px;
 }
 
 .IndexPage__footer {

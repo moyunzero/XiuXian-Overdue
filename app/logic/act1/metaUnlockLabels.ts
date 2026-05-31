@@ -13,7 +13,7 @@ const META_UNLOCK_LABELS: Record<string, string> = {
 /** 二周目面试顶栏「制度备注」 */
 const META_INSTITUTIONAL_NOTES: Record<string, string> = {
   'witness-departure':
-    '制度备注：档案显示上一周目存在「监护人迁出」Witness 记录。本回合问卷将附加风控追问字段。',
+    '制度备注：档案显示上一周目存在「监护人迁出」见证记录。本回合问卷将附加风控追问字段。',
   'family-guarantor':
     '制度备注：家庭担保合约已归档。灵贷中心将按担保档位重算你的可比产品列表。',
   'family-false-hope':
@@ -56,6 +56,42 @@ export function buildInstitutionalNotes(metaUnlocks: string[]): string[] {
   const seen = new Set<string>()
   for (const id of metaUnlocks) {
     const note = META_INSTITUTIONAL_NOTES[id]
+    if (!note || seen.has(note)) continue
+    seen.add(note)
+    out.push(note)
+  }
+  return out
+}
+
+const LOAN_INSTITUTIONAL_UNLOCK_IDS = new Set([
+  'family-guarantor',
+  'family-false-hope',
+  'price-aware',
+  'ad-resistant',
+  'special-track-memo'
+])
+
+/** 二周目灵贷模块顶栏制度备注（过滤面试专属条目）。 */
+export function buildLoanInstitutionalNotes(metaUnlocks: string[]): string[] {
+  return buildInstitutionalNotes(metaUnlocks.filter((id) => LOAN_INSTITUTIONAL_UNLOCK_IDS.has(id)))
+}
+
+const BREAKTHROUGH_INSTITUTIONAL_NOTES: Record<string, string> = {
+  'witness-departure':
+    '制度备注：上周目「监护人迁出」已写入破境风控样本。庆典账单将附加见证字段。',
+  'family-guarantor':
+    '制度备注：家庭担保合约仍挂账。破境后维护费草案将按担保档位重算。',
+  'family-false-hope':
+    '制度备注：家庭周转贷条目有效。破境贺礼到账前，催收线程可能抬头。',
+  'special-track-memo': '制度备注：特招轨道备忘已同步至境界登记处。'
+}
+
+/** 破境关口顶栏制度备注（二周目+） */
+export function buildBreakthroughInstitutionalNotes(metaUnlocks: string[]): string[] {
+  const out: string[] = []
+  const seen = new Set<string>()
+  for (const id of metaUnlocks) {
+    const note = BREAKTHROUGH_INSTITUTIONAL_NOTES[id]
     if (!note || seen.has(note)) continue
     seen.add(note)
     out.push(note)

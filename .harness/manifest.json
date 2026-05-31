@@ -50,17 +50,54 @@
       "title": "events.json 结构校验",
       "command": "yarn validate:events",
       "required": true,
-      "triggerPaths": ["data/events.json", "data/eventTemplates.json", "scripts/validate-events.mjs"]
+      "triggerPaths": [
+        "data/events.json",
+        "data/eventTemplates.json",
+        "scripts/validate-events.mjs"
+      ]
+    },
+    {
+      "id": "validate:pressure-cards",
+      "title": "pressureCards.json 结构校验",
+      "command": "yarn validate:pressure-cards",
+      "required": true,
+      "triggerPaths": [
+        "data/pressureCards.json",
+        "scripts/validate-pressure-cards.mjs"
+      ]
+    },
+    {
+      "id": "validate:inbox-templates",
+      "title": "inboxTemplates.json 结构校验",
+      "command": "yarn validate:inbox-templates",
+      "required": true,
+      "triggerPaths": [
+        "data/inboxTemplates.json",
+        "scripts/validate-inbox-templates.mjs"
+      ]
+    },
+    {
+      "id": "validate:jobs",
+      "title": "jobs.json 结构校验",
+      "command": "yarn validate:jobs",
+      "required": true,
+      "triggerPaths": [
+        "data/jobs.json",
+        "scripts/validate-jobs.mjs"
+      ]
     },
     {
       "id": "test:storage",
       "title": "存档读写回归",
-      "command": "yarn vitest --run app/composables/useGameStorage.spec.ts",
+      "command": "yarn vitest --run app/composables/useGameStorage.spec.ts app/composables/usePlayStorage.spec.ts",
       "required": false,
       "triggerPaths": [
         "app/composables/useGameStorage.ts",
+        "app/composables/usePlayStorage.ts",
+        "app/composables/usePlayStorage.helpers.ts",
         "app/types/game.ts",
-        "app/types/act1.ts"
+        "app/types/act1.ts",
+        "app/types/play.ts"
       ]
     },
     {
@@ -89,9 +126,185 @@
       ]
     },
     {
+      "id": "s0-flow",
+      "spec": "app/logic/act1/s0Flow.spec.ts",
+      "doc": "docs/planning/M3-setpiece-chapters/PLAN.md",
+      "triggerPaths": [
+        "app/logic/act1/s0Flow.ts",
+        "app/components/play/S0SetpieceShell.vue",
+        "app/pages/play/index.vue"
+      ]
+    },
+    {
+      "id": "m4-run-archive",
+      "spec": "app/logic/play/buildRunArchive.spec.ts",
+      "doc": "docs/planning/M4-body-endings/PLAN.md",
+      "triggerPaths": [
+        "app/logic/play/buildRunArchive.ts",
+        "app/logic/play/archiveDisplay.ts",
+        "app/logic/act1/act1Settlement.ts",
+        "app/logic/act1/profileTagLabels.ts",
+        "app/logic/act1/metaUnlockLabels.ts",
+        "app/components/play/RunArchiveView.vue",
+        "app/components/act1/Act1Settlement.vue",
+        "app/components/home/Act1ArchivePanel.vue",
+        "app/logic/act1/act1PlayTransition.ts"
+      ]
+    },
+    {
+      "id": "player-facing-copy",
+      "spec": "app/logic/play/playerFacingCopy.spec.ts",
+      "doc": "AGENTS.md#玩家可见文案禁止英文内部标签",
+      "triggerPaths": [
+        "app/logic/play/playerFacingCopy.ts",
+        "app/logic/play/playCompliance.spec.ts",
+        "app/logic/play/workFlow.ts",
+        "app/logic/play/archiveDisplay.ts",
+        "app/logic/act1/profileTagLabels.ts",
+        "app/components/play/**",
+        "app/pages/play/**",
+        "app/composables/usePlay*.ts"
+      ]
+    },
+    {
+      "id": "player-facing-copy-static",
+      "spec": "app/logic/play/playCompliance.spec.ts",
+      "doc": "AGENTS.md#玩家可见文案禁止英文内部标签",
+      "triggerPaths": [
+        "app/logic/play/**",
+        "app/components/play/**",
+        "app/pages/play/**",
+        "app/composables/usePlay*.ts"
+      ]
+    },
+    {
+      "id": "pressure-offer-integrity",
+      "spec": [
+        "app/logic/play/pressureOfferIntegrity.spec.ts",
+        "app/logic/play/playCompliance.spec.ts"
+      ],
+      "doc": "AGENTS.md#压力牌四选二-offered-须-4-个不同-id",
+      "triggerPaths": [
+        "app/logic/play/pressureDeck.ts",
+        "app/logic/play/playDayCycle.ts",
+        "app/logic/gameDayCycle.ts",
+        "app/logic/play/pressureOfferIntegrity.ts",
+        "app/logic/play/setpieceFlow.ts",
+        "app/components/play/PressureDeck.vue",
+        "app/logic/play/playCompliance.spec.ts"
+      ]
+    },
+    {
+      "id": "m4-body-mortgage",
+      "spec": "app/logic/play/bodyMortgage.spec.ts",
+      "doc": "docs/planning/M4-body-endings/PLAN.md",
+      "triggerPaths": [
+        "app/logic/play/bodyMortgage.ts",
+        "app/components/play/BodyMortgageScreen.vue",
+        "app/composables/usePlayHsSession.ts",
+        "app/pages/play/index.vue"
+      ]
+    },
+    {
+      "id": "setpiece-pressure-flow",
+      "spec": [
+        "app/logic/play/setpieceFlow.spec.ts",
+        "app/logic/play/playDayCycle.spec.ts"
+      ],
+      "doc": "docs/harness-engineering.md",
+      "triggerPaths": [
+        "app/logic/play/setpieceFlow.ts",
+        "app/composables/usePlayHsSession.ts",
+        "app/composables/usePlayUniSession.ts",
+        "app/logic/play/pressureDeck.ts",
+        "app/logic/play/playDayCycle.ts",
+        "app/logic/gameDayCycle.ts",
+        "app/logic/play/pressureOfferIntegrity.ts",
+        "app/components/play/PressureDeck.vue"
+      ]
+    },
+    {
+      "id": "validate:realm-templates",
+      "title": "realmTemplates / collapseEndings 结构校验",
+      "command": "yarn validate:realm-templates",
+      "required": true,
+      "triggerPaths": [
+        "data/realmTemplates.json",
+        "data/collapseEndings.json",
+        "scripts/validate-realm-templates.mjs"
+      ]
+    },
+    {
+      "id": "m8-meta-ai-flow",
+      "spec": [
+        "app/logic/play/playMeta.spec.ts",
+        "app/logic/play/playAiMoments.spec.ts"
+      ],
+      "doc": "docs/planning/M8-meta-ai/PLAN.md",
+      "triggerPaths": [
+        "app/logic/play/playMeta.ts",
+        "app/logic/play/playAiMoments.ts",
+        "app/logic/act1/act1Carryover.ts",
+        "app/logic/act1/metaUnlockLabels.ts",
+        "app/composables/usePlayStorage.ts",
+        "app/composables/usePlayStorage.helpers.ts",
+        "app/composables/usePlayHsSession.ts",
+        "app/composables/usePlayEndlessSession.ts",
+        "app/composables/useAct1Session.ts",
+        "app/components/play/BreakthroughScreen.vue",
+        "app/pages/index.vue",
+        "app/pages/play/index.vue",
+        "app/types/play.ts",
+        "app/types/act1.ts"
+      ]
+    },
+    {
+      "id": "m9-endless-realm-flow",
+      "spec": [
+        "app/logic/play/breakthroughFlow.spec.ts",
+        "app/logic/play/endlessFlow.spec.ts",
+        "app/logic/play/playDayCycle.spec.ts",
+        "app/logic/play/no-win-by-repay.spec.ts"
+      ],
+      "doc": "docs/planning/M9-endless-realm/PLAN.md",
+      "triggerPaths": [
+        "app/logic/play/endlessFlow.ts",
+        "app/logic/play/breakthroughFlow.ts",
+        "app/logic/play/realmTemplates.ts",
+        "app/logic/play/pressureDeck.ts",
+        "app/logic/play/playDayCycle.ts",
+        "app/logic/gameDayCycle.ts",
+        "app/logic/gameEconomy.ts",
+        "app/logic/play/setpieceFlow.ts",
+        "app/composables/usePlayEndlessSession.ts",
+        "app/components/play/BreakthroughScreen.vue",
+        "app/pages/play/index.vue",
+        "app/pages/index.vue",
+        "data/realmTemplates.json",
+        "data/collapseEndings.json",
+        "app/types/play.ts"
+      ]
+    },
+    {
       "id": "act1-compliance",
       "spec": "app/logic/act1/act1Compliance.spec.ts",
-      "triggerPaths": ["app/logic/act1/**", "app/components/act1/**"]
+      "triggerPaths": [
+        "app/logic/act1/**",
+        "app/components/act1/**"
+      ]
+    },
+    {
+      "id": "endless-from-day1-flow",
+      "spec": "app/logic/play/endlessFromDay1Flow.spec.ts",
+      "doc": "docs/ROADMAP-v3-endless-only.md",
+      "triggerPaths": [
+        "app/pages/play/index.vue",
+        "app/composables/usePlayEndlessSession.ts",
+        "app/logic/play/breakthroughFlow.ts",
+        "app/logic/play/setpieceFlow.ts",
+        "app/logic/play/endlessFlow.ts",
+        "app/composables/usePlayStorage.helpers.ts"
+      ]
     }
   ]
 }

@@ -10,7 +10,9 @@ export function carryoverFromPersist(persist: Act1Persist): Act1Carryover {
   return {
     metaUnlocks: [...(persist.metaUnlocks ?? [])],
     permanentModifiers: { ...(persist.permanentModifiers ?? {}) },
-    familyOutcome: persist.act1.familyOutcome
+    familyOutcome: persist.act1.familyOutcome,
+    unlockedInboxHints: [],
+    startingDelinquencyBias: 0
   }
 }
 
@@ -29,6 +31,23 @@ export function applyAct1CarryoverToGame(game: GameState, carryover: Act1Carryov
 
   const modLine = formatPermanentModifierSummary(carryover.permanentModifiers)
   const metaLine = formatMetaUnlocksLine(carryover.metaUnlocks, 6)
+
+  if (carryover.startingDelinquencyBias && carryover.startingDelinquencyBias > 0) {
+    game.econ.delinquency = Math.min(
+      100,
+      (game.econ.delinquency ?? 0) + carryover.startingDelinquencyBias
+    )
+  }
+
+  for (const hint of carryover.unlockedInboxHints ?? []) {
+    game.logs.unshift({
+      id: `log-carryover-hint-${game.seed}-${game.logs.length}`,
+      day: game.school?.day ?? 1,
+      title: '灵信结转',
+      detail: hint,
+      tone: 'info'
+    })
+  }
 
   game.logs.unshift({
     id: `log-act1-carryover-${game.seed}`,

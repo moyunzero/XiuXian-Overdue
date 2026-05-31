@@ -82,6 +82,10 @@ export interface Act1Carryover {
   metaUnlocks: string[]
   permanentModifiers: Act1PermanentModifiers
   familyOutcome?: FamilyOutcome
+  /** M8：跨周目灵信占位提示（写入开局 logs） */
+  unlockedInboxHints?: string[]
+  /** M8：开局逾期档位加成（0–100 内 clamp） */
+  startingDelinquencyBias?: number
 }
 
 export interface Act1Persist {

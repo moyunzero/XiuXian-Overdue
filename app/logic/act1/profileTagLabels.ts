@@ -1,4 +1,8 @@
-/** 档案标签内部 ID → 玩家可见中文（制度档案口吻） */
+/**
+ * 档案标签内部 ID → 玩家可见中文（制度档案口吻）。
+ * 玩家可见处禁止对 profileTags / educationTags 直接 `.join()`；须用 formatProfileTags 或
+ * `~/logic/play/playerFacingCopy` 的 formatPlayerFacingTagLine（见 playCompliance.spec.ts）。
+ */
 
 const PROFILE_TAG_LABELS: Record<string, string> = {
   // 开局 / 征信
@@ -42,11 +46,25 @@ const PROFILE_TAG_LABELS: Record<string, string> = {
   'family-saved-costly': '高代价挽留家人',
   'family-guarantor': '家庭担保人',
   'mother-left': '监护人迁出',
-  'witness-departure': '见证离场（meta）',
+  'witness-departure': '见证离场（制度备注）',
   'family-false-hope': '家庭周转贷·假希望',
   'family-bridge': '家庭周转贷入账',
   'loan-prior-credit': '既有征信欠款',
-  'family-exhausted': '家庭韧性耗尽'
+  'family-exhausted': '家庭韧性耗尽',
+
+  // 高中 / 预科 / 身体
+  'hs-graduated': '高中阶段已结转',
+  'uni-enrolled': '预科学籍已登记',
+  'body-marked': '身体留置已入账',
+  'sect-cloud': '择宗·云箓宗预科',
+  'sect-iron': '择宗·铁券阁预科',
+  'sect-ash': '择宗·灰炉院预科',
+
+  // 分班 / 职场
+  'tier-elite': '分班·示范班履历',
+  'tier-normal': '分班·普通班履历',
+  'tier-tail': '分班·末位班履历',
+  'work-enrolled': '职场学籍已登记'
 }
 
 const FAMILY_EXPENSE_LABELS: Record<string, string> = {

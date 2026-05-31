@@ -250,6 +250,20 @@ describe('方案 A：债务锁定系统', () => {
       })
       expect(Engine.canTriggerBodyMortgage(g)).toBe(false)
     })
+
+    it('无滚动负债时不触发（即使逾期档位高）', () => {
+      const g = baseGame({
+        econ: {
+          ...baseGame().econ,
+          delinquency: 4,
+          cash: 0,
+          debtPrincipal: 0,
+          debtInterestAccrued: 0,
+          collectionFee: 0
+        }
+      })
+      expect(Engine.canTriggerBodyMortgage(g)).toBe(false)
+    })
   })
 
   describe('isDebtLocked', () => {

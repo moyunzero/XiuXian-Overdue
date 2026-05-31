@@ -33,8 +33,8 @@ const outcome = formatFamilyOutcome(props.persist.act1.familyOutcome)
     <ul v-if="metaLabels.length" class="Act1ArchivePanel__tags">
       <li v-for="label in metaLabels" :key="label">{{ label }}</li>
     </ul>
-    <p v-else class="Act1ArchivePanel__muted">暂无 meta 词条</p>
-    <p class="Act1ArchivePanel__hint">下方「进入昆墟高中」将继承制度备注与永久利率修正（不继承现金）。</p>
+    <p v-else class="Act1ArchivePanel__muted">暂无下周目解锁词条</p>
+    <p class="Act1ArchivePanel__hint">开新局将继承制度备注与永久利率修正（不继承现金）。</p>
   </section>
 </template>
 

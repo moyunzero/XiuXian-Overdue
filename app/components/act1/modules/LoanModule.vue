@@ -7,10 +7,12 @@ import {
   LOAN_PRODUCTS,
   loanBalance
 } from '~/logic/act1/loanProducts'
+import { buildLoanInstitutionalNotes } from '~/logic/act1/metaUnlockLabels'
 
 const props = defineProps<{
   act1: Act1State
   modifiers: Act1Modifiers
+  priorMetaUnlocks?: string[]
 }>()
 
 const emit = defineEmits<{
@@ -106,11 +108,16 @@ function stopCompareTimer() {
 onUnmounted(stopCompareTimer)
 
 const canSign = computed(() => scrolledToEnd.value && agreed.value && !props.act1.completedModules.includes('loan'))
+
+const institutionalNotes = computed(() => buildLoanInstitutionalNotes(props.priorMetaUnlocks ?? []))
 </script>
 
 <template>
   <div class="LoanModule">
     <template v-if="!act1.completedModules.includes('loan')">
+      <div v-if="institutionalNotes.length" class="LoanModule__notes">
+        <p v-for="(note, i) in institutionalNotes" :key="i" class="LoanModule__note">{{ note }}</p>
+      </div>
       <p class="Act1Copy">灵贷中心 · 请对比后签约。对比表累计阅读满 30 秒记入「比价」标签。</p>
 
       <div
@@ -189,6 +196,23 @@ const canSign = computed(() => scrolledToEnd.value && agreed.value && !props.act
 </template>
 
 <style scoped>
+.LoanModule__notes {
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 210, 74, 0.35);
+  border-radius: 6px;
+  background: rgba(255, 210, 74, 0.06);
+}
+.LoanModule__note {
+  margin: 0 0 6px;
+  font-family: var(--mono);
+  font-size: var(--text-xs);
+  color: var(--warning);
+  line-height: 1.5;
+}
+.LoanModule__note:last-child {
+  margin-bottom: 0;
+}
 .LoanModule__table-wrap {
   overflow-x: auto;
   margin-bottom: 16px;

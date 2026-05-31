@@ -25,7 +25,7 @@ const FAMILY_OUTCOME_COPY: Record<
     lines: [
       '桌面留言文件已归档。紧急联系人字段显示「已迁出」。',
       '家庭韧性不再计入可用担保额度。',
-      'meta 解锁：witness-departure（二周目可见制度备注）。'
+      '下周目解锁：见证离场（二周目可见制度备注）。'
     ],
     epilogue: [
       '你醒来时窗外是污水街的灰光。',
@@ -38,7 +38,7 @@ const FAMILY_OUTCOME_COPY: Record<
     lines: [
       '家人留下。现金已扣 ¥8,000 作为挽留金与通道费。',
       '新增债权人：家庭担保合约（全周目贷款利率 +8%）。',
-      '档案标签：family-guarantor · family-saved-costly。'
+      '档案标签：家庭担保人 · 高代价挽留家人。'
     ],
     epilogue: [
       '你醒来听见厨房有动静——他们还在。',
@@ -51,7 +51,7 @@ const FAMILY_OUTCOME_COPY: Record<
     lines: [
       '家人留下。家庭周转贷 ¥5,000 已入账，韧性锁死在 1。',
       '每周自动扣息将在后续周目继承（Act2 待接）。',
-      '档案标签：family-false-hope · family-bridge。'
+      '档案标签：家庭周转贷·假希望 · 家庭周转贷入账。'
     ],
     epilogue: [
       '你醒来时家里灯还亮着，像什么都没发生。',
@@ -167,12 +167,12 @@ export function buildAct1SettlementLines(
     '你已被纳入可计算样本。机构不承诺公平，仅承诺可追溯。',
     '制度档案已归档。下一周目将开放部分备注可见性。',
     '',
-    '七、meta',
+    '七、下周目解锁',
     ...metaLines,
     '',
     '【过场 · 入学前夜终】',
     ...epilogue,
     '',
-    '—— 本报告仅供内部流转。返回首页可「进入昆墟高中」接入周目 2。'
+    '—— 本报告仅供内部流转。确认后将直接进入昆墟高中压力牌主循环。'
   ]
 }
