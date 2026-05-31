@@ -1,4 +1,34 @@
-# useGame Composable Architecture
+# 架构说明
+
+> **当前主玩法**（2026-05-31）：`/play` · `runMode: chapter` · 见 [CURRENT-STATE.md](./CURRENT-STATE.md) §3。  
+> 下文 **§Legacy useGame** 描述 `/game` 三段式，仍作规则参考，非玩家主路径。
+
+---
+
+## Play 架构（当前 · `/play`）
+
+```text
+app/pages/play/index.vue
+├── usePlayOrchestrator()     # Act1 vs chapter vs endless 分支
+├── useAct1Session()          # S0 入学前夜
+├── useChapterSession()       # ★ Ch0 四十周契约（默认）
+└── usePlayEndlessSession()   # Legacy endless 压力牌（读档迁移）
+
+app/logic/play/
+├── resolvePlayScreen.ts      # PlayScreenId 单一真相
+├── chapterWeekFlow.ts        # 周推进 · 经济 · 断供 · 崩盘
+├── mandateDelivery.ts        # 仙司来文（取代 chapter 段 4 选 2）
+├── setpieceFlow.ts           # 审判关确认后恢复压力/开回合
+└── buildRunArchive.ts        # 征信灵籍 / 崩盘归档
+
+app/composables/usePlayStorage.ts  # kunxu_sim_save_v5 · schema v6
+```
+
+**原则**：规则在 `app/logic/*`；composable 只编排；改玩家分支须加 `*Flow.spec.ts` 并登记 `.harness/manifest.json`。
+
+---
+
+## Legacy：`useGame` Composable Architecture
 
 ## Overview
 

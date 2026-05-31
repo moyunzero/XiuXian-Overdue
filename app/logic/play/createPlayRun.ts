@@ -3,7 +3,6 @@ import type { PlayRunState, RunMode } from '~/types/play'
 import { buildInboxPlaceholders } from './buildInboxPlaceholders'
 
 export type CreatePlayRunOptions = {
-  /** 保留字段兼容旧调用；v3 起恒为 endless */
   runMode?: RunMode
 }
 
@@ -20,7 +19,7 @@ export function createPlayRunFromStartConfig(
   return {
     schemaVersion: 4,
     runId: createRunId(),
-    runMode: options?.runMode ?? 'endless',
+    runMode: options?.runMode ?? 'chapter',
     createdAt: now,
     updatedAt: now,
     lifeStage: 'pre',

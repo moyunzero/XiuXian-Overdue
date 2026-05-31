@@ -40,6 +40,29 @@ export function examRankFromScore(score: number): number {
   return clamp(201 - Math.floor((score - 480) / 1.2), 1, 200)
 }
 
+/** 月考 pending 必须满足此形状，否则不得进 exam-boss 屏或阻塞周推进 */
+export function isValidExamBossResult(result: unknown): result is ExamBossResult {
+  if (!result || typeof result !== 'object') return false
+  const r = result as ExamBossResult
+  return (
+    typeof r.score === 'number' &&
+    Number.isFinite(r.score) &&
+    typeof r.rank === 'number' &&
+    Number.isFinite(r.rank) &&
+    typeof r.week === 'number' &&
+    Number.isFinite(r.week) &&
+    typeof r.tierBefore === 'string' &&
+    r.tierBefore.length > 0 &&
+    typeof r.tierAfter === 'string' &&
+    r.tierAfter.length > 0 &&
+    typeof r.perkSummary === 'string'
+  )
+}
+
+export function hasExamBossPending(run: PlayRunState): boolean {
+  return isValidExamBossResult(run.setpiece?.examBossPending)
+}
+
 export function shouldTriggerExamBoss(run: PlayRunState): boolean {
   if (run.lifeStage !== 'hs') return false
   const day = run.school?.day
@@ -73,7 +96,13 @@ export function runExamBoss(run: PlayRunState, rand: () => number): ExamBossResu
 }
 
 export function applyExamBossToRun(run: PlayRunState, result: ExamBossResult): PlayRunState {
-  if (!run.school) return run
+  if (!run.school) {
+    return {
+      ...run,
+      setpiece: { ...run.setpiece, examBossPending: undefined },
+      logs: ['月考无法写入学籍，已跳过挂起。', ...run.logs].slice(-80)
+    }
+  }
   const perks = Engine.perksForTier(result.classTier)
   const logLine = `月考（第${result.week}周）：总分 ${result.score}，约第 ${result.rank} 名；${result.tierBefore}→${result.tierAfter}。${result.perkSummary}`
   const logs = [...run.logs, logLine].slice(-80)
@@ -124,5 +153,12 @@ export function scheduleExamBossIfDue(run: PlayRunState): PlayRunState {
 export function dismissExamBoss(run: PlayRunState): PlayRunState {
   const pending = run.setpiece?.examBossPending
   if (!pending) return run
+  if (!isValidExamBossResult(pending)) {
+    return {
+      ...run,
+      setpiece: { ...run.setpiece, examBossPending: undefined },
+      logs: ['月考数据异常，已清除挂起。', ...run.logs].slice(-80)
+    }
+  }
   return applyExamBossToRun(run, pending)
 }

@@ -63,7 +63,11 @@
       "required": true,
       "triggerPaths": [
         "data/pressureCards.json",
-        "scripts/validate-pressure-cards.mjs"
+        "scripts/validate-pressure-cards.mjs",
+        "scripts/schemas/pressureCards.schema.ts",
+        "scripts/schemas/format-zod-errors.ts",
+        "scripts/schemas/load-schema.mjs",
+        "scripts/schemas/validate-with-zod.mjs"
       ]
     },
     {
@@ -231,7 +235,31 @@
       "triggerPaths": [
         "data/realmTemplates.json",
         "data/collapseEndings.json",
-        "scripts/validate-realm-templates.mjs"
+        "scripts/validate-realm-templates.mjs",
+        "scripts/schemas/realmTemplates.schema.ts",
+        "scripts/schemas/format-zod-errors.ts",
+        "scripts/schemas/load-schema.mjs",
+        "scripts/schemas/validate-with-zod.mjs"
+      ]
+    },
+    {
+      "id": "validate:chapters",
+      "title": "chapters/*.json 结构校验",
+      "command": "yarn validate:chapters",
+      "required": true,
+      "triggerPaths": [
+        "data/chapters/**",
+        "scripts/validate-chapters.mjs"
+      ]
+    },
+    {
+      "id": "validate:mandates",
+      "title": "mandates/*.json 结构校验",
+      "command": "yarn validate:mandates",
+      "required": true,
+      "triggerPaths": [
+        "data/mandates/**",
+        "scripts/validate-mandates.mjs"
       ]
     },
     {
@@ -295,8 +323,9 @@
     },
     {
       "id": "endless-from-day1-flow",
+      "legacy": true,
       "spec": "app/logic/play/endlessFromDay1Flow.spec.ts",
-      "doc": "docs/ROADMAP-v3-endless-only.md",
+      "doc": "docs/ROADMAP-v3-endless-only.md — legacy：v4 主路径为 chapter 契约，本契约仅回归旧 endless 入口",
       "triggerPaths": [
         "app/pages/play/index.vue",
         "app/composables/usePlayEndlessSession.ts",
@@ -304,6 +333,112 @@
         "app/logic/play/setpieceFlow.ts",
         "app/logic/play/endlessFlow.ts",
         "app/composables/usePlayStorage.helpers.ts"
+      ]
+    },
+    {
+      "id": "chapter0-contract-flow",
+      "spec": "app/logic/play/chapter0-contract-flow.spec.ts",
+      "doc": "docs/REDESIGN-v4-chapter-institutional.md",
+      "triggerPaths": [
+        "app/logic/play/chapterWeekFlow.ts",
+        "app/logic/play/chapterRegistry.ts",
+        "app/logic/play/beatRunner.ts",
+        "app/logic/play/beatHandlers.ts",
+        "app/logic/play/segmentGate.ts",
+        "app/composables/useChapterSession.ts",
+        "data/chapters/**"
+      ]
+    },
+    {
+      "id": "chapter0-three-track-flow",
+      "spec": "app/logic/play/chapter0-three-track-flow.spec.ts",
+      "doc": "docs/REDESIGN-v4-chapter-institutional.md",
+      "triggerPaths": [
+        "app/logic/play/workFlow.ts",
+        "app/logic/play/jobs.ts",
+        "data/jobs.json",
+        "app/logic/play/chapterTestHelpers.ts",
+        "app/logic/play/beatHandlers.ts",
+        "data/chapters/**"
+      ]
+    },
+    {
+      "id": "chapter-week-flow",
+      "spec": "app/logic/play/chapterWeekFlow.spec.ts",
+      "doc": "docs/planning/R-chapter-0/TASKLIST.md",
+      "triggerPaths": [
+        "app/logic/play/chapterWeekFlow.ts"
+      ]
+    },
+    {
+      "id": "chapter-registry",
+      "spec": "app/logic/play/chapterRegistry.spec.ts",
+      "triggerPaths": [
+        "app/logic/play/chapterRegistry.ts",
+        "data/chapters/**"
+      ]
+    },
+    {
+      "id": "resolve-play-screen",
+      "spec": [
+        "app/logic/play/resolvePlayScreen.spec.ts",
+        "app/logic/play/playDirector.spec.ts"
+      ],
+      "doc": "docs/planning/I2-play-director/SCHEMA.md",
+      "triggerPaths": [
+        "app/logic/play/resolvePlayScreen.ts",
+        "app/composables/usePlayOrchestrator.ts",
+        "app/components/play/PlayChapterScreenHost.vue",
+        "app/components/play/PlayEndlessScreenHost.vue",
+        "app/pages/play/index.vue"
+      ]
+    },
+    {
+      "id": "chapter-mandate-flow",
+      "spec": [
+        "app/logic/play/mandateDelivery.spec.ts",
+        "app/logic/play/mandatePsy.spec.ts"
+      ],
+      "doc": "docs/REDESIGN-v4-chapter-institutional.md",
+      "triggerPaths": [
+        "app/logic/play/mandateDelivery.ts",
+        "app/logic/play/mandatePsy.ts",
+        "app/logic/play/mandateRegistry.ts",
+        "app/logic/play/chapterWeekFlow.ts",
+        "app/composables/useChapterSession.ts",
+        "app/components/play/MandateInboxScreen.vue",
+        "app/components/play/WeekPlanPanel.vue",
+        "data/mandates/**"
+      ]
+    },
+    {
+      "id": "chapter-body-decay-flow",
+      "spec": "app/logic/play/chapterBodyDecay.spec.ts",
+      "doc": "docs/planning/R-chapter-0/TASKLIST.md",
+      "triggerPaths": [
+        "app/logic/play/chapterBodyDecay.ts",
+        "app/logic/play/chapterWeekFlow.ts"
+      ]
+    },
+    {
+      "id": "chapter-collapse-flow",
+      "spec": "app/logic/play/chapterCollapse.spec.ts",
+      "doc": "docs/planning/R-chapter-0/TASKLIST.md",
+      "triggerPaths": [
+        "app/logic/play/chapterCollapse.ts",
+        "app/logic/play/chapterWeekFlow.ts"
+      ]
+    },
+    {
+      "id": "chapter-natural-sim-flow",
+      "spec": "app/logic/play/chapterNaturalSim.spec.ts",
+      "doc": "docs/REDESIGN-v4-chapter-institutional.md#V4-8",
+      "triggerPaths": [
+        "app/logic/play/chapterNaturalSim.ts",
+        "app/logic/play/chapterWeekFlow.ts",
+        "app/logic/play/chapterBodyDecay.ts",
+        "app/logic/play/chapterCollapse.ts",
+        "scripts/simulate-chapter-natural.mjs"
       ]
     }
   ]

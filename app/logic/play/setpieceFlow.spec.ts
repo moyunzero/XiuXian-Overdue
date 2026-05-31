@@ -30,8 +30,27 @@ function baseRun(): PlayRunState {
 }
 
 describe('setpieceFlow (endless-only)', () => {
-  it('hsSetpieceBlocksPressure only checks exam/body', () => {
-    expect(hsSetpieceBlocksPressure({ ...baseRun(), setpiece: { examBossPending: {} as never } })).toBe(true)
+  it('hsSetpieceBlocksPressure only checks valid exam/body', () => {
+    expect(
+      hsSetpieceBlocksPressure({
+        ...baseRun(),
+        setpiece: {
+          examBossPending: {
+            score: 600,
+            rank: 50,
+            classTier: '重点班',
+            tierBefore: '普通班',
+            tierAfter: '重点班',
+            perksDelta: { mealSubsidy: 0, focusBonus: 0 },
+            week: 4,
+            perkSummary: 'test'
+          }
+        }
+      })
+    ).toBe(true)
+    expect(
+      hsSetpieceBlocksPressure({ ...baseRun(), setpiece: { examBossPending: {} as never } })
+    ).toBe(false)
     expect(
       hsSetpieceBlocksPressure({ ...baseRun(), setpiece: { bodyMortgagePending: {} as never } })
     ).toBe(true)

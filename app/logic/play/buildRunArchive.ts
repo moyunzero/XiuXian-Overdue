@@ -1,4 +1,5 @@
 import type { Act1PermanentModifiers, Act1State, FamilyOutcome } from '~/types/act1'
+import type { ChapterOutcomeId } from '~/types/chapter'
 import type { StartConfig } from '~/types/game'
 import type { ClassTier, LifeStage, PlayRunState, RunArchive } from '~/types/play'
 import {
@@ -9,6 +10,11 @@ import {
 import { totalDebtPrincipal } from '~/logic/act1/moduleProgress'
 import { fullDebtFromRun } from '~/logic/play/debtDashboard'
 import { formatArchiveTopTags, formatBodyLiensForArchive } from '~/logic/play/archiveDisplay'
+import {
+  buildChapterFailurePostMortem,
+  chapterCollapseEpilogue
+} from '~/logic/play/chapterFailurePostMortem'
+import { formatEmploymentTrackLabel, formatLifeStageChain } from '~/logic/play/playerFacingCopy'
 
 const VERDICT_BY_OUTCOME: Record<FamilyOutcome, string> = {
   left: '你独自进了通道，档案里少了紧急联系人。',
@@ -138,10 +144,163 @@ function debtOwedSummary(
 
 /** 制度档案「经历阶段」：仅反映已 playable 的 lifeStage，禁止高中档误标 uni */
 export function lifeStagesVisitedForArchive(run: PlayRunState): LifeStage[] {
+  if (run.runMode === 'chapter') {
+    return chapterLifeStagesVisited(run)
+  }
   const stages: LifeStage[] = ['pre']
   if (run.lifeStage !== 'pre' || run.econ) stages.push('hs')
   if (run.lifeStage === 'uni') stages.push('uni')
   return [...new Set(stages)]
+}
+
+/** Ch0 四十周契约：按周次推断已走过段落（不依赖 lifeStage 单点） */
+export function chapterLifeStagesVisited(run: PlayRunState): LifeStage[] {
+  const week = run.chapter?.chapterWeekIndex ?? 0
+  const stages: LifeStage[] = ['pre', 'hs']
+  if (week >= 17 || run.lifeStage === 'uni' || run.lifeStage === 'work') stages.push('uni')
+  if (week >= 29 || run.lifeStage === 'work') stages.push('work')
+  return [...new Set(stages)]
+}
+
+const CHAPTER_OUTCOME_LABELS: Record<ChapterOutcomeId, string> = {
+  fulfilled: '契约履约',
+  breach: '契约违约',
+  collapse_debt: '灵贷崩盘',
+  collapse_body: '抵押崩盘',
+  collapse_review: '审查崩盘',
+  degraded_uni: '污名升学',
+  degraded_work: '污名就业'
+}
+
+function chapterDebtOwedLine(run: PlayRunState, debtTotal: number): string {
+  const del = run.econ?.delinquency ?? 0
+  const streak = run.mandate?.supplyCutStreak ?? 0
+  const week = run.chapter?.chapterWeekIndex ?? run.chapter?.weekBudget ?? 40
+  const streakNote = streak > 0 ? ` · 断供链 ${streak} 周` : ''
+  return `四十周契约负债 ¥${debtTotal.toLocaleString()}（第 ${week} 周 · 逾期档 ${del}${streakNote}）`
+}
+
+function chapterBodyOwedLine(run: PlayRunState): string {
+  const integrity = run.bodyIntegrity ?? 1
+  const liens = run.bodyLiens ?? []
+  const pct = (integrity * 100).toFixed(0)
+  if (liens.length > 0) {
+    return `身体完整度 ${pct}% · ${formatBodyLiensForArchive(liens).join('、')}`
+  }
+  if (integrity < 0.55) {
+    return `身体完整度 ${pct}% · 修炼收益已下调，再恶化将触发留置`
+  }
+  return `身体完整度 ${pct}% · 尚无部位写入留置`
+}
+
+function chapterPermissionOwedLine(run: PlayRunState, outcome: ChapterOutcomeId): string {
+  const tags = formatArchiveTopTags(run.profileTags, 3)
+  const tagLine = tags.length > 0 ? tags.join(' · ') : '无额外档案标签'
+  const kpi = run.work?.kpiScore
+  const track = run.work?.employmentTrack
+
+  switch (outcome) {
+    case 'fulfilled':
+      if (kpi != null && track) {
+        return `履约档 · ${formatEmploymentTrackLabel(track)} · KPI ${kpi} · 岗位符已盖章`
+      }
+      return `履约档 · ${tagLine}`
+    case 'breach':
+      return `违约档 · 催收升级史已写入 · ${tagLine}`
+    case 'collapse_debt':
+      return `征信灵籍预冻结 · 逾期档 ${run.econ?.delinquency ?? 0} · 可选路径变灰`
+    case 'collapse_body':
+      return `修炼配额冻结 · 完整性警报 · 留置登记生效`
+    case 'collapse_review':
+      return `审查挂科档 · 审判关未过 · ${tagLine}`
+    case 'degraded_uni':
+      return `筑基未达 · 预科降级 · 大学段配额受限`
+    case 'degraded_work':
+      return `污名就业档 · 岗位池受限 · ${tagLine}`
+    default:
+      return tagLine
+  }
+}
+
+function chapterFinaleEpilogue(
+  outcome: ChapterOutcomeId,
+  collapsed: boolean,
+  failurePostMortem?: ReturnType<typeof buildChapterFailurePostMortem>
+): string[] {
+  if (collapsed && failurePostMortem) {
+    return chapterCollapseEpilogue(failurePostMortem.triggerId)
+  }
+  if (collapsed) {
+    if (outcome === 'collapse_body') {
+      return chapterCollapseEpilogue('body_integrity')
+    }
+    return chapterCollapseEpilogue('debt_delinquency')
+  }
+  if (outcome === 'breach') {
+    return [
+      '你在终审判前选择了弃契。',
+      '征信灵籍写入违约档，利率曲线在后台自动抬升。',
+      '通道没有关闭——只是换了一条更贵的路。'
+    ]
+  }
+  return [
+    '四十周账期走完，终审判裁定书在屏上停了三十秒。',
+    '履约档写入征信灵籍，剩余债务转入下一阶段滚动计息。',
+    '灵信未读 +3。第一条仍是下一账期提醒。'
+  ]
+}
+
+function chapterOneLineVerdict(outcome: ChapterOutcomeId): string {
+  return `四十周灵贷契约 · ${CHAPTER_OUTCOME_LABELS[outcome]}`
+}
+
+/** Ch0 W40 / 章节崩盘后的征信灵籍（V4-5：债务 / 身体 / 权限三条） */
+export function buildChapterFinaleArchive(input: BuildRunArchiveInput): RunArchive {
+  const { run, act1, startConfig, metaUnlocks, permanentModifiers } = input
+  const outcome = run.chapter?.outcomeId ?? 'breach'
+  const debtTotal = fullDebtFromRun(run)
+  const collapsed = run.runStatus === 'collapsed' || outcome.startsWith('collapse_')
+  const failurePostMortem = buildChapterFailurePostMortem(run)
+  const debtOwedSummary: [string, string, string] = [
+    chapterDebtOwedLine(run, debtTotal),
+    chapterBodyOwedLine(run),
+    chapterPermissionOwedLine(run, outcome)
+  ]
+
+  const fullReportLines = buildAct1SettlementLines(
+    startConfig,
+    act1,
+    debtTotal,
+    permanentModifiers,
+    metaUnlocks
+  )
+  fullReportLines.push(
+    '',
+    '--- 四十周契约终章 ---',
+    `结局：${CHAPTER_OUTCOME_LABELS[outcome]}`,
+    `经历：${formatLifeStageChain(chapterLifeStagesVisited(run))}`,
+    ...debtOwedSummary
+  )
+
+  return {
+    runId: run.runId,
+    runMode: run.runMode,
+    archivePhase: 'chapter-finale',
+    lifeStagesVisited: chapterLifeStagesVisited(run),
+    totalDebtAtEnd: debtTotal,
+    debtOwedSummary,
+    topTags: formatArchiveTopTags([...new Set([...act1.profileTags, ...run.profileTags])], 8),
+    familyOutcome: act1.familyOutcome,
+    bodyLiens: formatBodyLiensForArchive(run.bodyLiens ?? []),
+    oneLineVerdict: chapterOneLineVerdict(outcome),
+    nextStageTeaser: collapsed
+      ? '征信灵籍已冻结。再开一局，从另一条债务曲线开始。'
+      : '契约归档完成。再开一局，或等待下一章灵贷审批。',
+    epilogue: chapterFinaleEpilogue(outcome, collapsed, failurePostMortem),
+    fullReportLines,
+    collapseReason: failurePostMortem?.headline ?? (collapsed ? debtOwedSummary[0] : undefined),
+    failurePostMortem
+  }
 }
 
 function oneLineVerdict(act1: Act1State): string {

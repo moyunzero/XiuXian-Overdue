@@ -91,7 +91,7 @@ export function useAct1Session() {
     const base = act1.value.pendingTodos.map((id) => ({
       id,
       ...TODO_COPY[id],
-      title: TODO_COPY[id]?.title ?? id
+      title: TODO_COPY[id]?.title ?? '待办事项'
     }))
     if (
       act1.value.completedModules.includes('loan') &&

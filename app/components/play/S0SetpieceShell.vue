@@ -68,7 +68,7 @@ function stepStatus(step: (typeof S0_STEPS)[number]) {
 </script>
 
 <template>
-  <div class="S0Setpiece">
+  <div class="S0Setpiece S0Setpiece--ag">
     <StatusBar
       :day="act1.day"
       :cash="act1.cash"
@@ -127,7 +127,7 @@ function stepStatus(step: (typeof S0_STEPS)[number]) {
           </header>
 
           <Act1ModulePanel
-            class="S0Setpiece__panel"
+            class="S0Setpiece__panel S0Setpiece__panel--active"
             :window-id="activeModule"
             :title="windowLabels[activeModule]"
             :start-config="startConfig"

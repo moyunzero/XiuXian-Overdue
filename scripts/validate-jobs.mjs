@@ -45,6 +45,11 @@ if (!jobsJson?.jobs || !Array.isArray(jobsJson.jobs)) {
       seenIds.add(job.id)
     }
 
+    const track = job.employmentTrack
+    if (track !== 'company' && track !== 'gig' && track !== 'startup') {
+      errors.push(`${where}: employmentTrack 须为 company | gig | startup`)
+    }
+
     if (typeof job.title !== 'string' || !job.title.trim()) {
       errors.push(`${where}: 缺少 title`)
     }
@@ -83,6 +88,16 @@ if (!jobsJson?.jobs || !Array.isArray(jobsJson.jobs)) {
 
   if (jobsJson.jobs.length < 3) {
     errors.push('jobs.json 至少应有 3 个岗位定义')
+  }
+
+  const tracks = ['company', 'gig', 'startup']
+  for (const track of tracks) {
+    if (!jobsJson.jobs.some((j) => j.employmentTrack === track)) {
+      errors.push(`jobs.json 缺少 employmentTrack="${track}" 的岗位`)
+    }
+  }
+  if (!jobsJson.jobs.some((j) => j.id === 'startup-shell')) {
+    errors.push('jobs.json 须包含 startup-shell（创业轨）')
   }
 }
 

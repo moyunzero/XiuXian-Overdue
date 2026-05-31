@@ -1,0 +1,55 @@
+[
+  {
+    "id": "ch0-node-exam-notice",
+    "title": "仙司来文 · 节点周加检",
+    "body": "本周为契约节点周。月考/关口结果将同步征信灵籍，并影响下一段落资源配额。请确保账期与修炼记录均已更新。",
+    "lifeStages": ["hs", "uni", "work"],
+    "pool": "nodeBonus",
+    "responses": [
+      {
+        "id": "node-ack",
+        "label": "已知悉，按节点准备",
+        "effects": [
+          { "kind": "domestication", "value": 2 },
+          { "kind": "log", "message": "节点周提醒已读——系统记一次「主动配合」。" }
+        ]
+      },
+      {
+        "id": "node-anxiety",
+        "label": "先拖，等关口再说",
+        "grit": true,
+        "effects": [
+          { "kind": "numbness", "value": 5 },
+          { "kind": "log", "message": "来文挂起——你感到这周会比平时更紧。" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ch0-node-supply-warning",
+    "title": "洞府管理处 · 预降级通知",
+    "body": "若本节点周考核未达标，洞府灵气配额将下调一档，修炼收益按系数折算。请提前安排还款与工时。",
+    "lifeStages": ["hs", "uni", "work"],
+    "pool": "nodeBonus",
+    "responses": [
+      {
+        "id": "supply-plan",
+        "label": "调整本周计划",
+        "effects": [
+          { "kind": "domestication", "value": 3 },
+          { "kind": "log", "message": "你把仪表盘改成「保命版」。" }
+        ]
+      },
+      {
+        "id": "supply-ignore",
+        "label": "无视，照常过",
+        "grit": true,
+        "effects": [
+          { "kind": "supplyCutStreak", "value": 1 },
+          { "kind": "numbness", "value": 4 },
+          { "kind": "log", "message": "预降级通知未签收——断供计数 +1。" }
+        ]
+      }
+    ]
+  }
+]

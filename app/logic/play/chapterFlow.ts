@@ -13,7 +13,7 @@ const PRE_CHAPTERS: ChapterMeta[] = [
 ]
 
 const HS_CHAPTERS: ChapterMeta[] = [
-  { id: 'hs-0', lifeStage: 'hs', index: 0, title: '高中修行', subtitle: '压力牌组 · M2' }
+  { id: 'hs-0', lifeStage: 'hs', index: 0, title: '高中修行', subtitle: '月考 · 四选二 · 灵贷账期' }
 ]
 
 const UNI_CHAPTERS: ChapterMeta[] = [

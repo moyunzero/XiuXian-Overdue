@@ -8,6 +8,8 @@ export type AddDayLog = (title: string, detail: string, tone?: DayLogTone) => vo
 export interface RollCalendarDayOptions {
   /** 职场/无尽：周结算不跑月考分班 */
   skipWeeklyExam?: boolean
+  /** 章节模式：周还款由 chapterWeekFlow 断供链负责，日引擎不再叠逾期档位 */
+  skipDelinquencyCheck?: boolean
 }
 
 export function finalizeDayRouteStreak(g: GameState, addLog: AddDayLog): void {
@@ -170,7 +172,9 @@ export function rollCalendarDay(
       tone: 'warn'
     })
     if (g.logs.length > 120) g.logs.pop()
-    applyDelinquencyCheck(g, minPayment)
+    if (!options.skipDelinquencyCheck) {
+      applyDelinquencyCheck(g, minPayment)
+    }
 
     const debtPressure = Engine.describeDebtPressure(g.econ.delinquency)
     const tierDebtProfile = Engine.debtProfileForTier(g.school.classTier)

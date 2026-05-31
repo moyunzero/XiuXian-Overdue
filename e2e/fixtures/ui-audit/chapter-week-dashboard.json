@@ -1,0 +1,189 @@
+{
+  "id": "chapter-week-dashboard",
+  "label": "Ch0 · 周计划主界面",
+  "path": "/play",
+  "waitSelector": ".WeekPlan",
+  "saveV5": {
+    "saveSchemaVersion": 6,
+    "activeRunId": "run_1780231528146_3m6ek6x",
+    "runs": {
+      "run_1780231528146_3m6ek6x": {
+        "schemaVersion": 4,
+        "runId": "run_1780231528146_3m6ek6x",
+        "runMode": "chapter",
+        "createdAt": "2026-05-31T12:45:28.146Z",
+        "updatedAt": "2026-05-31T12:45:28.146Z",
+        "lifeStage": "hs",
+        "chapterIndex": 0,
+        "realmTier": "mortal",
+        "realmIndex": 0,
+        "start": {
+          "playerName": "审计员",
+          "background": "贫民",
+          "talent": "无灵根",
+          "initialDebt": 20000,
+          "startingCity": "嵩阳市"
+        },
+        "slotId": "slot1",
+        "runStatus": "active",
+        "logs": [
+          "四十周灵贷契约：第 1 / 40 周。",
+          "入学昆墟高中：审计员，嵩阳市，贫民。",
+          "制度档案已从入学前夜结转。",
+          "入学前夜结转负债 ¥20,000（1 笔合同）。",
+          "入学前夜征信结转：逾期档 1（签约与家庭线记录，非契约周欠费）。"
+        ],
+        "profileTags": [
+          "prior-debt",
+          "mother-left",
+          "witness-departure"
+        ],
+        "inbox": [
+          {
+            "id": "thread-loan",
+            "kind": "loan",
+            "title": "灵贷 · 还款",
+            "unreadCount": 2,
+            "messages": [
+              {
+                "id": "msg-hs-payment-due",
+                "threadId": "thread-loan",
+                "sender": "灵贷专员",
+                "title": "还款窗口",
+                "preview": "最低周还款即将到期",
+                "body": "账户已进入本周还款评估周期。未足额还款将写入逾期档案，并触发利率与催收权重调整。",
+                "day": 1,
+                "read": false,
+                "required": false
+              },
+              {
+                "id": "msg-hs-delinquency-warn",
+                "threadId": "thread-loan",
+                "sender": "风控中心",
+                "title": "逾期警告",
+                "preview": "逾期档位已上调",
+                "body": "系统记录到还款滞后。当前仅发出警告；若持续逾期，最低还款额与制度压力将继续上浮。",
+                "day": 1,
+                "read": false,
+                "required": true
+              }
+            ]
+          }
+        ],
+        "seed": 569449771,
+        "econ": {
+          "cash": 120,
+          "collectionFee": 0,
+          "debtPrincipal": 20000,
+          "debtInterestAccrued": 0,
+          "dailyRate": 0.01,
+          "delinquency": 1,
+          "lastPaymentDay": 0
+        },
+        "stats": {
+          "daoXin": 1,
+          "faLi": 6.2,
+          "rouTi": 0.6,
+          "fatigue": 25,
+          "focus": 52
+        },
+        "school": {
+          "day": 1,
+          "week": 1,
+          "slot": "morning",
+          "classTier": "普通班",
+          "lastExamScore": 0,
+          "lastRank": 999,
+          "perks": {
+            "mealSubsidy": 40,
+            "focusBonus": 0
+          }
+        },
+        "carryoverFromAct1": {
+          "metaUnlocks": [],
+          "permanentModifiers": {},
+          "familyOutcome": "left",
+          "unlockedInboxHints": [],
+          "startingDelinquencyBias": 0
+        },
+        "act1": {
+          "chapter": "act1-pre-enrollment",
+          "day": 1,
+          "cash": 120,
+          "familyResilience": 0,
+          "pressure": 18,
+          "delinquency": 1,
+          "profileTags": [
+            "prior-debt",
+            "mother-left",
+            "witness-departure"
+          ],
+          "interview": {
+            "completed": false,
+            "score": 0,
+            "answers": {}
+          },
+          "loanMeta": {
+            "adDismissCount": 0,
+            "compareViewMs": 0,
+            "comparedProducts": false,
+            "popupAcknowledged": false
+          },
+          "loans": [
+            {
+              "id": "loan-prior-credit",
+              "lenderName": "既有征信欠款",
+              "principal": 20000,
+              "drawn": 20000,
+              "accruedInterest": 0,
+              "dailyRate": 0.01,
+              "graceDaysLeft": 0,
+              "nextRepaymentDay": 7,
+              "tags": [
+                "prior-debt"
+              ]
+            }
+          ],
+          "creditLineUsed": 0,
+          "familyMeta": {
+            "moneyRequests": 0,
+            "collectionStage": 0
+          },
+          "completedModules": [],
+          "pendingTodos": [
+            "todo-interview-open"
+          ],
+          "familyOutcome": "left"
+        },
+        "bodyIntegrity": 1,
+        "chapter": {
+          "chapterId": "ch0-forty-week-contract",
+          "weekBudget": 40,
+          "chapterWeekIndex": 1,
+          "weeksRemaining": 39,
+          "segmentId": "hs"
+        },
+        "mandate": {
+          "numbness": 0,
+          "domestication": 0,
+          "pendingDeliveryIds": [],
+          "supplyCutStreak": 0
+        },
+        "work": {
+          "jobId": null,
+          "educationTags": [],
+          "monthlyTarget": 0,
+          "kpiScore": 0,
+          "shameEvents": 0,
+          "employmentTrack": null
+        }
+      }
+    },
+    "meta": {
+      "priorMetaUnlocks": [],
+      "permanentModifiers": {},
+      "runsCompleted": 0
+    }
+  },
+  "saveV2": null
+}

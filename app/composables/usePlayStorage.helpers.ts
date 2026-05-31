@@ -3,8 +3,9 @@ import type { SaveSlotId } from '~/types/game'
 import type { Act1Persist } from '~/types/act1'
 import { createPlayRunFromStartConfig } from '~/logic/play/createPlayRun'
 import { DEFAULT_PLAY_META, normalizePlayMeta } from '~/logic/play/playMeta'
+import { initChapter } from '~/logic/play/chapterWeekFlow'
 
-export const PLAY_SAVE_SCHEMA_VERSION = 5 as const
+export const PLAY_SAVE_SCHEMA_VERSION = 6 as const
 export const PLAY_SAVE_KEY = 'kunxu_sim_save_v5'
 export const LEGACY_SAVE_KEY = 'kunxu_sim_save_v2'
 
@@ -21,31 +22,14 @@ export function parseV4Save(raw: string | null): KunxuSaveV4 {
   if (!raw) return emptyV4Save()
   try {
     const parsed = JSON.parse(raw) as KunxuSaveV4
-    if (parsed.saveSchemaVersion !== PLAY_SAVE_SCHEMA_VERSION && parsed.saveSchemaVersion !== 4) {
+    const incomingVersion = parsed.saveSchemaVersion ?? 4
+    if (incomingVersion !== PLAY_SAVE_SCHEMA_VERSION && incomingVersion !== 4 && incomingVersion !== 5) {
       return emptyV4Save()
     }
     const migratedRuns = Object.fromEntries(
       Object.entries(parsed.runs ?? {}).map(([id, run]) => {
         const r = run as PlayRunState & Record<string, unknown>
-        return [
-          id,
-          {
-            ...r,
-            runMode: 'endless',
-            schemaVersion: 4,
-            campaign: undefined,
-            setpiece: {
-              ...(r.setpiece as Record<string, unknown> | undefined),
-              harvestLedgerPending: undefined,
-              hsPromotionGatePending: undefined,
-              hsPromotionGateResolved: undefined,
-              uniFoundationGatePending: undefined,
-              uniFoundationGateResolved: undefined,
-              workPromotionGatePending: undefined,
-              workPromotionGateResolved: undefined
-            }
-          } as PlayRunState
-        ]
+        return [id, migrateStoredRun(r)]
       })
     )
     return {
@@ -59,6 +43,46 @@ export function parseV4Save(raw: string | null): KunxuSaveV4 {
   }
 }
 
+function stripLegacyCampaignSetpiece(setpiece: PlayRunState['setpiece']): PlayRunState['setpiece'] {
+  if (!setpiece) return setpiece
+  return {
+    ...setpiece,
+    harvestLedgerPending: undefined,
+    hsPromotionGatePending: undefined,
+    hsPromotionGateResolved: undefined,
+    uniFoundationGatePending: undefined,
+    uniFoundationGateResolved: undefined,
+    workPromotionGatePending: undefined,
+    workPromotionGateResolved: undefined
+  }
+}
+
+function migrateStoredRun(r: PlayRunState & Record<string, unknown>): PlayRunState {
+  let next: PlayRunState = {
+    ...r,
+    schemaVersion: 4,
+    campaign: undefined,
+    setpiece: stripLegacyCampaignSetpiece(r.setpiece)
+  }
+
+  const legacyMode = r.runMode as string
+  if (legacyMode === 'campaign' || legacyMode === 'endless') {
+    next = { ...next, runMode: 'endless' }
+  }
+
+  if (next.runMode === 'endless' && next.lifeStage !== 'pre' && next.econ && next.school) {
+    next = initChapter({ ...next, runMode: 'chapter' })
+  } else if (next.runMode !== 'endless' && next.runMode !== 'chapter') {
+    next = { ...next, runMode: 'chapter' }
+  }
+
+  if (next.runMode === 'chapter' && !next.chapter && next.lifeStage !== 'pre') {
+    next = initChapter(next)
+  }
+
+  return next
+}
+
 export function serializeV4Save(container: KunxuSaveV4): string {
   return JSON.stringify(container)
 }
@@ -68,13 +92,12 @@ export function migrateRunFromAct1Persist(
   slotId: SaveSlotId,
   persist: Act1Persist
 ): PlayRunState {
-  const run = createPlayRunFromStartConfig(persist.startConfig, slotId)
+  const run = createPlayRunFromStartConfig(persist.startConfig, slotId, { runMode: 'chapter' })
   return {
     ...run,
-    runMode: 'endless',
     lifeStage: 'pre',
     chapterIndex: 0,
-    logs: [`migrated-from-v2-slot-${slotId}`]
+    logs: ['存档已从旧版迁移，部分记录已重置。']
   }
 }
 

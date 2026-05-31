@@ -32,7 +32,7 @@ const start = {
 
 function workRunWithJob() {
   const hs = createHsFieldsFromStart(start)
-  let run = createPlayRunFromStartConfig(start, 'slot1')
+  let run = createPlayRunFromStartConfig(start, 'slot1', { runMode: 'endless' })
   run = {
     ...run,
     ...hs,

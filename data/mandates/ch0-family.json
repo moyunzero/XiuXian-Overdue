@@ -1,0 +1,85 @@
+[
+  {
+    "id": "ch0-family-guarantor",
+    "title": "家庭担保 · 连带责任提醒",
+    "body": "入学前夜家庭模块已结案，但担保链仍在征信灵籍。若你连续逾期，原担保方将收到同步通知。",
+    "lifeStages": ["hs", "uni", "work"],
+    "requiresTags": ["family-guarantor"],
+    "pool": "family",
+    "responses": [
+      {
+        "id": "guarantor-pay",
+        "label": "本周多还一截，别牵连家里",
+        "effects": [
+          { "kind": "domestication", "value": 4 },
+          { "kind": "log", "message": "你把还款档位往上调——担保链暂时安静。" }
+        ]
+      },
+      {
+        "id": "guarantor-grit",
+        "label": "先拖，家里顾不上",
+        "grit": true,
+        "effects": [
+          { "kind": "numbness", "value": 5 },
+          { "kind": "delinquency", "value": 1 },
+          { "kind": "log", "message": "来文挂账——你知道这条链迟早会响。" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ch0-family-departure-echo",
+    "title": "灵信残响 · 迁出备注",
+    "body": "档案备注：家庭模块以「迁出」结案。部分宗门文书仍会抽查你与原籍的财务切割是否干净。",
+    "lifeStages": ["hs", "uni", "work"],
+    "requiresTags": ["witness-departure"],
+    "pool": "family",
+    "responses": [
+      {
+        "id": "departure-ack",
+        "label": "提交切割说明",
+        "effects": [
+          { "kind": "domestication", "value": 2 },
+          { "kind": "log", "message": "说明已上传——短期内不会再弹同类来文。" }
+        ]
+      },
+      {
+        "id": "departure-ignore",
+        "label": "不回复，继续修行",
+        "grit": true,
+        "effects": [
+          { "kind": "numbness", "value": 3 },
+          { "kind": "log", "message": "来文变灰——但备注还在档案里。" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ch0-family-false-hope",
+    "title": "家庭灵信 · 虚假希望余波",
+    "body": "入学前夜曾出现「暂缓」式承诺。仙司系统提示：该承诺不减免账期，仅延迟催收节奏。请勿误判窗口。",
+    "lifeStages": ["hs", "uni"],
+    "requiresTags": ["family-false-hope"],
+    "pool": "family",
+    "responses": [
+      {
+        "id": "false-hope-face",
+        "label": "认清账期，按最低还",
+        "effects": [
+          { "kind": "domestication", "value": 3 },
+          { "kind": "log", "message": "你把「暂缓」从脑子里删掉——只剩数字。" }
+        ]
+      },
+      {
+        "id": "false-hope-deny",
+        "label": "当作没看见",
+        "grit": true,
+        "effects": [
+          { "kind": "numbness", "value": 4 },
+          { "kind": "delinquency", "value": 1 },
+          { "kind": "log", "message": "窗口收窄——虚假希望也会计入逾期。" }
+        ]
+      }
+    ]
+  }
+]

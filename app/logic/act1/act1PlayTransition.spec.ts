@@ -39,6 +39,7 @@ describe('act1PlayTransition', () => {
     expect(hsRun.school?.day).toBe(1)
     expect(hsRun.pressure).toBeUndefined()
     expect(hsRun.logs.some((l) => l.includes('制度档案'))).toBe(true)
+    expect(hsRun.logs.some((l) => l.includes('征信结转'))).toBe(true)
     expect(hsRun.act1).toBeDefined()
     expect(hsRun.runStatus).toBe('active')
     expect(hsRun.archive).toBeUndefined()

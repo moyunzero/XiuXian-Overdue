@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { FateCardData } from './FateCardGenerator.vue'
+import { formatSocialProfileLevel } from '~/logic/game/socialProfileLabels'
 
 const props = defineProps<{
   cardData: FateCardData
@@ -81,25 +82,25 @@ defineExpose({
       <div class="ProfileRow">
         <span class="ProfileLabel">财务风险</span>
         <span class="ProfileValue" :style="{ color: riskColor }">
-          {{ cardData.finalProfile.financialRisk }}
+          {{ formatSocialProfileLevel(cardData.finalProfile.financialRisk) }}
         </span>
       </div>
       <div class="ProfileRow">
         <span class="ProfileLabel">教育信用</span>
         <span class="ProfileValue">
-          {{ cardData.finalProfile.educationCredit }}
+          {{ formatSocialProfileLevel(cardData.finalProfile.educationCredit) }}
         </span>
       </div>
       <div class="ProfileRow">
         <span class="ProfileLabel">制度顺从</span>
         <span class="ProfileValue" :style="{ color: complianceColor }">
-          {{ cardData.finalProfile.compliance }}
+          {{ formatSocialProfileLevel(cardData.finalProfile.compliance) }}
         </span>
       </div>
       <div class="ProfileRow">
         <span class="ProfileLabel">身体资产</span>
         <span class="ProfileValue" :style="{ color: bodyColor }">
-          {{ cardData.finalProfile.bodyAsset }}
+          {{ formatSocialProfileLevel(cardData.finalProfile.bodyAsset) }}
         </span>
       </div>
     </div>

@@ -64,7 +64,20 @@ const PROFILE_TAG_LABELS: Record<string, string> = {
   'tier-elite': '分班·示范班履历',
   'tier-normal': '分班·普通班履历',
   'tier-tail': '分班·末位班履历',
-  'work-enrolled': '职场学籍已登记'
+  'work-enrolled': '职场学籍已登记',
+
+  // 章节 · 筑基 / 择轨
+  'track-company': '择轨·进公司',
+  'track-gig': '择轨·散修零工',
+  'track-startup': '择轨·挂靠工作室',
+  'uni-foundation': '预科筑基档',
+  'uni-foundation-pass': '筑基关口通过',
+  'foundation-failed': '筑基未达·降级',
+  'sect-chosen': '择宗已定',
+  'employment-track': '职场轨道已登记',
+  'endless-runner': '无尽修行样本',
+  'realm-breakthrough': '破境记录',
+  'work-shame-event': '职场污名事件'
 }
 
 const FAMILY_EXPENSE_LABELS: Record<string, string> = {
@@ -92,7 +105,9 @@ export function formatProfileTag(tag: string): string {
   const request = labelFromPrefix(tag, 'request-', '已向家里索要')
   if (request) return request
 
-  return `档案备注（${tag}）`
+  if (tag.startsWith('job-')) return '岗位档案已登记'
+
+  return '制度档案备注'
 }
 
 /** 去重后格式化；可选限制条数 */

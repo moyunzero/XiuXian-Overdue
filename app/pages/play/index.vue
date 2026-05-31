@@ -3,22 +3,22 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { navigateTo } from '#app'
 import PlayShell from '~/components/play/PlayShell.vue'
 import S0SetpieceShell from '~/components/play/S0SetpieceShell.vue'
-import PressureDeck from '~/components/play/PressureDeck.vue'
-import DebtDashboard from '~/components/play/DebtDashboard.vue'
-import ExamBossScreen from '~/components/play/ExamBossScreen.vue'
-import JobChoiceScreen from '~/components/play/JobChoiceScreen.vue'
-import BodyMortgageScreen from '~/components/play/BodyMortgageScreen.vue'
-import BreakthroughScreen from '~/components/play/BreakthroughScreen.vue'
+import PlayChapterScreenHost from '~/components/play/PlayChapterScreenHost.vue'
+import PlayEndlessScreenHost from '~/components/play/PlayEndlessScreenHost.vue'
 import { useAct1Session } from '~/composables/useAct1Session'
 import { useAct1Storage } from '~/composables/useAct1Storage'
 import { usePlayStorage } from '~/composables/usePlayStorage'
 import { usePlayEndlessSession } from '~/composables/usePlayEndlessSession'
+import { useChapterSession } from '~/composables/useChapterSession'
+import { usePlayOrchestrator } from '~/composables/usePlayOrchestrator'
 import { buildInboxPlaceholders } from '~/logic/play/buildInboxPlaceholders'
 import { getChapterMeta, lifeStageLabel, realmTierLabel } from '~/logic/play/chapterFlow'
 import { carryoverFromPersist } from '~/logic/act1/act1Carryover'
 import { buildBreakthroughInstitutionalNotes } from '~/logic/act1/metaUnlockLabels'
+import { createInitialAct1State } from '~/logic/act1/createInitialAct1State'
+import { buildChapterFinaleArchive } from '~/logic/play/buildRunArchive'
 import { enrichCarryoverWithPlayMeta, mergePriorMetaForNewRun } from '~/logic/play/playMeta'
-import type { PlayRunState, PlayStatusBarModel } from '~/types/play'
+import type { PlayRunState, PlayStatusBarModel, RunArchive } from '~/types/play'
 import type { StartConfig } from '~/types/game'
 import { createPlayRunFromStartConfig } from '~/logic/play/createPlayRun'
 import { settleAct1IntoPlayRun } from '~/logic/act1/act1PlayTransition'
@@ -31,7 +31,7 @@ const activeRun = ref<PlayRunState | null>(null)
 const act1StartConfig = useState<StartConfig | null>('act1StartConfig', () => null)
 const act1SlotId = useState<'slot1' | 'slot2' | 'slot3'>('act1SlotId', () => 'slot1')
 const hsCarryover = useState<ReturnType<typeof carryoverFromPersist> | null>('playHsCarryover', () => null)
-const playRunMode = useState('playRunMode', () => 'endless')
+const playRunMode = useState<'chapter' | 'endless'>('playRunMode', () => 'chapter')
 
 const {
   ready,
@@ -64,8 +64,24 @@ const {
 } = useAct1Session()
 
 const endlessSession = usePlayEndlessSession()
+const chapterSession = useChapterSession()
 
-const playRun = computed(() => endlessSession.run.value ?? activeRun.value)
+const playRun = computed(() => {
+  if (chapterSession.run.value?.runMode === 'chapter') return chapterSession.run.value
+  if (endlessSession.run.value?.runMode === 'endless') return endlessSession.run.value
+  return activeRun.value
+})
+
+const act1Ready = computed(
+  () => Boolean(ready.value && startConfig.value && act1.value && modifiers.value)
+)
+
+const { playScreen, isPreAct1, isChapterRun, isEndlessRun } = usePlayOrchestrator({
+  playRun,
+  act1Ready,
+  chapterDebtReady: computed(() => Boolean(chapterSession.debtVm.value)),
+  endlessDebtReady: computed(() => Boolean(endlessSession.debtVm.value))
+})
 
 const lifeStage = computed(() => playRun.value?.lifeStage ?? 'pre')
 
@@ -74,15 +90,44 @@ const breakthroughInstitutionalNotes = computed(() => {
   return buildBreakthroughInstitutionalNotes(merged)
 })
 
+const chapterArchive = computed((): RunArchive | null => {
+  const r = chapterSession.run.value
+  if (!r || r.runStatus === 'active') return null
+  const act1State = r.act1 ?? createInitialAct1State(r.start)
+  return buildChapterFinaleArchive({
+    run: r,
+    act1: act1State,
+    startConfig: r.start,
+    metaUnlocks: r.carryoverFromAct1?.metaUnlocks ?? [],
+    permanentModifiers: r.carryoverFromAct1?.permanentModifiers ?? {}
+  })
+})
+
 const inboxThreads = computed(() => {
-  if (playRun.value?.lifeStage !== 'pre' && endlessSession.run.value) {
-    return endlessSession.run.value.inbox
+  if (playRun.value?.lifeStage !== 'pre') {
+    return playRun.value?.inbox ?? []
   }
   return buildInboxPlaceholders(act1.value)
 })
 
 const statusBar = computed<PlayStatusBarModel>(() => {
   const chapter = getChapterMeta(lifeStage.value, activeRun.value?.chapterIndex ?? 0)
+  if (lifeStage.value !== 'pre' && chapterSession.run.value?.runMode === 'chapter') {
+    const r = chapterSession.run.value
+    const hud = chapterSession.chapterHud.value
+    return {
+      day: r.school?.day ?? 1,
+      cash: r.econ?.cash ?? 0,
+      debt:
+        (r.econ?.debtPrincipal ?? 0) +
+        (r.econ?.debtInterestAccrued ?? 0) +
+        (r.econ?.collectionFee ?? 0),
+      rankLabel: hud?.contractRankLabel ?? hud?.weekLabel ?? chapter?.title ?? lifeStageLabel(r.lifeStage),
+      delinquency: r.econ?.delinquency ?? 0,
+      realmLabel: realmTierLabel(r.realmTier ?? 'mortal'),
+      lifeStageLabel: lifeStageLabel(r.lifeStage)
+    }
+  }
   if (lifeStage.value !== 'pre' && endlessSession.run.value) {
     const r = endlessSession.run.value
     const hud = endlessSession.endlessHud.value ?? chapter?.title ?? lifeStageLabel(r.lifeStage)
@@ -114,10 +159,18 @@ function syncInboxToRun() {
   if (next) activeRun.value = next
 }
 
-function initEndlessIfNeeded(run: PlayRunState) {
+function initPlaySession(run: PlayRunState) {
   activeRun.value = run
-  endlessSession.initFromRun(run)
   hsCarryover.value = null
+  if (run.runMode === 'chapter') {
+    chapterSession.initFromRun(run)
+  } else {
+    endlessSession.initFromRun(run)
+  }
+}
+
+function initEndlessIfNeeded(run: PlayRunState) {
+  initPlaySession({ ...run, runMode: 'endless' })
 }
 
 onMounted(async () => {
@@ -152,15 +205,19 @@ onMounted(async () => {
       const carry = enrichCarryoverWithPlayMeta(carryoverFromPersist(saved), globalMeta)
       hsCarryover.value = carry
       const hsRun = settleAct1IntoPlayRun(run, { ...saved, metaUnlocks: carry.metaUnlocks })
-      hsRun.runMode = 'endless'
+      hsRun.runMode = 'chapter'
       playStorage.setActiveRun(hsRun)
-      initEndlessIfNeeded(hsRun)
+      initPlaySession(hsRun)
       return
     }
     initSession()
   } else if (run) {
     activeRun.value = run
-    endlessSession.initFromRun({ ...run, runMode: 'endless' })
+    if (run.runMode === 'chapter') {
+      chapterSession.initFromRun(run)
+    } else {
+      endlessSession.initFromRun({ ...run, runMode: 'endless' })
+    }
   }
 })
 
@@ -192,108 +249,81 @@ async function onEndlessCollapsed() {
   await navigateTo('/')
 }
 
+async function onChapterArchived() {
+  playStorage.clearActiveRun()
+  await navigateTo('/')
+}
+
 async function onFinishSettlement() {
   const hsRun = await finishSettlement()
-  if (hsRun) initEndlessIfNeeded({ ...hsRun, runMode: 'endless' })
+  if (hsRun) initPlaySession({ ...hsRun, runMode: 'chapter' })
 }
 </script>
 
 <template>
-  <div v-if="lifeStage === 'pre' && ready && startConfig && act1 && modifiers" class="PlayPage">
-    <PlayShell :status="statusBar" :threads="inboxThreads" @inbox-select="onInboxSelect">
-      <div class="PlayPage__act1">
-        <S0SetpieceShell
-          :start-config="startConfig"
-          :act1="act1"
-          :window-labels="WINDOW_LABELS"
-          :todos="todos"
-          :debt-total="debtTotal"
-          :creditors="creditors"
-          :act1-notifications="act1Notifications"
-          :meta-unlocks="metaUnlocks"
-          :permanent-modifiers="permanentModifiers"
-          :all-modules-done="allModulesDone"
-          :settled="settled"
-          :show-loan-popup="showLoanPopup"
-          :modifiers="modifiers"
-          :prior-meta-unlocks="priorMetaUnlocks"
-          @focus-todo="focusTodo"
-          @submit-interview="submitInterview"
-          @dismiss-loan-ad="dismissLoanAd"
-          @acknowledge-loan-popup="acknowledgeLoanPopup"
-          @compare-loan="markLoanCompared"
-          @compare-loan-tick="trackLoanCompare"
-          @sign-loan="signLoan"
-          @spend-family="spendFamily"
-          @collection-choice="handleCollectionChoice"
-          @finish-settlement="onFinishSettlement"
-        />
-      </div>
-    </PlayShell>
-  </div>
-
-  <div
-    v-else-if="
-      lifeStage !== 'pre' &&
-      endlessSession.run.value &&
-      endlessSession.debtVm.value
-    "
-    class="PlayPage"
-  >
-    <div v-if="endlessSession.isCollapsed.value" class="PlayPage PlayPage__finale">
-      <div class="PlayPage__collapsed">
-        <h2>无尽境崩盘</h2>
-        <p v-for="(line, i) in endlessSession.recentLogs.value" :key="i">{{ line }}</p>
-        <button type="button" class="PlayPage__collapsedBtn" @click="onEndlessCollapsed">返回首页</button>
-      </div>
-    </div>
-    <template v-else>
-      <JobChoiceScreen
-        v-if="endlessSession.jobChoicePending.value"
-        :pending="endlessSession.jobChoicePending.value"
-        @choose="endlessSession.chooseJob"
-      />
-      <BodyMortgageScreen
-        v-else-if="endlessSession.bodyMortgagePending.value"
-        :pending="endlessSession.bodyMortgagePending.value"
-        @accept="endlessSession.acceptBodyMortgage"
-        @refuse="endlessSession.refuseBodyMortgage"
-      />
-      <BreakthroughScreen
-        v-else-if="endlessSession.breakthroughPending.value"
-        :pending="endlessSession.breakthroughPending.value"
-        :institutional-notes="breakthroughInstitutionalNotes"
-        @confirm="endlessSession.confirmBreakthroughGate"
-      />
-      <PlayShell v-else :status="statusBar" :threads="inboxThreads" @inbox-select="onInboxSelect">
-        <div class="PlayPage__hs">
-          <DebtDashboard class="PlayPage__debt" :model="endlessSession.debtVm.value" />
-          <p v-if="endlessSession.endlessHud.value" class="PlayPage__subHud">
-            {{ endlessSession.endlessHud.value }}
-          </p>
-          <div class="PlayPage__logs">
-            <h3 class="PlayPage__logs-title">回合记录</h3>
-            <ul class="PlayPage__logs-list">
-              <li v-for="(line, i) in endlessSession.recentLogs.value" :key="i">{{ line }}</li>
-            </ul>
-          </div>
-        </div>
-        <template #deck>
-          <PressureDeck
-            v-if="endlessSession.run.value?.pressure && !endlessSession.pressureBlocked.value"
-            :cards="endlessSession.offeredCards.value"
-            :selected-ids="endlessSession.selectedIds.value"
-            @toggle="endlessSession.toggleCard"
-            @confirm="endlessSession.confirmRound"
+  <Transition name="play-route-crossfade" mode="out-in">
+    <div v-if="isPreAct1" key="act1" class="PlayPage PlayRoute--ag">
+      <PlayShell :status="statusBar" :threads="inboxThreads" @inbox-select="onInboxSelect">
+        <div class="PlayPage__act1">
+          <S0SetpieceShell
+            :start-config="startConfig!"
+            :act1="act1!"
+            :window-labels="WINDOW_LABELS"
+            :todos="todos"
+            :debt-total="debtTotal"
+            :creditors="creditors"
+            :act1-notifications="act1Notifications"
+            :meta-unlocks="metaUnlocks"
+            :permanent-modifiers="permanentModifiers"
+            :all-modules-done="allModulesDone"
+            :settled="settled"
+            :show-loan-popup="showLoanPopup"
+            :modifiers="modifiers!"
+            :prior-meta-unlocks="priorMetaUnlocks"
+            @focus-todo="focusTodo"
+            @submit-interview="submitInterview"
+            @dismiss-loan-ad="dismissLoanAd"
+            @acknowledge-loan-popup="acknowledgeLoanPopup"
+            @compare-loan="markLoanCompared"
+            @compare-loan-tick="trackLoanCompare"
+            @sign-loan="signLoan"
+            @spend-family="spendFamily"
+            @collection-choice="handleCollectionChoice"
+            @finish-settlement="onFinishSettlement"
           />
-        </template>
+        </div>
       </PlayShell>
-    </template>
-  </div>
+    </div>
 
-  <div v-else class="PlayPage PlayPage--loading">
-    <p>载入修行档案…</p>
-  </div>
+    <div v-else-if="isChapterRun" key="chapter" class="PlayPage PlayRoute--ag">
+      <PlayChapterScreenHost
+        :session="chapterSession"
+        :screen="playScreen"
+        :status="statusBar"
+        :threads="inboxThreads"
+        :archive="chapterArchive"
+        :breakthrough-notes="breakthroughInstitutionalNotes"
+        @inbox-select="onInboxSelect"
+        @archived="onChapterArchived"
+      />
+    </div>
+
+    <div v-else-if="isEndlessRun" key="endless" class="PlayPage PlayRoute--ag">
+      <PlayEndlessScreenHost
+        :session="endlessSession"
+        :screen="playScreen"
+        :status="statusBar"
+        :threads="inboxThreads"
+        :breakthrough-notes="breakthroughInstitutionalNotes"
+        @inbox-select="onInboxSelect"
+        @collapsed="onEndlessCollapsed"
+      />
+    </div>
+
+    <div v-else key="loading" class="PlayPage PlayPage--loading">
+      <p>载入修行档案…</p>
+    </div>
+  </Transition>
 </template>
 
 <style scoped>
@@ -467,5 +497,51 @@ async function onFinishSettlement() {
   cursor: pointer;
   background: rgba(120, 160, 220, 0.9);
   color: #fff;
+}
+.PlayPage__collapsedBtn--ghost {
+  margin-left: 0.75rem;
+  background: transparent;
+  border: 1px solid rgba(120, 160, 220, 0.45);
+}
+.PlayPage__weekActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.PlayPage__weekBtn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: var(--text-xs);
+  background: rgba(100, 200, 255, 0.18);
+  color: rgba(200, 235, 255, 0.95);
+  border: 1px solid rgba(100, 200, 255, 0.35);
+}
+.PlayPage__weekBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.PlayPage__weekBtn--ghost {
+  background: transparent;
+}
+
+:global(.play-route-crossfade-enter-active),
+:global(.play-route-crossfade-leave-active) {
+  transition: opacity 600ms ease;
+}
+
+:global(.play-route-crossfade-enter-from),
+:global(.play-route-crossfade-leave-to) {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :global(.play-route-crossfade-enter-active),
+  :global(.play-route-crossfade-leave-active) {
+    transition: none;
+  }
 }
 </style>

@@ -7,9 +7,35 @@ import type {
   ClassTier
 } from '~/types/game'
 import type { Act1State, Act1Carryover, Act1PermanentModifiers, FamilyOutcome } from '~/types/act1'
+import type {
+  ChapterState,
+  EmploymentTrack,
+  MandateState,
+  WeekPlan
+} from '~/types/chapter'
 
-/** v3 起仅 endless；旧存档读取后会在 parseV4Save 中归一化为 endless */
-export type RunMode = 'endless'
+/** 章节崩盘触发路径（与 chapterCollapse 一致） */
+export type ChapterCollapseTriggerId =
+  | 'debt_delinquency'
+  | 'debt_stress_ratio'
+  | 'body_integrity'
+  | 'body_exhaustion'
+  | 'review_gate'
+
+/** 章节崩盘复盘：怎么走到这一步（V4-3） */
+export interface ChapterFailurePostMortem {
+  triggerId: ChapterCollapseTriggerId
+  headline: string
+  ruleLine: string
+  timeline: string[]
+  nearMiss?: string
+  progressHint?: string
+}
+
+export type { ChapterState, EmploymentTrack, MandateState, WeekPlan }
+
+/** v4 主模式 chapter；endless 仅迁移期与显式 legacy */
+export type RunMode = 'chapter' | 'endless'
 
 /** 人生阶段 */
 export type LifeStage = 'pre' | 'hs' | 'uni' | 'work'
@@ -50,7 +76,7 @@ export interface BodyMortgagePending {
   mandatory: boolean
 }
 
-export type RunArchivePhase = 'pre-enrollment' | 'sprint-finale'
+export type RunArchivePhase = 'pre-enrollment' | 'sprint-finale' | 'chapter-finale'
 
 /** 短局 / 阶段终章制度档案（M4） */
 export interface RunArchive {
@@ -71,6 +97,8 @@ export interface RunArchive {
   fullReportLines?: string[]
   /** 短局崩盘原因（collapsed） */
   collapseReason?: string
+  /** 章节崩盘：怎么走到这一步（V4-3） */
+  failurePostMortem?: ChapterFailurePostMortem
   examSummary?: {
     score: number
     rank: number
@@ -275,6 +303,7 @@ export interface WorkState {
   kpiScore: number
   /** 兼职羞辱类事件计数 */
   shameEvents: number
+  employmentTrack?: EmploymentTrack | null
 }
 
 export interface SetpieceState {
@@ -346,6 +375,10 @@ export interface DebtDashboardVM {
   collectionFee: number
   cash: number
   minPayment: number
+  /** 章节模式：周账期文案（替代日倒计时） */
+  billingPeriodLabel?: string
+  /** 章节模式：契约剩余周数（展开明细） */
+  contractWeeksRemaining?: number
   /** 大学预科：宗门显示名（已择宗时） */
   sectDisplayName?: string
   subscriptionMonthly?: number
@@ -410,6 +443,12 @@ export interface PlayRunState {
   endless?: EndlessState
   /** M8：本局已触发的 AI/模板 瞬间（每 trigger 至多一次） */
   aiMomentsFired?: PlayAiTrigger[]
+  /** v4 章节进度（runMode === 'chapter'） */
+  chapter?: ChapterState
+  /** v4 仙司来文 / PSY */
+  mandate?: MandateState
+  /** 上一周提交的周计划（「沿用上周」） */
+  lastWeekPlan?: WeekPlan
 }
 
 /** M8：轻量 AI 瞬间触发点 */
@@ -421,6 +460,8 @@ export interface PlayMeta {
   hiddenStandardsRevealed: string[]
   realmNotesUnlocked: Partial<Record<RealmTierId, string[]>>
   campaignCompletions: number
+  /** v4 章节：完整履约（fulfilled + archived）次数 */
+  chapterCompletions: number
   endlessMaxRealmIndex: number
   /** 默认 true；关闭后仅用模板且不请求 Groq */
   aiEventsEnabled: boolean

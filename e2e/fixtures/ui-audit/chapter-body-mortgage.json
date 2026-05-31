@@ -1,0 +1,177 @@
+{
+  "id": "chapter-body-mortgage",
+  "label": "Ch0 · 身体抵押",
+  "path": "/play",
+  "waitSelector": ".BodyMortgage",
+  "saveV5": {
+    "saveSchemaVersion": 6,
+    "activeRunId": "run_1780231528147_5rd6r85",
+    "runs": {
+      "run_1780231528147_5rd6r85": {
+        "schemaVersion": 4,
+        "runId": "run_1780231528147_5rd6r85",
+        "runMode": "chapter",
+        "createdAt": "2026-05-31T12:45:28.147Z",
+        "updatedAt": "2026-05-31T12:45:28.147Z",
+        "lifeStage": "hs",
+        "chapterIndex": 0,
+        "realmTier": "mortal",
+        "realmIndex": 0,
+        "start": {
+          "playerName": "审计员",
+          "background": "贫民",
+          "talent": "无灵根",
+          "initialDebt": 20000,
+          "startingCity": "嵩阳市"
+        },
+        "slotId": "slot1",
+        "runStatus": "active",
+        "logs": [
+          "四十周灵贷契约：第 1 / 40 周。",
+          "入学昆墟高中：审计员，嵩阳市，贫民。",
+          "新局开始，压力牌每回合四选二。"
+        ],
+        "profileTags": [],
+        "inbox": [
+          {
+            "id": "thread-loan",
+            "kind": "loan",
+            "title": "灵贷 · 还款",
+            "unreadCount": 1,
+            "messages": [
+              {
+                "id": "msg-hs-payment-due",
+                "threadId": "thread-loan",
+                "sender": "灵贷专员",
+                "title": "还款窗口",
+                "preview": "最低周还款即将到期",
+                "body": "账户已进入本周还款评估周期。未足额还款将写入逾期档案，并触发利率与催收权重调整。",
+                "day": 1,
+                "read": false,
+                "required": false
+              }
+            ]
+          }
+        ],
+        "seed": 826528401,
+        "econ": {
+          "cash": 800,
+          "collectionFee": 0,
+          "debtPrincipal": 20000,
+          "debtInterestAccrued": 0,
+          "dailyRate": 0.008,
+          "delinquency": 0,
+          "lastPaymentDay": 0
+        },
+        "stats": {
+          "daoXin": 1,
+          "faLi": 6.2,
+          "rouTi": 0.6,
+          "fatigue": 25,
+          "focus": 52
+        },
+        "school": {
+          "day": 1,
+          "week": 1,
+          "slot": "morning",
+          "classTier": "普通班",
+          "lastExamScore": 0,
+          "lastRank": 999,
+          "perks": {
+            "mealSubsidy": 40,
+            "focusBonus": 0
+          }
+        },
+        "setpiece": {
+          "bodyMortgagePending": {
+            "offers": [
+              {
+                "partId": "LeftPalm",
+                "label": "左手掌",
+                "repaymentValue": 13920,
+                "lockedDebtAdded": 13920,
+                "mortgageType": "debt_reduction",
+                "narrative": "你用身体换取了债务减免。身体的一部分不再属于你，但债也少了。",
+                "irreversible": true
+              },
+              {
+                "partId": "RightPalm",
+                "label": "右手掌",
+                "repaymentValue": 13920,
+                "lockedDebtAdded": 13920,
+                "mortgageType": "debt_reduction",
+                "narrative": "你用身体换取了债务减免。身体的一部分不再属于你，但债也少了。",
+                "irreversible": true
+              },
+              {
+                "partId": "LeftArm",
+                "label": "左臂",
+                "repaymentValue": 26100,
+                "lockedDebtAdded": 26100,
+                "mortgageType": "debt_reduction",
+                "narrative": "你用身体换取了债务减免。身体的一部分不再属于你，但债也少了。",
+                "irreversible": true
+              },
+              {
+                "partId": "RightArm",
+                "label": "右臂",
+                "repaymentValue": 26100,
+                "lockedDebtAdded": 26100,
+                "mortgageType": "debt_reduction",
+                "narrative": "你用身体换取了债务减免。身体的一部分不再属于你，但债也少了。",
+                "irreversible": true
+              },
+              {
+                "partId": "LeftLeg",
+                "label": "左腿",
+                "repaymentValue": 31320,
+                "lockedDebtAdded": 31320,
+                "mortgageType": "debt_reduction",
+                "narrative": "你用身体换取了债务减免。身体的一部分不再属于你，但债也少了。",
+                "irreversible": true
+              },
+              {
+                "partId": "RightLeg",
+                "label": "右腿",
+                "repaymentValue": 31320,
+                "lockedDebtAdded": 31320,
+                "mortgageType": "debt_reduction",
+                "narrative": "你用身体换取了债务减免。身体的一部分不再属于你，但债也少了。",
+                "irreversible": true
+              }
+            ],
+            "mandatory": false
+          }
+        },
+        "bodyIntegrity": 1,
+        "chapter": {
+          "chapterId": "ch0-forty-week-contract",
+          "weekBudget": 40,
+          "chapterWeekIndex": 1,
+          "weeksRemaining": 39,
+          "segmentId": "hs"
+        },
+        "mandate": {
+          "numbness": 0,
+          "domestication": 0,
+          "pendingDeliveryIds": [],
+          "supplyCutStreak": 0
+        },
+        "work": {
+          "jobId": null,
+          "educationTags": [],
+          "monthlyTarget": 0,
+          "kpiScore": 0,
+          "shameEvents": 0,
+          "employmentTrack": null
+        }
+      }
+    },
+    "meta": {
+      "priorMetaUnlocks": [],
+      "permanentModifiers": {},
+      "runsCompleted": 0
+    }
+  },
+  "saveV2": null
+}

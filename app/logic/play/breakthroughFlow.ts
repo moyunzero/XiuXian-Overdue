@@ -1,7 +1,7 @@
 import type { BreakthroughPending, PlayRunState } from '~/types/play'
 import { fullDebtFromRun } from '~/logic/play/debtDashboard'
 import { touchPlayRun } from '~/logic/play/createPlayRun'
-import { realmTierLabel } from '~/logic/play/chapterFlow'
+import { lifeStageLabel, realmTierLabel } from '~/logic/play/chapterFlow'
 import { getNextRealmTemplate, getRealmTemplate } from '~/logic/play/realmTemplates'
 
 const LIFE_SEGMENT_ORDER = ['pre', 'hs', 'uni', 'work'] as const
@@ -17,7 +17,10 @@ export function advanceLifeSegment(run: PlayRunState): PlayRunState {
   return {
     ...run,
     lifeStage: nextStage,
-    logs: [`人生段落推进：${run.lifeStage} → ${nextStage}，月供与抽成同步上调。`, ...run.logs].slice(0, 80)
+    logs: [
+      `人生段落推进：${lifeStageLabel(run.lifeStage)} → ${lifeStageLabel(nextStage)}，月供与抽成同步上调。`,
+      ...run.logs
+    ].slice(0, 80)
   }
 }
 

@@ -97,6 +97,11 @@ export function createHsFieldsFromStart(
     if (due > 0) {
       logs.push(`入学前夜结转负债 ¥${due.toLocaleString()}（${act1.loans.filter((l) => loanBalance(l) > 0).length} 笔合同）。`)
     }
+    if (act1.delinquency > 0) {
+      logs.push(
+        `入学前夜征信结转：逾期档 ${act1.delinquency}（签约与家庭线记录，非契约周欠费）。`
+      )
+    }
   }
 
   if (carryover?.startingDelinquencyBias && carryover.startingDelinquencyBias > 0) {

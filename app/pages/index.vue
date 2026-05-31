@@ -10,6 +10,7 @@ import { createPlayRunFromStartConfig } from '~/logic/play/createPlayRun'
 import { carryoverFromPersist } from '~/logic/act1/act1Carryover'
 import { formatMetaUnlocksLine } from '~/logic/act1/metaUnlockLabels'
 import { mergePriorMetaForNewRun } from '~/logic/play/playMeta'
+import { lifeStageLabel } from '~/logic/play/chapterFlow'
 import Act1ArchivePanel from '~/components/home/Act1ArchivePanel.vue'
 import HeroSection from '~/components/home/HeroSection.vue'
 import IdentitySelector from '~/components/home/IdentitySelector.vue'
@@ -31,7 +32,7 @@ const act1StartConfig = useState<StartConfig | null>('act1StartConfig', () => nu
 const act1SlotId = useState<'slot1' | 'slot2' | 'slot3'>('act1SlotId', () => 'slot1')
 const act1PriorMetaUnlocks = useState<string[]>('act1PriorMetaUnlocks', () => [])
 const playHsCarryover = useState<ReturnType<typeof carryoverFromPersist> | null>('playHsCarryover', () => null)
-const playRunMode = useState('playRunMode', () => 'endless')
+const playRunMode = useState<'chapter' | 'endless'>('playRunMode', () => 'chapter')
 const aiEventsEnabled = ref(true)
 
 const globalMetaLine = computed(() => {
@@ -52,15 +53,7 @@ const continuePlayLabel = computed(() => {
 const activePlayRunLabel = computed(() => {
   const r = activePlayRun.value
   if (!r) return ''
-  const stage =
-    r.lifeStage === 'pre'
-      ? '入学前夜'
-      : r.lifeStage === 'hs'
-        ? '高中'
-        : r.lifeStage === 'uni'
-          ? '大学预科'
-          : r.lifeStage
-  return `${stage} · ${r.start.playerName}`
+  return `${lifeStageLabel(r.lifeStage)} · ${r.start.playerName}`
 })
 
 function buildStartConfig(): StartConfig {
@@ -116,14 +109,14 @@ async function onStartJourney() {
   const cfg = buildStartConfig()
   act1StartConfig.value = cfg
   act1SlotId.value = selectedNewGameSlot.value
-  playRunMode.value = 'endless'
+  playRunMode.value = 'chapter'
 
   const prev = act1Storage.loadAct1(selectedNewGameSlot.value)
   const fromSlot = prev?.settled ? (prev.metaUnlocks ?? []) : []
   act1PriorMetaUnlocks.value = mergePriorMetaForNewRun(playStorage.getPlayMeta(), fromSlot)
 
   const run = createPlayRunFromStartConfig(cfg, selectedNewGameSlot.value, {
-    runMode: 'endless'
+    runMode: 'chapter'
   })
   playStorage.setActiveRun(run)
   await navigateTo('/play')
@@ -214,7 +207,7 @@ function onClearSaves() {
           />
           <button
             type="button"
-            class="IndexPage__newRunLink"
+            class="IndexPage__glassBtn"
             @click="showAdvanced = true"
           >
             开新局（覆盖当前进度）
@@ -241,7 +234,7 @@ function onClearSaves() {
 
           <QuickStartButton
             :disabled="!selectedNewGameSlot"
-            :text="hasAct1InProgress ? '开新局' : '开始修行'"
+            :text="hasAct1InProgress ? '开新局' : '签署契约并开始'"
             :subtitle="hasAct1InProgress ? '' : '入学前夜 → 高中 → 预科 → 职场 → 无尽境'"
             @click="onStartJourney"
           />
@@ -395,20 +388,6 @@ function onClearSaves() {
   line-height: 1.5;
   color: var(--text-secondary);
 }
-.IndexPage__newRunLink {
-  padding: 0;
-  border: none;
-  background: none;
-  font-family: var(--mono);
-  font-size: var(--text-xs);
-  color: var(--text-muted);
-  text-decoration: underline;
-  cursor: pointer;
-}
-.IndexPage__newRunLink:hover {
-  color: var(--text-secondary);
-}
-
 .IndexPage__devLink {
   width: 100%;
   max-width: 320px;

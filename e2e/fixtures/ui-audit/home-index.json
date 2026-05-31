@@ -1,0 +1,8 @@
+{
+  "id": "home-index",
+  "label": "首页 · 开局",
+  "path": "/",
+  "waitSelector": ".HeroSection",
+  "saveV5": null,
+  "saveV2": null
+}

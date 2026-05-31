@@ -4,6 +4,7 @@ import {
   enrichCarryoverWithPlayMeta,
   HIDDEN_STANDARD_DEBT_NEVER_ZERO,
   mergePriorMetaUnlocks,
+  metaUnlockIdsFromRun,
   normalizePlayMeta,
   recordRunToPlayMeta
 } from './playMeta'
@@ -25,6 +26,7 @@ describe('playMeta', () => {
     const m = normalizePlayMeta({ priorMetaUnlocks: ['witness-departure'] })
     expect(m.aiEventsEnabled).toBe(true)
     expect(m.campaignCompletions).toBe(0)
+    expect(m.chapterCompletions).toBe(0)
     expect(m.priorMetaUnlocks).toEqual(['witness-departure'])
   })
 
@@ -60,5 +62,67 @@ describe('playMeta', () => {
     }
     const next = recordRunToPlayMeta(DEFAULT_PLAY_META, run)
     expect(next.campaignCompletions).toBe(1)
+  })
+
+  it('metaUnlockIdsFromRun 章节结局写入 prior 词条', () => {
+    let run = createPlayRunFromStartConfig(start, 'slot1', { runMode: 'chapter' })
+    run = {
+      ...run,
+      chapter: {
+        chapterId: 'ch0-forty-week-contract',
+        weekBudget: 168,
+        chapterWeekIndex: 40,
+        weeksRemaining: 0,
+        outcomeId: 'fulfilled'
+      }
+    }
+    const ids = metaUnlockIdsFromRun(run)
+    expect(ids).toContain('chapter-outcome-fulfilled')
+    expect(ids).toContain('chapter-ch0-forty-week-contract-seen')
+  })
+
+  it('recordRunToPlayMeta 仅 fulfilled 归档递增 chapterCompletions', () => {
+    const base = createPlayRunFromStartConfig(start, 'slot1', { runMode: 'chapter' })
+    const fulfilled = recordRunToPlayMeta(DEFAULT_PLAY_META, {
+      ...base,
+      runStatus: 'archived',
+      chapter: {
+        chapterId: 'ch0-forty-week-contract',
+        weekBudget: 168,
+        chapterWeekIndex: 40,
+        weeksRemaining: 0,
+        outcomeId: 'fulfilled'
+      }
+    })
+    expect(fulfilled.chapterCompletions).toBe(1)
+
+    const collapsed = recordRunToPlayMeta(fulfilled, {
+      ...base,
+      runStatus: 'archived',
+      chapter: {
+        chapterId: 'ch0-forty-week-contract',
+        weekBudget: 168,
+        chapterWeekIndex: 12,
+        weeksRemaining: 28,
+        outcomeId: 'collapse_debt'
+      }
+    })
+    expect(collapsed.chapterCompletions).toBe(1)
+    expect(collapsed.priorMetaUnlocks).toContain('chapter-outcome-collapse_debt')
+  })
+
+  it('enrichCarryoverWithPlayMeta 章节债务崩盘加逾期偏置', () => {
+    const persist = {
+      startConfig: start,
+      act1: createInitialAct1State(start),
+      metaUnlocks: [],
+      permanentModifiers: {},
+      settled: true
+    }
+    const base = carryoverFromPersist(persist)
+    const meta = mergePriorMetaUnlocks(DEFAULT_PLAY_META, ['chapter-outcome-collapse_debt'])
+    const out = enrichCarryoverWithPlayMeta(base, meta)
+    expect(out.startingDelinquencyBias).toBeGreaterThan(0)
+    expect(out.unlockedInboxHints?.some((h) => h.includes('债务强制收束'))).toBe(true)
   })
 })

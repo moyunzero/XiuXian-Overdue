@@ -12,6 +12,10 @@ describe('profileTagLabels', () => {
     expect(formatProfileTag('request-pill-pack')).toBe('已向家里索要·培元药剂')
   })
 
+  it('未知标签回退为制度档案备注', () => {
+    expect(formatProfileTag('unknown-internal-tag')).toBe('制度档案备注')
+  })
+
   it('去重相同中文标签', () => {
     expect(formatProfileTag('tier-elite')).toBe('分班·示范班履历')
     expect(formatProfileTag('tier-tail')).toBe('分班·末位班履历')

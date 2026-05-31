@@ -19,9 +19,9 @@ function gameLogsToPlayLines(g: { logs: Array<{ title: string; detail: string }>
   return g.logs.map((e) => `${e.title}：${e.detail}`)
 }
 
-/** 职场/无尽周结算不跑月考分班；高中/大学仍走 `applyWeeklyExam`。 */
+/** 职场/无尽/章节周结算不跑 gameEngine 自动月考；章节月考由 beat 触发。 */
 export function shouldSkipWeeklyExamForPlay(run: PlayRunState): boolean {
-  return run.lifeStage === 'work' || run.runMode === 'endless'
+  return run.lifeStage === 'work' || run.runMode === 'endless' || run.runMode === 'chapter'
 }
 
 /**
@@ -41,7 +41,8 @@ export function advancePlayRunCalendarDay(run: PlayRunState): PlayRunState {
   )
 
   rollCalendarDay(g, minPay, applyWeeklyCollectionFee, {
-    skipWeeklyExam: shouldSkipWeeklyExamForPlay(run)
+    skipWeeklyExam: shouldSkipWeeklyExamForPlay(run),
+    skipDelinquencyCheck: run.runMode === 'chapter'
   })
 
   const playDelAfter = mergeDelinquencyForPlay(

@@ -3,6 +3,7 @@
     {
       "id": "errand-runner",
       "title": "灵材跑腿",
+      "employmentTrack": "gig",
       "minEducationTags": [],
       "hourlyPay": 22,
       "harvestRate": 0.12,
@@ -12,6 +13,7 @@
     {
       "id": "warehouse-sort",
       "title": "库房灵力分拣",
+      "employmentTrack": "company",
       "minEducationTags": ["hs-graduated"],
       "hourlyPay": 38,
       "harvestRate": 0.18,
@@ -21,6 +23,7 @@
     {
       "id": "sect-desk",
       "title": "宗门文书岗",
+      "employmentTrack": "company",
       "minEducationTags": ["hs-graduated", "uni-enrolled"],
       "hourlyPay": 52,
       "harvestRate": 0.22,
@@ -30,11 +33,22 @@
     {
       "id": "elite-pipeline",
       "title": "精英班外包通道",
+      "employmentTrack": "company",
       "minEducationTags": ["hs-graduated", "tier-elite"],
       "hourlyPay": 68,
       "harvestRate": 0.28,
       "pressureCardUnlocks": ["work-kpi-review", "work-shame-gig"],
       "description": "尖子班履历仍可能被 HR 备注「重点高中，学历仍不够」。"
+    },
+    {
+      "id": "startup-shell",
+      "title": "挂靠工作室",
+      "employmentTrack": "startup",
+      "minEducationTags": [],
+      "hourlyPay": 18,
+      "harvestRate": 0.35,
+      "pressureCardUnlocks": [],
+      "description": "无固定时薪，现金流看接单；挂靠违约来文更频。"
     }
   ]
 }

@@ -11,8 +11,8 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="SectChoice" role="dialog" aria-labelledby="sect-choice-title">
-    <div class="SectChoice__panel">
+  <div class="SectChoice AgGate AgGate--sect" role="dialog" aria-labelledby="sect-choice-title">
+    <div class="SectChoice__panel AgGlassPanel">
       <header class="SectChoice__head">
         <span class="SectChoice__tag">昆墟二层 · 择宗</span>
         <h2 id="sect-choice-title" class="SectChoice__title">预科通道已开</h2>
@@ -20,7 +20,7 @@ const emit = defineEmits<{
 
       <p class="SectChoice__prompt">{{ pending.prompt }}</p>
 
-      <ul class="SectChoice__list">
+      <ul class="SectChoice__list AgStagger">
         <li v-for="opt in pending.options" :key="opt.id" class="SectChoice__item">
           <button type="button" class="SectChoice__btn" @click="emit('choose', opt.id)">
             <span class="SectChoice__name">{{ opt.name }}</span>
@@ -37,17 +37,6 @@ const emit = defineEmits<{
 </template>
 
 <style scoped>
-.SectChoice {
-  position: fixed;
-  inset: 0;
-  z-index: 40;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: clamp(1rem, 3vw, 2rem);
-  background: rgba(4, 8, 14, 0.88);
-  box-sizing: border-box;
-}
 .SectChoice__panel {
   width: min(560px, 100%);
   max-height: min(90dvh, 680px);

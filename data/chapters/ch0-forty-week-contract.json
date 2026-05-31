@@ -1,0 +1,95 @@
+{
+  "id": "ch0-forty-week-contract",
+  "title": "四十周灵贷契约",
+  "weekBudget": 40,
+  "entryLifeStage": "hs",
+  "segments": [
+    {
+      "id": "hs",
+      "lifeStage": "hs",
+      "weekFrom": 1,
+      "weekTo": 16,
+      "label": "高中",
+      "allowedActions": ["repay", "study", "tuna", "parttime", "rest"]
+    },
+    {
+      "id": "uni",
+      "lifeStage": "uni",
+      "weekFrom": 17,
+      "weekTo": 28,
+      "label": "大学预科",
+      "allowedActions": ["repay", "study", "tuna", "parttime", "rest"]
+    },
+    {
+      "id": "work",
+      "lifeStage": "work",
+      "weekFrom": 29,
+      "weekTo": 40,
+      "label": "职场",
+      "allowedActions": ["repay", "tuna", "parttime", "work", "rest"]
+    }
+  ],
+  "beats": [
+    { "week": 4, "kind": "monthly_exam", "handler": "examBoss", "blocking": true },
+    { "week": 8, "kind": "monthly_exam", "handler": "examBoss", "blocking": true },
+    { "week": 12, "kind": "monthly_exam", "handler": "examBoss", "blocking": true },
+    { "week": 16, "kind": "hs_graduation", "handler": "breakthroughFlow", "gateId": "gate-w16-foundation", "blocking": true },
+    { "week": 17, "kind": "sect_choice", "handler": "uniFlow", "gateId": "gate-w17-sect", "blocking": true },
+    { "week": 22, "kind": "quota_audit", "handler": "quotaAudit", "blocking": false },
+    { "week": 28, "kind": "uni_graduation", "handler": "setpieceFlow", "gateId": "gate-w28-uni-exit", "blocking": true },
+    { "week": 29, "kind": "employment_choice", "handler": "workFlow", "gateId": "gate-w29-track", "blocking": true },
+    { "week": 32, "kind": "work_review", "handler": "workKpiReview", "blocking": false },
+    { "week": 36, "kind": "work_review", "handler": "workKpiReview", "blocking": false },
+    { "week": 40, "kind": "contract_finale", "handler": "contractFinale", "gateId": "gate-w40-finale", "blocking": true }
+  ],
+  "gates": [
+    {
+      "id": "gate-w16-foundation",
+      "onPass": { "setLifeStage": "uni", "tags": [] },
+      "onFailDefault": { "outcomeHint": "degraded_uni", "tags": ["foundation-failed"] }
+    },
+    {
+      "id": "gate-w17-sect",
+      "onPass": { "requires": ["sect-chosen"] }
+    },
+    {
+      "id": "gate-w28-uni-exit",
+      "onPass": { "tags": ["uni-foundation-pass"] }
+    },
+    {
+      "id": "gate-w29-track",
+      "onPass": { "requires": ["employment-track"] }
+    },
+    {
+      "id": "gate-w40-finale",
+      "onPass": { "outcomeHint": "fulfilled" },
+      "onFailDefault": { "outcomeHint": "breach" }
+    }
+  ],
+  "mandatePools": {
+    "routine": "data/mandates/ch0-routine.json",
+    "nodeBonus": "data/mandates/ch0-node.json",
+    "family": "data/mandates/ch0-family.json"
+  },
+  "outcomes": [
+    "fulfilled",
+    "breach",
+    "collapse_debt",
+    "collapse_body",
+    "collapse_review",
+    "degraded_uni",
+    "degraded_work"
+  ],
+  "weekActions": [
+    "repay",
+    "study",
+    "tuna",
+    "parttime",
+    "work",
+    "rest",
+    "borrow",
+    "inbox"
+  ],
+  "carryoverFrom": "act1",
+  "metaEffectsArchive": true
+}

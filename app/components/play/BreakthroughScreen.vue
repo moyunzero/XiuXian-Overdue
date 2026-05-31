@@ -23,8 +23,8 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="Breakthrough" role="dialog" aria-labelledby="breakthrough-title">
-    <div class="Breakthrough__panel">
+  <div class="Breakthrough AgGate AgGate--breakthrough Breakthrough--ag" role="dialog" aria-labelledby="breakthrough-title">
+    <div class="Breakthrough__panel AgGlassPanel">
       <header class="Breakthrough__head">
         <span class="Breakthrough__tag">{{ tagLabel }}</span>
         <h2 id="breakthrough-title" class="Breakthrough__title">{{ title }}</h2>
@@ -47,12 +47,13 @@ const emit = defineEmits<{
         <h3 class="Breakthrough__bill-title">
           庆典后 {{ pending.billRevealSeconds ?? 60 }} 秒 · 账单打脸
         </h3>
-        <ul class="Breakthrough__bill-list">
+        <ul class="Breakthrough__bill-list AgStagger">
           <li v-for="(line, i) in pending.billLines" :key="i">{{ line }}</li>
         </ul>
-        <p class="Breakthrough__debt">
-          本局负债合计 <strong>¥{{ pending.totalDebt.toLocaleString() }}</strong>
-        </p>
+        <div class="AgHeroMetric AgHeroMetric--debt" aria-label="负债合计">
+          <span class="AgHeroMetric__num">¥{{ pending.totalDebt.toLocaleString() }}</span>
+          <span class="AgHeroMetric__label">本局负债合计</span>
+        </div>
         <p class="Breakthrough__bump">{{ pending.maintenanceBumpLabel }}</p>
       </section>
 
@@ -65,26 +66,11 @@ const emit = defineEmits<{
 </template>
 
 <style scoped>
-.Breakthrough {
-  position: fixed;
-  inset: 0;
-  z-index: 40;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: clamp(1rem, 3vw, 2rem);
-  background: rgba(4, 8, 14, 0.88);
-  box-sizing: border-box;
-}
 .Breakthrough__panel {
   width: min(520px, 100%);
   max-height: min(90dvh, 640px);
   overflow: auto;
-  padding: clamp(1.25rem, 3vw, 1.75rem);
-  border: 1px solid rgba(180, 120, 255, 0.35);
-  border-radius: 12px;
-  background: linear-gradient(165deg, rgba(18, 12, 32, 0.98), rgba(6, 8, 18, 0.99));
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
+  border-color: rgba(80, 180, 200, 0.35);
 }
 .Breakthrough__head {
   margin-bottom: 1rem;

@@ -33,7 +33,13 @@ export function buildDebtDashboardVM(run: PlayRunState): DebtDashboardVM | null 
     dailyRate: run.econ.dailyRate,
     collectionFee: run.econ.collectionFee,
     cash: run.econ.cash,
-    minPayment: minPaymentForRun(run)
+    minPayment: minPaymentForRun(run),
+    ...(run.runMode === 'chapter' && run.chapter
+      ? {
+          billingPeriodLabel: `第 ${run.chapter.chapterWeekIndex}/${run.chapter.weekBudget} 周账期`,
+          contractWeeksRemaining: run.chapter.weeksRemaining
+        }
+      : {})
   }
 
   if (run.lifeStage === 'work') {

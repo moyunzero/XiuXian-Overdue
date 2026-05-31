@@ -4,30 +4,30 @@ import { BODY_PART_LABELS } from '~/logic/play/bodyMortgage'
 import type { BodyPartId, RunArchivePhase, RunMode } from '~/types/play'
 
 const RUN_MODE_LABELS: Record<RunMode, string> = {
-  sprint: '短局',
-  campaign: '人生战役',
+  chapter: '四十周契约',
   endless: '无尽境'
 }
 
 const ARCHIVE_PHASE_LABELS: Record<RunArchivePhase, string> = {
   'pre-enrollment': '入学前夜归档',
-  'sprint-finale': '高中卷终章'
+  'sprint-finale': '高中卷终章',
+  'chapter-finale': '契约终局归档'
 }
 
 /** 周目模式 → 玩家可见中文 */
 export function formatRunModeForArchive(mode: RunMode): string {
-  return RUN_MODE_LABELS[mode] ?? mode
+  return RUN_MODE_LABELS[mode] ?? '未知周目'
 }
 
 /** 档案阶段 → 玩家可见中文 */
 export function formatArchivePhaseLabel(phase: RunArchivePhase): string {
-  return ARCHIVE_PHASE_LABELS[phase] ?? phase
+  return ARCHIVE_PHASE_LABELS[phase] ?? '制度归档'
 }
 
 /** 单条身体留置 ID → 中文说明 */
 export function formatBodyLienForArchive(lienId: string): string {
   const match = /^lien-([^-]+)-(\d+)$/.exec(lienId)
-  if (!match) return `身体留置（${lienId}）`
+  if (!match) return '身体留置登记'
   const [, partId, day] = match
   const label = BODY_PART_LABELS[partId as BodyPartId] ?? partId
   return `${label} · 第 ${day} 日写入留置`

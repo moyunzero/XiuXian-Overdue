@@ -1,4 +1,5 @@
 import type { LifeStage, PlayAiTrigger, PlayRunState } from '~/types/play'
+import { formatPlayAiMomentLogLine } from '~/logic/play/playerFacingCopy'
 
 export interface PlayAiMoment {
   trigger: PlayAiTrigger
@@ -128,7 +129,7 @@ export function applyPlayAiMomentToRun(run: PlayRunState, moment: PlayAiMoment):
     stats.focus = Math.max(0, Math.min(100, stats.focus + focusDelta))
   }
 
-  const line = `[瞬间·${moment.trigger}] ${moment.title}：${moment.detail}`
+  const line = formatPlayAiMomentLogLine(moment.trigger, moment.title, moment.detail)
   const fired = [...new Set([...(run.aiMomentsFired ?? []), moment.trigger])]
 
   return {

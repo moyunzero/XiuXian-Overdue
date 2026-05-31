@@ -1,4 +1,5 @@
 import type { PlayRunState } from '~/types/play'
+import { hasExamBossPending } from '~/logic/play/examBoss'
 import { buildBodyMortgagePending } from '~/logic/play/bodyMortgage'
 import {
   beginNextRoundAfterResolve,
@@ -8,12 +9,12 @@ import {
 } from '~/logic/play/pressureDeck'
 import { createUniStateFromHs } from '~/logic/play/createUniPlayState'
 import { hasSectChoiceBlocking } from '~/logic/play/uniFlow'
-import { needsJobChoice } from '~/logic/play/workFlow'
+import { needsJobChoice, needsTrackChoice } from '~/logic/play/workFlow'
 import { getRealmTemplate } from '~/logic/play/realmTemplates'
 
 /** 高中段：setpiece 挂起时不应开新压力回合 / 不应 toggle */
 export function hsSetpieceBlocksPressure(run: PlayRunState): boolean {
-  return !!(run.setpiece?.examBossPending || run.setpiece?.bodyMortgagePending)
+  return !!(hasExamBossPending(run) || run.setpiece?.bodyMortgagePending)
 }
 
 /** 大学段：择宗挂起时阻塞压力牌 */
@@ -25,6 +26,7 @@ export function endlessSetpieceBlocksPlay(run: PlayRunState): boolean {
   return (
     !!run.setpiece?.breakthroughPending ||
     !!run.setpiece?.bodyMortgagePending ||
+    needsTrackChoice(run) ||
     needsJobChoice(run)
   )
 }
@@ -39,6 +41,7 @@ export function afterWorkRoundGate(
   rand: () => number = rngForRun(run)
 ): PlayRunState {
   if (run.lifeStage !== 'work') return run
+  if (!run.work?.jobId) return run
   if (workSetpieceBlocksPlay(run)) return run
   const pending = buildBodyMortgagePending(run, rand)
   if (!pending) return run

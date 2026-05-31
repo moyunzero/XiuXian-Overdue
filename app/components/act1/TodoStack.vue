@@ -18,7 +18,10 @@ const emit = defineEmits<{
         v-for="todo in items"
         :key="todo.id"
         class="Act1TodoStack__item"
-        :class="`Act1TodoStack__item--${todo.tone ?? 'info'}`"
+        :class="[
+          `Act1TodoStack__item--${todo.tone ?? 'info'}`,
+          { 'Act1TodoStack__item--blocking': todo.blocking }
+        ]"
       >
         <button type="button" class="Act1TodoStack__btn" @click="emit('select', todo)">
           <span v-if="todo.blocking" class="Act1TodoStack__dot" aria-hidden="true" />
@@ -61,6 +64,9 @@ const emit = defineEmits<{
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+.Act1TodoStack__item {
+  position: relative;
 }
 .Act1TodoStack__btn {
   width: 100%;

@@ -6,6 +6,7 @@ import { createHsFieldsFromStart } from '~/logic/play/createHsPlayState'
 import { fullDebtFromRun } from '~/logic/play/debtDashboard'
 import { refreshRunInbox } from '~/logic/play/inboxFromTemplates'
 import { getJobById } from '~/logic/play/jobs'
+import { realmTierLabel } from '~/logic/play/chapterFlow'
 import { scheduleBreakthroughIfDue } from '~/logic/play/breakthroughFlow'
 import { getRealmTemplate } from '~/logic/play/realmTemplates'
 import { prepareEndlessRunForPlay } from '~/logic/play/setpieceFlow'
@@ -277,7 +278,7 @@ export function formatEndlessHud(run: PlayRunState): string | null {
   const template = getRealmTemplate(run.realmTier)
   const job = run.work?.jobId ? getJobById(run.work.jobId) : null
   const jobTitle = job?.title ?? '外门杂役'
-  const realm = template?.displayName ?? run.realmTier
+  const realm = template?.displayName ?? realmTierLabel(run.realmTier)
   const flat =
     (run.endless.lieFlatStreak ?? 0) > 0 ? ` · 躺平 ${run.endless.lieFlatStreak} 回合` : ''
   return `${realm} · ${jobTitle} · 境中日 ${run.endless.daysInCurrentRealm} · 破境 ${run.endless.breakthroughsCount} 次${flat}`

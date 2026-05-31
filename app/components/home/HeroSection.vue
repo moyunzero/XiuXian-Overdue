@@ -1,5 +1,5 @@
 <template>
-  <section class="HeroSection">
+  <section class="HeroSection HeroSection--ag">
     <div class="HeroSection__bg">
       <div class="HeroSection__gradient" />
       <div class="HeroSection__glow HeroSection__glow--cyan" />

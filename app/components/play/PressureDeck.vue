@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { PressureCardDef } from '~/types/play'
+import { formatPressureCardTagLine } from '~/logic/play/playerFacingCopy'
 
 const props = defineProps<{
   cards: PressureCardDef[]
@@ -23,7 +24,7 @@ function onCardClick(id: string) {
 </script>
 
 <template>
-  <section class="PressureDeck" aria-label="压力牌：四选二">
+  <section class="PressureDeck PressureDeck--ag" aria-label="压力牌：四选二">
     <header class="PressureDeck__head">
       <span class="PressureDeck__label">本回合 · 四选二</span>
       <span class="PressureDeck__count">{{ selectedIds.length }} / 2</span>
@@ -38,7 +39,7 @@ function onCardClick(id: string) {
         :disabled="disabled"
         @click="onCardClick(card.id)"
       >
-        <span class="PressureDeck__tags">{{ card.tags.join(' · ') }}</span>
+        <span class="PressureDeck__tags">{{ formatPressureCardTagLine(card.tags) }}</span>
         <span class="PressureDeck__title">{{ card.title }}</span>
         <span class="PressureDeck__desc">{{ card.description }}</span>
       </button>

@@ -81,7 +81,7 @@ function onIconClick(id: Act1WindowId) {
 </script>
 
 <template>
-  <div class="Act1Desktop">
+  <div class="Act1Desktop Act1Desktop--ag">
     <StatusBar
       :day="act1.day"
       :cash="act1.cash"
@@ -112,7 +112,8 @@ function onIconClick(id: Act1WindowId) {
             class="Act1Desktop__dock-btn"
             :class="{
               'Act1Desktop__dock-btn--active': activeWindow === icon.id,
-              'Act1Desktop__dock-btn--disabled': iconDisabled(icon.id)
+              'Act1Desktop__dock-btn--disabled': iconDisabled(icon.id),
+              'Act1Desktop__dock-btn--blocked': iconDisabled(icon.id)
             }"
             :disabled="iconDisabled(icon.id)"
             :aria-current="activeWindow === icon.id ? 'page' : undefined"
@@ -137,7 +138,7 @@ function onIconClick(id: Act1WindowId) {
 
           <div class="Act1Desktop__workspace-grid">
             <Act1ModulePanel
-              class="Act1Desktop__panel"
+              class="Act1Desktop__panel Act1Desktop__panel--active"
               :window-id="activeWindow"
               :title="windowLabels[activeWindow]"
               :start-config="startConfig"
@@ -250,6 +251,7 @@ function onIconClick(id: Act1WindowId) {
 }
 
 .Act1Desktop__dock-btn {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;

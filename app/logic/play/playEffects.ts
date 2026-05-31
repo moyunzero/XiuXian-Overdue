@@ -1,6 +1,7 @@
 import type { EconomyState, PlayerStats, SchoolState } from '~/types/game'
 import type { PlayEffect, PlayRunState } from '~/types/play'
 import { clamp, round1 } from '~/utils/rng'
+import { formatPlayLogLine } from '~/logic/play/playerFacingCopy'
 import { syncFoundationProgressFromStats } from '~/logic/play/uniFlow'
 
 export interface PlayEffectSlice {
@@ -102,7 +103,7 @@ export function applyPlayEffects(slice: PlayEffectSlice, effects: PlayEffect[]):
     } else if (eff.kind === 'log') {
       const title = String(p.title ?? '记录')
       const detail = String(p.detail ?? '')
-      next.logs.push(`[D${next.day}] ${title}：${detail}`)
+      next.logs.push(formatPlayLogLine(next.day, title, detail))
     } else if (eff.kind === 'tag') {
       const tag = String(p.tag ?? '')
       if (tag && !next.profileTags.includes(tag)) next.profileTags.push(tag)

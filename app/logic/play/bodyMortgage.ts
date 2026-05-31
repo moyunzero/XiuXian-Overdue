@@ -55,8 +55,8 @@ export function playRunToGameSlice(run: PlayRunState): GameState {
     bodyReputation: run.bodyReputation ?? 'clean',
     buyDebasement: run.buyDebasement ?? 0,
     daySlotActions: {},
-    domestication: 0,
-    numbness: 0,
+    domestication: run.mandate?.domestication ?? 0,
+    numbness: run.mandate?.numbness ?? 0,
     lastBodyPartRepaymentDay: run.lastBodyPartRepaymentDay
   }
 }

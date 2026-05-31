@@ -9,6 +9,7 @@ import {
 describe('archiveDisplay', () => {
   it('周目模式显示中文', () => {
     expect(formatRunModeForArchive('endless')).toBe('无尽境')
+    expect(formatRunModeForArchive('chapter')).toBe('四十周契约')
   })
 
   it('身体留置 ID 转为中文部位说明', () => {

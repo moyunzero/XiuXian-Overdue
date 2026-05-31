@@ -1,0 +1,96 @@
+{
+  "id": "pre-act1-desktop",
+  "label": "S0 · 入学前夜桌面",
+  "path": "/play",
+  "waitSelector": ".Act1Desktop, .S0Setpiece",
+  "saveV5": {
+    "saveSchemaVersion": 6,
+    "activeRunId": "run_1780231528118_vomatwe",
+    "runs": {
+      "run_1780231528118_vomatwe": {
+        "schemaVersion": 4,
+        "runId": "run_1780231528118_vomatwe",
+        "runMode": "chapter",
+        "createdAt": "2026-05-31T12:45:28.118Z",
+        "updatedAt": "2026-05-31T12:45:28.118Z",
+        "lifeStage": "pre",
+        "chapterIndex": 0,
+        "realmTier": "mortal",
+        "realmIndex": 0,
+        "start": {
+          "playerName": "审计员",
+          "background": "贫民",
+          "talent": "无灵根",
+          "initialDebt": 20000,
+          "startingCity": "嵩阳市"
+        },
+        "slotId": "slot1",
+        "runStatus": "active",
+        "logs": [],
+        "profileTags": [],
+        "inbox": [
+          {
+            "id": "thread-family",
+            "kind": "family",
+            "title": "家庭群",
+            "unreadCount": 0,
+            "messages": [
+              {
+                "id": "msg-family-1",
+                "threadId": "thread-family",
+                "sender": "母亲",
+                "preview": "家里还好，别乱花钱。",
+                "body": "家里还好，别乱花钱。",
+                "day": 1,
+                "read": true,
+                "required": false
+              }
+            ]
+          },
+          {
+            "id": "thread-loan",
+            "kind": "loan",
+            "title": "灵信借呗",
+            "unreadCount": 0,
+            "messages": [
+              {
+                "id": "msg-loan-1",
+                "threadId": "thread-loan",
+                "sender": "系统",
+                "preview": "授信额度已更新",
+                "body": "授信额度已更新，点击查看详情。",
+                "day": 1,
+                "read": true,
+                "required": false
+              }
+            ]
+          },
+          {
+            "id": "thread-system",
+            "kind": "system",
+            "title": "修行办通知",
+            "unreadCount": 1,
+            "messages": [
+              {
+                "id": "msg-sys-1",
+                "threadId": "thread-system",
+                "sender": "修行办",
+                "preview": "入学前档案核验提醒",
+                "body": "请在入学前完成档案核验与面试预约。未完成将影响学籍绑定。",
+                "day": 1,
+                "read": false,
+                "required": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "meta": {
+      "priorMetaUnlocks": [],
+      "permanentModifiers": {},
+      "runsCompleted": 0
+    }
+  },
+  "saveV2": "{\"activeSlot\":\"slot1\",\"saveSchemaVersion\":3,\"slots\":{},\"act1BySlot\":{\"slot1\":{\"startConfig\":{\"playerName\":\"审计员\",\"background\":\"贫民\",\"talent\":\"无灵根\",\"initialDebt\":20000,\"startingCity\":\"嵩阳市\"},\"act1\":{\"chapter\":\"act1-pre-enrollment\",\"day\":1,\"cash\":120,\"familyResilience\":55,\"pressure\":10,\"delinquency\":1,\"profileTags\":[\"prior-debt\"],\"interview\":{\"completed\":false,\"score\":0,\"answers\":{}},\"loanMeta\":{\"adDismissCount\":0,\"compareViewMs\":0,\"comparedProducts\":false,\"popupAcknowledged\":false},\"loans\":[{\"id\":\"loan-prior-credit\",\"lenderName\":\"既有征信欠款\",\"principal\":20000,\"drawn\":20000,\"accruedInterest\":0,\"dailyRate\":0.01,\"graceDaysLeft\":0,\"nextRepaymentDay\":7,\"tags\":[\"prior-debt\"]}],\"creditLineUsed\":0,\"familyMeta\":{\"moneyRequests\":0,\"collectionStage\":0},\"completedModules\":[],\"pendingTodos\":[\"todo-interview-open\"]},\"settled\":false,\"metaUnlocks\":[]}}}"
+}

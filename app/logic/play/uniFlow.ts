@@ -1,6 +1,7 @@
-import type { PlayRunState, UniRankCohort } from '~/types/play'
-import { getSectChoiceById } from '~/logic/play/sectChoices'
+import type { PlayRunState, SectChoicePending, UniRankCohort } from '~/types/play'
+import { getSectChoiceById, SECT_CHOICES } from '~/logic/play/sectChoices'
 import { startPressureRound, rngForRun } from '~/logic/play/pressureDeck'
+import { formatPlayLogLine } from '~/logic/play/playerFacingCopy'
 
 const COHORT_RANK_LABEL: Record<UniRankCohort, string> = {
   elite: '内门预科榜',
@@ -10,6 +11,13 @@ const COHORT_RANK_LABEL: Record<UniRankCohort, string> = {
 
 export function hasSectChoiceBlocking(run: PlayRunState): boolean {
   return !!run.setpiece?.sectChoicePending
+}
+
+export function buildSectChoicePending(_run: PlayRunState): SectChoicePending {
+  return {
+    prompt: '预科榜已出：择宗决定抽成上限与来文倾向。',
+    options: SECT_CHOICES
+  }
 }
 
 export function applySectChoice(run: PlayRunState, sectId: string): PlayRunState {
@@ -83,7 +91,7 @@ export function tickUniSubscriptions(run: PlayRunState): PlayRunState {
   if (cash < 0) {
     const shortfall = -cash
     cash = 0
-    logs.unshift(`[D${day}] 订阅扣费不足：欠费 ¥${shortfall.toLocaleString()} 已滚入本金。`)
+    logs.unshift(formatPlayLogLine(day, '订阅扣费不足', `欠费 ¥${shortfall.toLocaleString()} 已滚入本金。`))
     return {
       ...run,
       econ: {
@@ -96,7 +104,7 @@ export function tickUniSubscriptions(run: PlayRunState): PlayRunState {
     }
   }
 
-  logs.unshift(`[D${day}] 灵根租/功法订阅周扣 ¥${charge.toLocaleString()}。`)
+  logs.unshift(formatPlayLogLine(day, '灵根租/功法订阅周扣', `¥${charge.toLocaleString()}。`))
   return {
     ...run,
     econ: { ...run.econ, cash },

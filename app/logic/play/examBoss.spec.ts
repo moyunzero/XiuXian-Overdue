@@ -7,7 +7,9 @@ import {
   runExamBoss,
   shouldTriggerExamBoss,
   scheduleExamBossIfDue,
-  dismissExamBoss
+  dismissExamBoss,
+  isValidExamBossResult,
+  hasExamBossPending
 } from './examBoss'
 import { mulberry32 } from '~/utils/rng'
 
@@ -80,5 +82,18 @@ describe('examBoss', () => {
     expect(run.school!.classTier).toBe(pending.classTier)
     expect(run.setpiece?.examBoss?.lastScore).toBe(pending.score)
     expect(run.logs.some((l) => l.includes('月考'))).toBe(true)
+  })
+
+  it('isValidExamBossResult 拒绝空对象', () => {
+    expect(isValidExamBossResult({})).toBe(false)
+    expect(isValidExamBossResult(null)).toBe(false)
+    expect(hasExamBossPending(hsRun({ setpiece: { examBossPending: {} as never } }))).toBe(false)
+  })
+
+  it('dismissExamBoss 清除无效 pending 且不抛错', () => {
+    const run = hsRun({ setpiece: { examBossPending: {} as never } })
+    const next = dismissExamBoss(run)
+    expect(next.setpiece?.examBossPending).toBeUndefined()
+    expect(next.logs.some((l) => l.includes('异常'))).toBe(true)
   })
 })

@@ -25,8 +25,8 @@ function offerHint(offer: BodyMortgageOffer): string {
 </script>
 
 <template>
-  <div class="BodyMortgage" role="dialog" aria-labelledby="body-mortgage-title">
-    <div class="BodyMortgage__panel">
+  <div class="BodyMortgage AgGate AgGate--body" role="dialog" aria-labelledby="body-mortgage-title">
+    <div class="BodyMortgage__panel AgGlassPanel">
       <header class="BodyMortgage__head">
         <span class="BodyMortgage__tag">{{ pending.mandatory ? '强制执行' : '最后的选择' }}</span>
         <h2 id="body-mortgage-title" class="BodyMortgage__title">身体抵押</h2>
@@ -39,7 +39,7 @@ function offerHint(offer: BodyMortgageOffer): string {
         </p>
       </header>
 
-      <ul class="BodyMortgage__offers">
+      <ul class="BodyMortgage__offers AgStagger">
         <li v-for="offer in pending.offers" :key="offer.partId" class="BodyMortgage__offer">
           <div class="BodyMortgage__offer-main">
             <span class="BodyMortgage__part">{{ offer.label }}</span>
@@ -69,26 +69,17 @@ function offerHint(offer: BodyMortgageOffer): string {
 </template>
 
 <style scoped>
+.BodyMortgage__panel {
+  box-shadow:
+    var(--ag-elev-3),
+    inset 0 0 24px rgba(120, 20, 40, 0.15);
+}
 .BodyMortgage {
-  position: fixed;
-  inset: 0;
   z-index: 210;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  background: rgba(0, 0, 0, 0.86);
   backdrop-filter: blur(6px);
 }
-.BodyMortgage__panel {
-  width: min(520px, 100%);
-  max-height: min(90vh, 720px);
-  overflow: auto;
-  border: 1px solid rgba(255, 80, 80, 0.45);
-  border-radius: 12px;
-  padding: clamp(20px, 3vw, 28px);
-  background: linear-gradient(165deg, rgba(28, 8, 12, 0.98), rgba(8, 4, 6, 0.99));
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+.BodyMortgage .AgGlassPanel {
+  border-color: rgba(255, 80, 80, 0.45);
 }
 .BodyMortgage__head {
   margin-bottom: 20px;

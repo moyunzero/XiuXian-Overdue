@@ -1,0 +1,288 @@
+{
+  "id": "chapter-collapse-debt",
+  "label": "Ch0 · 债务崩盘 · 终局档案",
+  "path": "/play",
+  "waitSelector": ".RunArchiveView__post-mortem",
+  "saveV5": {
+    "saveSchemaVersion": 6,
+    "activeRunId": "run_1780231528144_377qxgb",
+    "runs": {
+      "run_1780231528144_377qxgb": {
+        "schemaVersion": 4,
+        "runId": "run_1780231528144_377qxgb",
+        "runMode": "chapter",
+        "createdAt": "2026-05-31T12:45:28.144Z",
+        "updatedAt": "2026-05-31T12:45:28.144Z",
+        "lifeStage": "hs",
+        "chapterIndex": 0,
+        "realmTier": "mortal",
+        "realmIndex": 0,
+        "start": {
+          "playerName": "审计员",
+          "background": "贫民",
+          "talent": "无灵根",
+          "initialDebt": 20000,
+          "startingCity": "嵩阳市"
+        },
+        "slotId": "slot1",
+        "runStatus": "collapsed",
+        "logs": [
+          "逾期档位 6 触线——灵贷中心启动强制收束，征信灵籍冻结。",
+          "说明已上传——短期内不会再弹同类来文。",
+          "你回复了标准话术——系统记录为「配合」。",
+          "进入第 14 / 40 周。",
+          "周结算通报（第13周）：职场周度结算：债务压力：高；当前总债务：¥81,785.3；风险倍率：利率×1.08，最低周还款×1.09，催收权重×1.18；当前画像：财务风险：高风险。",
+          "周结算：制度复利¥1,193；学籍维护费与风控费¥1,000。共计¥2,193已计入债务。",
+          "本周身体完整度 -1.1%（负债化损耗）。",
+          "本周刷题 8h，修为与疲劳已结算。",
+          "洞府灵气配额未达最低还款——断供计数 13。",
+          "说明已上传——短期内不会再弹同类来文。",
+          "你把修炼计划改成「合规版」——排名窗口又窄了一点。",
+          "你回复了标准话术——系统记录为「配合」。",
+          "进入第 13 / 40 周。",
+          "周结算通报（第12周）：职场周度结算：债务压力：高；当前总债务：¥74,237.2；风险倍率：利率×1.08，最低周还款×1.09，催收权重×1.18；当前画像：财务风险：高风险。",
+          "周结算：制度复利¥1,082；学籍维护费与风控费¥1,000。共计¥2,082已计入债务。",
+          "本周身体完整度 -1.1%（负债化损耗）。",
+          "本周刷题 8h，修为与疲劳已结算。",
+          "洞府灵气配额未达最低还款——断供计数 12。",
+          "你把仪表盘改成「保命版」。",
+          "你把修炼计划改成「合规版」——排名窗口又窄了一点。",
+          "你回复了标准话术——系统记录为「配合」。",
+          "进入第 12 / 40 周。",
+          "周结算通报（第11周）：职场周度结算：债务压力：高；当前总债务：¥67,300.6；风险倍率：利率×1.08，最低周还款×1.09，催收权重×1.18；当前画像：财务风险：高风险。",
+          "周结算：制度复利¥979；学籍维护费与风控费¥1,000。共计¥1,979已计入债务。",
+          "本周身体完整度 -1.1%（负债化损耗）。",
+          "本周刷题 8h，修为与疲劳已结算。",
+          "洞府灵气配额未达最低还款——断供计数 11。",
+          "你把修炼计划改成「合规版」——排名窗口又窄了一点。",
+          "你回复了标准话术——系统记录为「配合」。",
+          "进入第 11 / 40 周。",
+          "周结算通报（第10周）：职场周度结算：债务压力：高；当前总债务：¥60,926.7；风险倍率：利率×1.08，最低周还款×1.09，催收权重×1.18；当前画像：财务风险：高风险。",
+          "周结算：制度复利¥885；学籍维护费与风控费¥1,000。共计¥1,885已计入债务。",
+          "本周身体完整度 -1.1%（负债化损耗）。",
+          "本周刷题 8h，修为与疲劳已结算。",
+          "洞府灵气配额未达最低还款——断供计数 10。",
+          "你把修炼计划改成「合规版」——排名窗口又窄了一点。",
+          "你回复了标准话术——系统记录为「配合」。",
+          "进入第 10 / 40 周。",
+          "周结算通报（第9周）：职场周度结算：债务压力：高；当前总债务：¥55,069.1；风险倍率：利率×1.08，最低周还款×1.09，催收权重×1.18；当前画像：财务风险：高风险。",
+          "周结算：制度复利¥799；学籍维护费与风控费¥1,000。共计¥1,799已计入债务。",
+          "本周身体完整度 -1.1%（负债化损耗）。",
+          "本周刷题 8h，修为与疲劳已结算。",
+          "洞府灵气配额未达最低还款——断供计数 9。",
+          "进入第 9 / 40 周。",
+          "周结算通报（第8周）：职场周度结算：债务压力：高；当前总债务：¥49,686.1；风险倍率：利率×1.08，最低周还款×1.09，催收权重×1.18；当前画像：财务风险：高风险。",
+          "周结算：制度复利¥719；学籍维护费与风控费¥1,000。共计¥1,719已计入债务。",
+          "第 8 周：月考结算待确认。",
+          "本周身体完整度 -1.1%（负债化损耗）。",
+          "本周刷题 8h，修为与疲劳已结算。",
+          "洞府灵气配额未达最低还款——断供计数 8。",
+          "你把仪表盘改成「保命版」。",
+          "进入第 8 / 40 周。",
+          "周结算通报（第7周）：职场周度结算：债务压力：高；当前总债务：¥44,739.7；风险倍率：利率×1.08，最低周还款×1.09，催收权重×1.18；当前画像：财务风险：高风险。",
+          "周结算：制度复利¥646；学籍维护费与风控费¥1,000。共计¥1,646已计入债务。",
+          "本周身体完整度 -1.1%（负债化损耗）。",
+          "本周刷题 8h，修为与疲劳已结算。",
+          "洞府灵气配额未达最低还款——断供计数 7。",
+          "进入第 7 / 40 周。",
+          "周结算通报（第6周）：职场周度结算：债务压力：高；当前总债务：¥40,194.3；风险倍率：利率×1.08，最低周还款×1.09，催收权重×1.18；当前画像：财务风险：高风险。",
+          "周结算：制度复利¥579；学籍维护费与风控费¥1,000。共计¥1,579已计入债务。",
+          "本周身体完整度 -1.1%（负债化损耗）。",
+          "本周刷题 8h，修为与疲劳已结算。",
+          "洞府灵气配额未达最低还款——断供计数 6。",
+          "你把修炼计划改成「合规版」——排名窗口又窄了一点。",
+          "进入第 6 / 40 周。",
+          "周结算通报（第5周）：职场周度结算：债务压力：高；当前总债务：¥36,017.2；风险倍率：利率×1.08，最低周还款×1.09，催收权重×1.18；当前画像：财务风险：高风险。",
+          "周结算：制度复利¥517；学籍维护费与风控费¥1,000。共计¥1,517已计入债务。",
+          "本周身体完整度 -1.1%（负债化损耗）。",
+          "本周刷题 8h，修为与疲劳已结算。",
+          "洞府灵气配额未达最低还款——断供计数 5。",
+          "说明已上传——短期内不会再弹同类来文。",
+          "你回复了标准话术——系统记录为「配合」。",
+          "进入第 5 / 40 周。",
+          "周结算通报（第4周）：职场周度结算：债务压力：高；当前总债务：¥32,178.9；风险倍率：利率×1.08，最低周还款×1.09，催收权重×1.18；当前画像：财务风险：高风险。",
+          "周结算：制度复利¥460；学籍维护费与风控费¥1,000。共计¥1,460已计入债务。",
+          "第 4 周：月考结算待确认。",
+          "本周身体完整度 -1.1%（负债化损耗）。",
+          "本周刷题 8h，修为与疲劳已结算。",
+          "洞府灵气配额未达最低还款——断供计数 4。",
+          "说明已上传——短期内不会再弹同类来文。"
+        ],
+        "profileTags": [
+          "prior-debt",
+          "mother-left",
+          "witness-departure"
+        ],
+        "inbox": [
+          {
+            "id": "thread-loan",
+            "kind": "loan",
+            "title": "灵贷 · 还款",
+            "unreadCount": 2,
+            "messages": [
+              {
+                "id": "msg-hs-payment-due",
+                "threadId": "thread-loan",
+                "sender": "灵贷专员",
+                "title": "还款窗口",
+                "preview": "最低周还款即将到期",
+                "body": "账户已进入本周还款评估周期。未足额还款将写入逾期档案，并触发利率与催收权重调整。",
+                "day": 1,
+                "read": false,
+                "required": false
+              },
+              {
+                "id": "msg-hs-delinquency-warn",
+                "threadId": "thread-loan",
+                "sender": "风控中心",
+                "title": "逾期警告",
+                "preview": "逾期档位已上调",
+                "body": "系统记录到还款滞后。当前仅发出警告；若持续逾期，最低还款额与制度压力将继续上浮。",
+                "day": 1,
+                "read": false,
+                "required": true
+              }
+            ]
+          }
+        ],
+        "seed": 205828572,
+        "econ": {
+          "cash": 0,
+          "collectionFee": 12800,
+          "debtPrincipal": 19880,
+          "debtInterestAccrued": 49105.3,
+          "dailyRate": 0.01,
+          "delinquency": 6,
+          "lastPaymentDay": 0
+        },
+        "stats": {
+          "daoXin": 3.6,
+          "faLi": 7.5,
+          "rouTi": 0.6,
+          "fatigue": 0,
+          "focus": 100
+        },
+        "school": {
+          "day": 92,
+          "week": 14,
+          "slot": "morning",
+          "classTier": "末位班",
+          "lastExamScore": 485,
+          "lastRank": 197,
+          "perks": {
+            "mealSubsidy": 0,
+            "focusBonus": -6
+          }
+        },
+        "carryoverFromAct1": {
+          "metaUnlocks": [],
+          "permanentModifiers": {},
+          "familyOutcome": "left",
+          "unlockedInboxHints": [],
+          "startingDelinquencyBias": 0
+        },
+        "setpiece": {
+          "examBoss": {
+            "lastScore": 485,
+            "lastRank": 197,
+            "tierBefore": "末位班",
+            "tierAfter": "末位班"
+          },
+          "examsCompleted": 3
+        },
+        "act1": {
+          "chapter": "act1-pre-enrollment",
+          "day": 1,
+          "cash": 120,
+          "familyResilience": 0,
+          "pressure": 18,
+          "delinquency": 1,
+          "profileTags": [
+            "prior-debt",
+            "mother-left",
+            "witness-departure"
+          ],
+          "interview": {
+            "completed": false,
+            "score": 0,
+            "answers": {}
+          },
+          "loanMeta": {
+            "adDismissCount": 0,
+            "compareViewMs": 0,
+            "comparedProducts": false,
+            "popupAcknowledged": false
+          },
+          "loans": [
+            {
+              "id": "loan-prior-credit",
+              "lenderName": "既有征信欠款",
+              "principal": 20000,
+              "drawn": 20000,
+              "accruedInterest": 0,
+              "dailyRate": 0.01,
+              "graceDaysLeft": 0,
+              "nextRepaymentDay": 7,
+              "tags": [
+                "prior-debt"
+              ]
+            }
+          ],
+          "creditLineUsed": 0,
+          "familyMeta": {
+            "moneyRequests": 0,
+            "collectionStage": 0
+          },
+          "completedModules": [],
+          "pendingTodos": [
+            "todo-interview-open"
+          ],
+          "familyOutcome": "left"
+        },
+        "bodyIntegrity": 0.8655,
+        "chapter": {
+          "chapterId": "ch0-forty-week-contract",
+          "weekBudget": 40,
+          "chapterWeekIndex": 14,
+          "weeksRemaining": 26,
+          "segmentId": "hs",
+          "resolvedBeatWeeks": [
+            4,
+            8,
+            12
+          ],
+          "outcomeId": "collapse_debt"
+        },
+        "mandate": {
+          "numbness": 0,
+          "domestication": 68,
+          "pendingDeliveryIds": [],
+          "supplyCutStreak": 3
+        },
+        "work": {
+          "jobId": null,
+          "educationTags": [],
+          "monthlyTarget": 0,
+          "kpiScore": 0,
+          "shameEvents": 0,
+          "employmentTrack": null
+        },
+        "lastWeekPlan": {
+          "repay": "min",
+          "studyHours": 8,
+          "tunaHours": 0,
+          "parttimeHours": 0,
+          "workHours": 0,
+          "rest": false
+        },
+        "buyDebasement": 0
+      }
+    },
+    "meta": {
+      "priorMetaUnlocks": [],
+      "permanentModifiers": {},
+      "runsCompleted": 0
+    }
+  },
+  "saveV2": null
+}

@@ -1,0 +1,118 @@
+{
+  "id": "chapter-mandate-inbox",
+  "label": "Ch0 · 制度来文",
+  "path": "/play",
+  "waitSelector": ".MandateInbox",
+  "saveV5": {
+    "saveSchemaVersion": 6,
+    "activeRunId": "run_1780231528147_bk4ug2d",
+    "runs": {
+      "run_1780231528147_bk4ug2d": {
+        "schemaVersion": 4,
+        "runId": "run_1780231528147_bk4ug2d",
+        "runMode": "chapter",
+        "createdAt": "2026-05-31T12:45:28.147Z",
+        "updatedAt": "2026-05-31T12:45:28.147Z",
+        "lifeStage": "hs",
+        "chapterIndex": 0,
+        "realmTier": "mortal",
+        "realmIndex": 0,
+        "start": {
+          "playerName": "审计员",
+          "background": "贫民",
+          "talent": "无灵根",
+          "initialDebt": 20000,
+          "startingCity": "嵩阳市"
+        },
+        "slotId": "slot1",
+        "runStatus": "active",
+        "logs": [
+          "四十周灵贷契约：第 1 / 40 周。",
+          "入学昆墟高中：审计员，嵩阳市，贫民。",
+          "新局开始，压力牌每回合四选二。"
+        ],
+        "profileTags": [],
+        "inbox": [
+          {
+            "id": "thread-loan",
+            "kind": "loan",
+            "title": "灵贷 · 还款",
+            "unreadCount": 1,
+            "messages": [
+              {
+                "id": "msg-hs-payment-due",
+                "threadId": "thread-loan",
+                "sender": "灵贷专员",
+                "title": "还款窗口",
+                "preview": "最低周还款即将到期",
+                "body": "账户已进入本周还款评估周期。未足额还款将写入逾期档案，并触发利率与催收权重调整。",
+                "day": 1,
+                "read": false,
+                "required": false
+              }
+            ]
+          }
+        ],
+        "seed": 215067023,
+        "econ": {
+          "cash": 800,
+          "collectionFee": 0,
+          "debtPrincipal": 20000,
+          "debtInterestAccrued": 0,
+          "dailyRate": 0.008,
+          "delinquency": 0,
+          "lastPaymentDay": 0
+        },
+        "stats": {
+          "daoXin": 1,
+          "faLi": 6.2,
+          "rouTi": 0.6,
+          "fatigue": 25,
+          "focus": 52
+        },
+        "school": {
+          "day": 1,
+          "week": 1,
+          "slot": "morning",
+          "classTier": "普通班",
+          "lastExamScore": 0,
+          "lastRank": 999,
+          "perks": {
+            "mealSubsidy": 40,
+            "focusBonus": 0
+          }
+        },
+        "mandate": {
+          "numbness": 12,
+          "domestication": 5,
+          "pendingDeliveryIds": [
+            "ch0-debt-reminder"
+          ],
+          "supplyCutStreak": 0
+        },
+        "bodyIntegrity": 1,
+        "chapter": {
+          "chapterId": "ch0-forty-week-contract",
+          "weekBudget": 40,
+          "chapterWeekIndex": 1,
+          "weeksRemaining": 39,
+          "segmentId": "hs"
+        },
+        "work": {
+          "jobId": null,
+          "educationTags": [],
+          "monthlyTarget": 0,
+          "kpiScore": 0,
+          "shameEvents": 0,
+          "employmentTrack": null
+        }
+      }
+    },
+    "meta": {
+      "priorMetaUnlocks": [],
+      "permanentModifiers": {},
+      "runsCompleted": 0
+    }
+  },
+  "saveV2": null
+}

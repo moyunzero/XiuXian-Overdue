@@ -1,0 +1,168 @@
+[
+  {
+    "id": "ch0-debt-reminder",
+    "title": "灵贷中心 · 账期提醒",
+    "body": "您本账期灵贷尚未结清。逾期将计入征信灵籍，并可能触发洞府灵气配额下调。请在本周内完成最低还款或联系值班仙吏说明情况。",
+    "lifeStages": ["hs", "uni", "work"],
+    "minWeek": 2,
+    "pool": "routine",
+    "responses": [
+      {
+        "id": "ack-min",
+        "label": "收到，本周按最低还",
+        "effects": [
+          { "kind": "domestication", "value": 3 },
+          { "kind": "log", "message": "你回复了标准话术——系统记录为「配合」。" }
+        ]
+      },
+      {
+        "id": "defer-letter",
+        "label": "申请宽限（拖一周）",
+        "grit": true,
+        "effects": [
+          { "kind": "delinquency", "value": 1 },
+          { "kind": "numbness", "value": 2 },
+          { "kind": "log", "message": "宽限申请已挂账——利息照计。" }
+        ]
+      },
+      {
+        "id": "parttime-grit",
+        "label": "去零工凑数（走灰产边缘）",
+        "grit": true,
+        "effects": [
+          { "kind": "cash", "value": 800 },
+          { "kind": "domestication", "value": -2 },
+          { "kind": "numbness", "value": 4 },
+          { "kind": "log", "message": "零工现钱到账，征信侧多了一条「异常收入」备注。" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ch0-focus-audit",
+    "title": "执法队 · 洞府灵气抽检",
+    "body": "本周将抽检修炼配额用途。若发现灵气用于非登记活动，将当场扣减灵籍分并记入宗门档案。",
+    "lifeStages": ["hs", "uni"],
+    "minWeek": 5,
+    "pool": "routine",
+    "responses": [
+      {
+        "id": "comply-audit",
+        "label": "配合登记，本周少练",
+        "effects": [
+          { "kind": "domestication", "value": 5 },
+          { "kind": "log", "message": "你把修炼计划改成「合规版」——排名窗口又窄了一点。" }
+        ]
+      },
+      {
+        "id": "fake-log",
+        "label": "伪造日志应付（有风险）",
+        "grit": true,
+        "effects": [
+          { "kind": "numbness", "value": 3 },
+          { "kind": "delinquency", "value": 1 },
+          { "kind": "log", "message": "日志提交了，但后台标记「待复核」。" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ch0-kpi-nudge",
+    "title": "宗门文书 · KPI 催办",
+    "body": "本月灵材入库量低于班组均值。请在本周内补工时或提交说明，否则计入季度考核。",
+    "lifeStages": ["work"],
+    "minWeek": 30,
+    "pool": "routine",
+    "responses": [
+      {
+        "id": "overtime",
+        "label": "加班补 KPI",
+        "effects": [
+          { "kind": "domestication", "value": 4 },
+          { "kind": "numbness", "value": 2 },
+          { "kind": "log", "message": "你把周报改成 996 版——KPI 暂时过关。" }
+        ]
+      },
+      {
+        "id": "push-back",
+        "label": "硬扛，不改计划",
+        "grit": true,
+        "effects": [
+          { "kind": "domestication", "value": -3 },
+          { "kind": "log", "message": "文书退回「待约谈」——你至少没默认勾选收到。" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ch0-startup-subsidy-audit",
+    "title": "创业担保 · 挂靠年审",
+    "body": "您的创业壳公司挂靠协议进入年审窗口。若本周内无法提交合规流水与社保挂靠证明，担保额度将冻结，并同步至灵贷中心征信灵籍。",
+    "lifeStages": ["work"],
+    "minWeek": 30,
+    "pool": "routine",
+    "requiresTags": ["track-startup"],
+    "responses": [
+      {
+        "id": "pay-audit-fee",
+        "label": "交审验费，补材料",
+        "effects": [
+          { "kind": "cash", "value": -1200 },
+          { "kind": "domestication", "value": 4 },
+          { "kind": "log", "message": "审验费扣账——挂靠暂时续命，现金流又薄一层。" }
+        ]
+      },
+      {
+        "id": "stall-audit",
+        "label": "拖一周再说",
+        "grit": true,
+        "effects": [
+          { "kind": "delinquency", "value": 1 },
+          { "kind": "numbness", "value": 3 },
+          { "kind": "log", "message": "年审挂账「待补件」——后台已标记创业轨异常。" }
+        ]
+      },
+      {
+        "id": "ghost-invoice",
+        "label": "找代账凑流水（灰产边缘）",
+        "grit": true,
+        "effects": [
+          { "kind": "cash", "value": -800 },
+          { "kind": "domestication", "value": -2 },
+          { "kind": "numbness", "value": 5 },
+          { "kind": "log", "message": "流水补上了，但税务侧多了一条「待复核」备注。" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ch0-startup-affiliate-breach",
+    "title": "挂靠方 · 违约来文",
+    "body": "挂靠主体通知：因上游宗门合同变更，您的壳公司配额将在本周末下调。未在本周内确认续签或迁移，将视为自愿退出创业担保池。",
+    "lifeStages": ["work"],
+    "minWeek": 32,
+    "pool": "routine",
+    "requiresTags": ["track-startup"],
+    "responses": [
+      {
+        "id": "renew-shell",
+        "label": "续签，接受更高抽成",
+        "effects": [
+          { "kind": "cash", "value": -2000 },
+          { "kind": "domestication", "value": 6 },
+          { "kind": "log", "message": "续签扣款到账——创业轨还在，但抽成上限被写进新条款。" }
+        ]
+      },
+      {
+        "id": "ignore-breach",
+        "label": "先不回，赌一把",
+        "grit": true,
+        "effects": [
+          { "kind": "delinquency", "value": 1 },
+          { "kind": "domestication", "value": -4 },
+          { "kind": "log", "message": "来文超时未回执——挂靠方已登记「违约观察」。" }
+        ]
+      }
+    ]
+  }
+]

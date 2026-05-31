@@ -7,7 +7,18 @@ const META_UNLOCK_LABELS: Record<string, string> = {
   'family-false-hope': '家庭周转贷（假希望档案）',
   'price-aware': '比价阅读记录',
   'ad-resistant': '广告抗拒档位',
-  'special-track-memo': '特招轨道备忘'
+  'special-track-memo': '特招轨道备忘',
+  'chapter-outcome-fulfilled': '契约履约归档',
+  'chapter-outcome-breach': '契约违约归档',
+  'chapter-outcome-collapse_debt': '征信冻结·债务崩盘',
+  'chapter-outcome-collapse_body': '身体留置·修炼崩盘',
+  'chapter-outcome-collapse_review': '审查挂科·权限崩盘',
+  'chapter-outcome-degraded_uni': '预科降级',
+  'chapter-outcome-degraded_work': '职场污名档',
+  'chapter-ch0-forty-week-contract-seen': '四十周契约已经历',
+  'campaign-ended-exit': '战役·退出结局',
+  'campaign-ended-hold': '战役·持守结局',
+  'campaign-ended-asset': '战役·资产结局'
 }
 
 /** 二周目面试顶栏「制度备注」 */
@@ -30,7 +41,7 @@ const FAMILY_OUTCOME_LABELS: Record<string, string> = {
 }
 
 export function formatMetaUnlock(id: string): string {
-  return META_UNLOCK_LABELS[id] ?? `制度词条（${id}）`
+  return META_UNLOCK_LABELS[id] ?? '制度词条'
 }
 
 export function formatMetaUnlocks(ids: string[], limit?: number): string[] {
@@ -101,7 +112,7 @@ export function buildBreakthroughInstitutionalNotes(metaUnlocks: string[]): stri
 
 export function formatFamilyOutcome(outcome: string | undefined): string {
   if (!outcome) return '未结案'
-  return FAMILY_OUTCOME_LABELS[outcome] ?? outcome
+  return FAMILY_OUTCOME_LABELS[outcome] ?? '未结案'
 }
 
 export function formatPermanentModifierSummary(mods: Act1PermanentModifiers): string {

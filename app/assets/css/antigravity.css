@@ -1,0 +1,601 @@
+/* Antigravity design layer — glass, depth, stagger (Vue + CSS vars, no GSAP) */
+
+:root {
+  --ag-elev-1: 0 12px 32px rgba(0, 0, 0, 0.28);
+  --ag-elev-2: 0 20px 48px rgba(0, 0, 0, 0.38);
+  --ag-elev-3: 0 28px 64px rgba(0, 0, 0, 0.48);
+  --ag-glass: rgba(12, 16, 28, 0.72);
+  --ag-glass-solid: rgba(8, 14, 24, 0.92);
+  --ag-glass-border: rgba(255, 255, 255, 0.08);
+  --ag-blur: blur(12px);
+  --ag-motion-enter: 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+  --ag-stagger-step: 0.1s;
+  --ag-terminal-grid: rgba(0, 255, 255, 0.04);
+}
+
+@keyframes ag-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ag-hero-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes ag-pulse-edge {
+  0%,
+  100% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scaleY(1.15);
+    opacity: 0.75;
+  }
+}
+
+/* —— Home hero —— */
+.HeroSection--ag .HeroSection__content {
+  animation: ag-fade-up var(--ag-motion-enter) both;
+  padding: clamp(20px, 4vw, 32px);
+  border-radius: 16px;
+  border: 1px solid var(--ag-glass-border);
+  background: var(--ag-glass);
+  backdrop-filter: var(--ag-blur);
+  box-shadow: var(--ag-elev-2);
+  max-width: min(520px, 92vw);
+  margin-inline: auto;
+}
+
+.HeroSection--ag .HeroSection__bg::before,
+.HeroSection--ag .HeroSection__bg::after {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--ag-terminal-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--ag-terminal-grid) 1px, transparent 1px);
+  background-size: 48px 48px;
+  opacity: 0.55;
+}
+
+.HeroSection--ag .HeroSection__bg::after {
+  transform: translate(12px, 18px) scale(1.02);
+  opacity: 0.35;
+}
+
+.IndexPage__glassBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 18px;
+  border-radius: 8px;
+  border: 1px solid var(--ag-glass-border);
+  background: var(--ag-glass);
+  backdrop-filter: var(--ag-blur);
+  color: var(--text-secondary);
+  font-family: var(--mono);
+  font-size: var(--text-xs);
+  cursor: pointer;
+  transition:
+    color var(--ag-motion-enter),
+    border-color var(--ag-motion-enter),
+    transform var(--ag-motion-enter);
+}
+
+.IndexPage__glassBtn:hover {
+  color: var(--neon-cyan);
+  border-color: rgba(0, 255, 255, 0.35);
+  transform: translateY(-2px);
+}
+
+/* —— Play shell · 制度终端 —— */
+.PlayShell--terminal {
+  background:
+    radial-gradient(ellipse 120% 80% at 50% -20%, rgba(0, 255, 255, 0.06), transparent 55%),
+    var(--bg-primary);
+}
+
+.PlayShell--terminal::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(var(--ag-terminal-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--ag-terminal-grid) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.5), transparent 85%);
+}
+
+.PlayShell--terminal > * {
+  position: relative;
+  z-index: 1;
+}
+
+.PlayShell--terminal .PlayShell__status {
+  background: var(--ag-glass);
+  backdrop-filter: var(--ag-blur);
+  border-bottom-color: var(--ag-glass-border);
+  box-shadow: var(--ag-elev-1);
+}
+
+.PlayShell--terminal .PlayShell__stage-label {
+  max-width: min(52ch, 100%);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: rgba(160, 230, 255, 0.92);
+  letter-spacing: 0.04em;
+}
+
+.PlayShell--terminal .PlayShell__inbox {
+  background: var(--ag-glass);
+  backdrop-filter: var(--ag-blur);
+  border-left-color: var(--ag-glass-border);
+}
+
+@media (max-width: 900px) {
+  .PlayShell--terminal .PlayShell__inboxSheet {
+    background: var(--ag-glass);
+    backdrop-filter: var(--ag-blur);
+    border-top-color: var(--ag-glass-border);
+    box-shadow: 0 -12px 32px rgba(0, 0, 0, 0.35);
+  }
+
+  .PlayShell--terminal .PlayShell__inboxSheet[open] {
+    box-shadow: 0 -16px 40px rgba(0, 0, 0, 0.45);
+  }
+}
+
+/* —— Chapter week dashboard grid —— */
+.PlayChapterScreenHost__main--ag {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: clamp(12px, 2vw, 18px);
+  align-content: start;
+}
+
+.PlayChapterScreenHost__main--ag .PlayChapterScreenHost__debt {
+  grid-column: 1 / -1;
+}
+
+.PlayChapterScreenHost__main--ag .WeekPlan {
+  grid-column: 1 / 9;
+  align-self: start;
+}
+
+.PlayChapterScreenHost__main--ag .PlayChapterScreenHost__logsBox {
+  grid-column: 9 / -1;
+  align-self: start;
+  min-height: 0;
+  border-color: var(--ag-glass-border);
+  background: var(--ag-glass);
+  backdrop-filter: var(--ag-blur);
+}
+
+.PlayChapterScreenHost__main--ag:has(.PlayChapterScreenHost__logsBox:not([open])) .WeekPlan {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 900px) {
+  .PlayChapterScreenHost__main--ag .WeekPlan,
+  .PlayChapterScreenHost__main--ag .PlayChapterScreenHost__logsBox {
+    grid-column: 1 / -1;
+  }
+}
+
+/* —— Glass panels —— */
+.AgGlassPanel {
+  border: 1px solid var(--ag-glass-border);
+  background: var(--ag-glass-solid);
+  backdrop-filter: var(--ag-blur);
+  box-shadow: var(--ag-elev-2);
+}
+
+.AgGlassSubcard {
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--ag-glass-border);
+  background: rgba(0, 0, 0, 0.28);
+  box-shadow: var(--ag-elev-1);
+}
+
+.WeekPlan--float {
+  box-shadow: var(--ag-elev-2);
+  border-color: var(--ag-glass-border);
+  background: var(--ag-glass-solid);
+  backdrop-filter: var(--ag-blur);
+  transform: translateZ(0);
+}
+
+.WeekPlan--float .WeekPlan__actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  margin: 0 -4px -4px;
+  padding: 12px 4px calc(8px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(180deg, transparent, rgba(6, 10, 18, 0.96) 28%);
+}
+
+.WeekPlan--float .WeekPlan__hourInput {
+  transition: border-color 0.25s ease, background 0.25s ease;
+}
+
+.WeekPlan--float .WeekPlan__repayOpt--on {
+  box-shadow: inset 0 0 0 1px rgba(255, 0, 120, 0.45);
+  border-color: rgba(255, 0, 120, 0.35);
+}
+
+.WeekPlan__timeSeg {
+  transition: flex-grow 0.25s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .WeekPlan__timeSeg,
+  .WeekPlan__stepBtn {
+    transition: none !important;
+  }
+}
+
+.DebtDash--ag {
+  border: 1px solid var(--ag-glass-border);
+  border-radius: 12px;
+  background: var(--ag-glass);
+  backdrop-filter: var(--ag-blur);
+  box-shadow: var(--ag-elev-1);
+}
+
+.DebtDash--ag .DebtDash__strip {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.DebtDash--ag:not(.DebtDash--expanded) .DebtDash__total {
+  font-size: var(--text-base);
+}
+
+.DebtDash--ag .DebtDash__pressure {
+  background: rgba(255, 60, 60, 0.12);
+}
+
+/* —— Gate overlays (shared) —— */
+.AgGate {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(16px, 3vw, 28px);
+  box-sizing: border-box;
+  width: 100%;
+  backdrop-filter: blur(8px);
+  animation: ag-fade-up 0.32s ease both;
+}
+
+.AgGate--mandate {
+  z-index: 210;
+  background: rgba(2, 12, 8, 0.72);
+  backdrop-filter: blur(14px) saturate(1.08);
+}
+
+.AgGate--exam {
+  background: rgba(0, 0, 0, 0.82);
+}
+
+.AgGate--breakthrough {
+  background: radial-gradient(ellipse 80% 70% at 50% 30%, rgba(20, 60, 80, 0.35), rgba(0, 0, 0, 0.92));
+}
+
+.AgGate--sect {
+  background: rgba(8, 10, 24, 0.9);
+}
+
+.AgGate--work {
+  background: rgba(10, 14, 22, 0.92);
+}
+
+.AgGate--body {
+  background: radial-gradient(circle at 50% 80%, rgba(80, 12, 20, 0.25), rgba(0, 0, 0, 0.94));
+}
+
+.AgGate--finale {
+  background: rgba(4, 6, 14, 0.94);
+}
+
+.ContractFinale.AgGate {
+  position: relative;
+  inset: auto;
+  z-index: auto;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(14px, 2vw, 24px);
+  box-sizing: border-box;
+  backdrop-filter: none;
+}
+
+.AgGate--archive {
+  position: relative;
+  z-index: auto;
+  inset: auto;
+  backdrop-filter: none;
+  background: transparent;
+  animation: none;
+  padding: 0;
+  align-items: stretch;
+}
+
+.AgGate .AgGlassPanel {
+  width: min(560px, 100%);
+  max-height: min(90dvh, 720px);
+  overflow: auto;
+  border-radius: 14px;
+  padding: clamp(20px, 3vw, 28px);
+  box-sizing: border-box;
+}
+
+.AgGate--archive .RunArchiveView {
+  width: min(42rem, 100%);
+  margin-inline: auto;
+}
+
+/* Stagger lists */
+.AgStagger > * {
+  animation: ag-fade-up var(--ag-motion-enter) both;
+}
+
+.AgStagger > *:nth-child(1) {
+  animation-delay: calc(var(--ag-stagger-step) * 0);
+}
+.AgStagger > *:nth-child(2) {
+  animation-delay: calc(var(--ag-stagger-step) * 1);
+}
+.AgStagger > *:nth-child(3) {
+  animation-delay: calc(var(--ag-stagger-step) * 2);
+}
+.AgStagger > *:nth-child(4) {
+  animation-delay: calc(var(--ag-stagger-step) * 3);
+}
+.AgStagger > *:nth-child(5) {
+  animation-delay: calc(var(--ag-stagger-step) * 4);
+}
+.AgStagger > *:nth-child(6) {
+  animation-delay: calc(var(--ag-stagger-step) * 5);
+}
+
+/* Exam hero score */
+.AgHeroMetric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 20px;
+  padding: 20px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 255, 213, 0.22);
+  background: rgba(0, 255, 213, 0.05);
+  animation: ag-hero-pop 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.AgHeroMetric__num {
+  font-family: var(--mono);
+  font-size: clamp(2.75rem, 10vw, 4rem);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--neon-cyan);
+}
+
+.AgHeroMetric__label {
+  font-family: var(--mono);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  letter-spacing: 0.2em;
+}
+
+.AgHeroMetric--debt {
+  border-color: rgba(255, 80, 100, 0.35);
+  background: rgba(60, 12, 20, 0.35);
+}
+
+.AgHeroMetric--debt .AgHeroMetric__num {
+  color: var(--danger);
+  font-size: clamp(1.75rem, 6vw, 2.5rem);
+}
+
+.ExamBoss__meta--grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.ExamBoss__meta--grid .ExamBoss__row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--ag-glass-border);
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.ExamBoss__btn--delayed {
+  animation: ag-fade-up var(--ag-motion-enter) 0.3s both;
+}
+
+/* Mandate terminal */
+.MandateInbox--ag .MandateInbox__panel {
+  border-color: rgba(80, 220, 140, 0.28);
+  background:
+    linear-gradient(165deg, rgba(6, 18, 12, 0.98), rgba(4, 10, 8, 0.99)),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(255, 255, 255, 0.02) 2px,
+      rgba(255, 255, 255, 0.02) 3px
+    );
+}
+
+.MandateInbox--ag .MandateInbox__tag,
+.MandateInbox--ag .MandateInbox__title {
+  color: rgba(120, 255, 180, 0.92);
+  font-family: var(--mono);
+}
+
+.MandateInbox--ag .MandateInbox__item {
+  border-left: 3px solid rgba(80, 220, 140, 0.5);
+}
+
+/* Breakthrough POS */
+.Breakthrough--ag .Breakthrough__bill-list li {
+  font-family: var(--mono);
+}
+
+/* Work track cards */
+.TrackChoice--ag .TrackChoice__btn,
+.JobChoice--ag .JobChoice__btn {
+  transition:
+    transform var(--ag-motion-enter),
+    border-color var(--ag-motion-enter);
+}
+
+.TrackChoice--ag .TrackChoice__btn:hover,
+.JobChoice--ag .JobChoice__btn:hover {
+  transform: translateY(-4px);
+}
+
+.TrackChoice--ag .TrackChoice__panel,
+.JobChoice--ag .JobChoice__panel {
+  border-color: rgba(100, 140, 180, 0.35);
+}
+
+/* S0 / Act1 desktop glass */
+.S0Setpiece--ag .S0Setpiece__panel,
+.Act1Desktop--ag .Act1Desktop__panel {
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--ag-glass-border);
+  box-shadow: var(--ag-elev-1);
+  transition:
+    opacity var(--ag-motion-enter),
+    transform var(--ag-motion-enter);
+}
+
+.S0Setpiece--ag .S0Setpiece__panel:not(.S0Setpiece__panel--active),
+.Act1Desktop--ag .Act1Desktop__panel:not(.Act1Desktop__panel--active) {
+  opacity: 0.72;
+  transform: scale(0.98);
+}
+
+.S0Setpiece--ag .S0Setpiece__panel--active,
+.Act1Desktop--ag .Act1Desktop__panel--active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.Act1Desktop--ag .Act1Desktop__dock-btn--blocked::before,
+.S0Setpiece--ag .Act1TodoStack__item--blocking::before,
+.Act1Desktop--ag .Act1TodoStack__item--blocking::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8%;
+  bottom: 8%;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--danger);
+  animation: ag-pulse-edge 1.4s ease-in-out infinite;
+}
+
+/* Archive paper */
+.RunArchiveView--ag {
+  padding: clamp(20px, 3vw, 32px);
+  border-radius: 14px;
+  border: 1px solid var(--ag-glass-border);
+  background:
+    linear-gradient(180deg, rgba(18, 16, 14, 0.96), rgba(10, 10, 12, 0.98)),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 3px,
+      rgba(255, 255, 255, 0.015) 3px,
+      rgba(255, 255, 255, 0.015) 4px
+    );
+  box-shadow: var(--ag-elev-2);
+  max-width: 42rem;
+  margin-inline: auto;
+}
+
+.RunArchiveView--ag .RunArchiveView__epilogue-line {
+  animation: ag-fade-up var(--ag-motion-enter) both;
+}
+
+.RunArchiveView--ag .RunArchiveView__epilogue-line:nth-child(2) {
+  animation-delay: 0.12s;
+}
+.RunArchiveView--ag .RunArchiveView__epilogue-line:nth-child(3) {
+  animation-delay: 0.24s;
+}
+
+/* Play route crossfade */
+.PlayRoute--ag {
+  animation: ag-fade-up 0.6s ease both;
+}
+
+/* Pressure deck (legacy path) */
+.PressureDeck--ag .PressureDeck__card {
+  transition: transform var(--ag-motion-enter);
+}
+
+.PressureDeck--ag .PressureDeck__card--selected {
+  transform: translateY(-8px) rotate(-1deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .HeroSection--ag .HeroSection__content,
+  .AgGate,
+  .AgStagger > *,
+  .AgHeroMetric,
+  .ExamBoss__btn--delayed,
+  .RunArchiveView--ag .RunArchiveView__epilogue-line,
+  .PlayRoute--ag {
+    animation: none !important;
+  }
+
+  .HeroSection--ag .HeroSection__bg::after {
+    transform: none;
+  }
+
+  .TrackChoice--ag .TrackChoice__btn:hover,
+  .JobChoice--ag .JobChoice__btn:hover {
+    transform: none;
+  }
+
+  .Act1Desktop--ag .Act1Desktop__dock-btn--blocked::before,
+  .S0Setpiece--ag .Act1TodoStack__item--blocking::before,
+  .Act1Desktop--ag .Act1TodoStack__item--blocking::before {
+    animation: none;
+  }
+}

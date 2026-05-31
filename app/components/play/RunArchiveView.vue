@@ -13,12 +13,37 @@ defineEmits<{
 </script>
 
 <template>
-  <article class="RunArchiveView">
+  <article class="RunArchiveView RunArchiveView--ag">
     <header class="RunArchiveView__head">
-      <span class="RunArchiveView__tag">制度档案 · {{ formatRunModeForArchive(archive.runMode) }}</span>
+      <span class="RunArchiveView__tag">征信灵籍 · {{ formatRunModeForArchive(archive.runMode) }}</span>
       <h2 class="RunArchiveView__title">终章摘要</h2>
       <p class="RunArchiveView__verdict">{{ archive.oneLineVerdict }}</p>
+      <p v-if="archive.collapseReason" class="RunArchiveView__collapse-reason">
+        {{ archive.collapseReason }}
+      </p>
     </header>
+
+    <section
+      v-if="archive.failurePostMortem"
+      class="RunArchiveView__block RunArchiveView__post-mortem"
+      aria-labelledby="post-mortem-title"
+    >
+      <h3 id="post-mortem-title" class="RunArchiveView__block-title">怎么走到这一步</h3>
+      <p class="RunArchiveView__post-mortem-headline">{{ archive.failurePostMortem.headline }}</p>
+      <p class="RunArchiveView__post-mortem-rule">{{ archive.failurePostMortem.ruleLine }}</p>
+      <p
+        v-if="archive.failurePostMortem.progressHint"
+        class="RunArchiveView__post-mortem-hint"
+      >
+        {{ archive.failurePostMortem.progressHint }}
+      </p>
+      <ul class="RunArchiveView__list RunArchiveView__list--timeline">
+        <li v-for="(line, i) in archive.failurePostMortem.timeline" :key="i">{{ line }}</li>
+      </ul>
+      <p v-if="archive.failurePostMortem.nearMiss" class="RunArchiveView__post-mortem-near">
+        {{ archive.failurePostMortem.nearMiss }}
+      </p>
+    </section>
 
     <section class="RunArchiveView__block" aria-labelledby="debt-summary-title">
       <h3 id="debt-summary-title" class="RunArchiveView__block-title">欠了什么</h3>
@@ -49,7 +74,7 @@ defineEmits<{
     <p v-if="archive.nextStageTeaser" class="RunArchiveView__teaser">{{ archive.nextStageTeaser }}</p>
 
     <details v-if="archive.fullReportLines?.length" class="RunArchiveView__details">
-      <summary>完整制度档案</summary>
+      <summary>完整征信灵籍</summary>
       <pre class="RunArchiveView__report">{{ archive.fullReportLines.join('\n') }}</pre>
     </details>
 
@@ -83,6 +108,40 @@ defineEmits<{
 .RunArchiveView__verdict {
   margin: 0;
   font-size: var(--text-base);
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+.RunArchiveView__collapse-reason {
+  margin: 10px 0 0;
+  font-size: var(--text-sm);
+  line-height: 1.55;
+  color: var(--warn, #ffb020);
+}
+.RunArchiveView__post-mortem-headline {
+  margin: 0 0 8px;
+  font-size: var(--text-base);
+  line-height: 1.55;
+  color: var(--text-primary);
+}
+.RunArchiveView__post-mortem-rule,
+.RunArchiveView__post-mortem-hint {
+  margin: 0 0 10px;
+  font-family: var(--mono);
+  font-size: var(--text-xs);
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+.RunArchiveView__post-mortem-hint {
+  color: var(--neon-cyan);
+}
+.RunArchiveView__list--timeline {
+  margin-top: 4px;
+}
+.RunArchiveView__post-mortem-near {
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-default);
+  font-size: var(--text-sm);
   line-height: 1.55;
   color: var(--text-secondary);
 }

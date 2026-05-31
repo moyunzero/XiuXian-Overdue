@@ -11,9 +11,9 @@ const cfg: StartConfig = {
 }
 
 describe('createPlayRunFromStartConfig', () => {
-  it('默认 runMode 为 endless', () => {
+  it('默认 runMode 为 chapter', () => {
     const run = createPlayRunFromStartConfig(cfg, 'slot1')
-    expect(run.runMode).toBe('endless')
+    expect(run.runMode).toBe('chapter')
     expect(run.lifeStage).toBe('pre')
   })
 

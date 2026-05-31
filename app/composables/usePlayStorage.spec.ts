@@ -23,7 +23,7 @@ describe('usePlayStorage.helpers', () => {
     // pure helpers only
   })
 
-  it('emptyV4Save 含 schema 5', () => {
+  it('emptyV4Save 含当前 schema 版本', () => {
     const e = emptyV4Save()
     expect(e.saveSchemaVersion).toBe(PLAY_SAVE_SCHEMA_VERSION)
     expect(e.activeRunId).toBeNull()
@@ -75,6 +75,36 @@ describe('usePlayStorage.helpers', () => {
     expect(run?.campaign).toBeUndefined()
     expect(run?.setpiece?.hsPromotionGatePending).toBeUndefined()
     expect(run?.setpiece?.harvestLedgerPending).toBeUndefined()
+  })
+
+  it('parseV4Save v5 有进度的 endless 档迁移为 chapter', () => {
+    const legacy = {
+      saveSchemaVersion: 5,
+      activeRunId: 'r-v5',
+      runs: {
+        'r-v5': {
+          schemaVersion: 4,
+          runId: 'r-v5',
+          runMode: 'endless',
+          lifeStage: 'hs',
+          slotId: 'slot1',
+          runStatus: 'active',
+          logs: [],
+          profileTags: [],
+          inbox: [],
+          start: start,
+          school: { day: 8, week: 2, classTier: 'B', score: 500, rank: 100 },
+          econ: { cash: 1000, debtPrincipal: 20000, debtInterestAccrued: 0, delinquency: 0, collectionFee: 0 },
+          stats: { hp: 80, mp: 80, score: 500, rank: 100 }
+        }
+      },
+      meta: {}
+    }
+    const parsed = parseV4Save(JSON.stringify(legacy))
+    expect(parsed.saveSchemaVersion).toBe(PLAY_SAVE_SCHEMA_VERSION)
+    const run = parsed.runs['r-v5']
+    expect(run?.runMode).toBe('chapter')
+    expect(run?.chapter?.chapterWeekIndex).toBe(1)
   })
 
   it('findRunBySlot', () => {

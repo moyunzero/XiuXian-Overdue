@@ -1,0 +1,144 @@
+{
+  "id": "chapter-sect-choice",
+  "label": "Ch0 · 院系选择",
+  "path": "/play",
+  "waitSelector": ".SectChoice",
+  "saveV5": {
+    "saveSchemaVersion": 6,
+    "activeRunId": "run_1780231528147_5fboip2",
+    "runs": {
+      "run_1780231528147_5fboip2": {
+        "schemaVersion": 4,
+        "runId": "run_1780231528147_5fboip2",
+        "runMode": "chapter",
+        "createdAt": "2026-05-31T12:45:28.147Z",
+        "updatedAt": "2026-05-31T12:45:28.147Z",
+        "lifeStage": "hs",
+        "chapterIndex": 0,
+        "realmTier": "mortal",
+        "realmIndex": 0,
+        "start": {
+          "playerName": "审计员",
+          "background": "贫民",
+          "talent": "无灵根",
+          "initialDebt": 20000,
+          "startingCity": "嵩阳市"
+        },
+        "slotId": "slot1",
+        "runStatus": "active",
+        "logs": [
+          "四十周灵贷契约：第 1 / 40 周。",
+          "入学昆墟高中：审计员，嵩阳市，贫民。",
+          "新局开始，压力牌每回合四选二。"
+        ],
+        "profileTags": [],
+        "inbox": [
+          {
+            "id": "thread-loan",
+            "kind": "loan",
+            "title": "灵贷 · 还款",
+            "unreadCount": 1,
+            "messages": [
+              {
+                "id": "msg-hs-payment-due",
+                "threadId": "thread-loan",
+                "sender": "灵贷专员",
+                "title": "还款窗口",
+                "preview": "最低周还款即将到期",
+                "body": "账户已进入本周还款评估周期。未足额还款将写入逾期档案，并触发利率与催收权重调整。",
+                "day": 1,
+                "read": false,
+                "required": false
+              }
+            ]
+          }
+        ],
+        "seed": 224455575,
+        "econ": {
+          "cash": 800,
+          "collectionFee": 0,
+          "debtPrincipal": 20000,
+          "debtInterestAccrued": 0,
+          "dailyRate": 0.008,
+          "delinquency": 0,
+          "lastPaymentDay": 0
+        },
+        "stats": {
+          "daoXin": 1,
+          "faLi": 6.2,
+          "rouTi": 0.6,
+          "fatigue": 25,
+          "focus": 52
+        },
+        "school": {
+          "day": 1,
+          "week": 1,
+          "slot": "morning",
+          "classTier": "普通班",
+          "lastExamScore": 0,
+          "lastRank": 999,
+          "perks": {
+            "mealSubsidy": 40,
+            "focusBonus": 0
+          }
+        },
+        "setpiece": {
+          "sectChoicePending": {
+            "prompt": "预科注册处要求你在今日内锁定院系预科路径。",
+            "options": [
+              {
+                "id": "sect-cloud",
+                "name": "云箓宗预科",
+                "harvestRateCap": 0.22,
+                "cohortBias": "elite",
+                "deckBiasLabel": "闭关 · 订阅权重↑"
+              },
+              {
+                "id": "sect-iron",
+                "name": "铁券阁预科",
+                "harvestRateCap": 0.18,
+                "cohortBias": "normal",
+                "deckBiasLabel": "任务 · 兼职权重↑"
+              },
+              {
+                "id": "sect-ash",
+                "name": "灰炉院预科",
+                "harvestRateCap": 0.26,
+                "cohortBias": "tail",
+                "deckBiasLabel": "催收 · 风险权重↑"
+              }
+            ]
+          }
+        },
+        "bodyIntegrity": 1,
+        "chapter": {
+          "chapterId": "ch0-forty-week-contract",
+          "weekBudget": 40,
+          "chapterWeekIndex": 1,
+          "weeksRemaining": 39,
+          "segmentId": "hs"
+        },
+        "mandate": {
+          "numbness": 0,
+          "domestication": 0,
+          "pendingDeliveryIds": [],
+          "supplyCutStreak": 0
+        },
+        "work": {
+          "jobId": null,
+          "educationTags": [],
+          "monthlyTarget": 0,
+          "kpiScore": 0,
+          "shameEvents": 0,
+          "employmentTrack": null
+        }
+      }
+    },
+    "meta": {
+      "priorMetaUnlocks": [],
+      "permanentModifiers": {},
+      "runsCompleted": 0
+    }
+  },
+  "saveV2": null
+}

@@ -43,6 +43,9 @@ docs/PRD-act1-pre-enrollment.md
 test-results/
 playwright-report/
 .playwright-mcp/
+# Regenerable full walkthrough captures (yarn test:e2e:walkthrough / test:e2e:natural40)
+e2e/artifacts/walkthrough/
+docs/playwright-walkthrough-report.md
 
 # Code intelligence — local indexes (see .cursor/rules/code-intelligence.mdc)
 .understand-anything/

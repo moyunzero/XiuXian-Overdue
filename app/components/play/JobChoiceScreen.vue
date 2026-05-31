@@ -11,8 +11,9 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="JobChoice" role="dialog" aria-labelledby="job-choice-title">
-    <div class="JobChoice__panel">
+  <div class="JobChoice AgGate AgGate--work JobChoice--ag" role="dialog" aria-labelledby="job-choice-title">
+    <div class="JobChoice__panel AgGlassPanel">
+      <p class="JobChoice__progress" aria-hidden="true">通行证 · 择岗 2/2</p>
       <header class="JobChoice__head">
         <span class="JobChoice__tag">昆墟三层 · 求职</span>
         <h2 id="job-choice-title" class="JobChoice__title">职场通行证已签发</h2>
@@ -20,7 +21,7 @@ const emit = defineEmits<{
 
       <p class="JobChoice__prompt">{{ pending.prompt }}</p>
 
-      <ul class="JobChoice__list">
+      <ul class="JobChoice__list AgStagger">
         <li v-for="opt in pending.options" :key="opt.id" class="JobChoice__item">
           <button type="button" class="JobChoice__btn" @click="emit('choose', opt.id)">
             <span class="JobChoice__name">{{ opt.title }}</span>
@@ -38,16 +39,12 @@ const emit = defineEmits<{
 </template>
 
 <style scoped>
-.JobChoice {
-  position: fixed;
-  inset: 0;
-  z-index: 40;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: clamp(1rem, 3vw, 2rem);
-  background: rgba(4, 8, 14, 0.88);
-  box-sizing: border-box;
+.JobChoice__progress {
+  margin: 0 0 0.75rem;
+  font-family: var(--mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.14em;
+  color: rgba(140, 170, 210, 0.85);
 }
 .JobChoice__panel {
   width: min(560px, 100%);

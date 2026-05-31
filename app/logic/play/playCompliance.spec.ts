@@ -9,6 +9,7 @@ import { join } from 'node:path'
 const PLAY_SCAN_ROOTS = [
   join(process.cwd(), 'app/logic/play'),
   join(process.cwd(), 'app/components/play'),
+  join(process.cwd(), 'app/components/share'),
   join(process.cwd(), 'app/pages/play'),
   join(process.cwd(), 'app/composables')
 ]
@@ -23,13 +24,21 @@ const BANNED_PATTERNS: { name: string; re: RegExp }[] = [
     re: /\beducationTags\b[^;\n]{0,120}\.join\s*\(/
   },
   {
+    name: '压力牌 tags 直接 join',
+    re: /\.tags\.join\s*\(/
+  },
+  {
+    name: '日序日志 [D{n}] 前缀',
+    re: /\[D\$\{/
+  },
+  {
     name: '压力牌 offered 用上一张 ID 凑满四张',
     re: /ids\.push\s*\(\s*ids\[\s*ids\.length\s*-\s*1\s*\]/
   }
 ]
 
 const ALLOW_LINE =
-  /formatProfileTags|formatPlayerFacingTagLine|formatProfileTagsLine|formatArchiveTopTags/
+  /formatProfileTags|formatPlayerFacingTagLine|formatProfileTagsLine|formatArchiveTopTags|formatPressureCardTagLine|formatPlayLogLine|formatPlayAiMomentLogLine/
 
 function collectSourceFiles(dir: string, acc: string[] = []): string[] {
   if (!statSync(dir).isDirectory()) return acc
@@ -72,6 +81,54 @@ describe('play compliance · 玩家可见标签', () => {
     }
 
     expect(hits).toEqual([])
+  })
+})
+
+describe('play compliance · chapter 主路径', () => {
+  it('chapter 段模板不得挂载 PressureDeck（主路径为 WeekPlan + 来文）', () => {
+    const page = readFileSync(join(process.cwd(), 'app/pages/play/index.vue'), 'utf8')
+    const host = readFileSync(
+      join(process.cwd(), 'app/components/play/PlayChapterScreenHost.vue'),
+      'utf8'
+    )
+    expect(page).toMatch(/PlayChapterScreenHost/)
+    expect(page).toMatch(/usePlayOrchestrator/)
+    expect(host).not.toMatch(/PressureDeck/)
+    expect(host).toMatch(/WeekPlanPanel/)
+    expect(host).toMatch(/MandateInboxScreen/)
+  })
+
+  it('chapter setpiece 屏须用 screen prop 与 session.pending.value（禁止裸 ComputedRef）', () => {
+    const host = readFileSync(
+      join(process.cwd(), 'app/components/play/PlayChapterScreenHost.vue'),
+      'utf8'
+    )
+    const bareComputedBindings = [
+      ...host.matchAll(
+        /session\.(examBossPending|breakthroughPending|sectChoicePending|uniFoundationGatePending|bodyMortgagePending|mandateInboxPending|trackChoicePending|jobChoicePending)(?![.\w])/g
+      )
+    ]
+    expect(bareComputedBindings.map((m) => m[0])).toEqual([])
+    expect(host).toMatch(/screen === 'exam-boss'/)
+    expect(host).toMatch(/:result="session\.examBossPending\.value"/)
+  })
+})
+
+describe('play compliance · 分享档案卡', () => {
+  it('FateCard 须映射社会画像等级，禁止裸英文枚举', () => {
+    const file = join(process.cwd(), 'app/components/share/FateCard.vue')
+    const content = readFileSync(file, 'utf8')
+    expect(content).toMatch(/formatSocialProfileLevel/)
+    expect(content).not.toMatch(/\{\{\s*cardData\.finalProfile\.financialRisk\s*\}\}/)
+    expect(content).not.toMatch(/\{\{\s*cardData\.finalProfile\.compliance\s*\}\}/)
+  })
+})
+
+describe('play compliance · 首页继续修行标签', () => {
+  it('index.vue 须用 lifeStageLabel 而非裸 lifeStage 枚举', () => {
+    const page = readFileSync(join(process.cwd(), 'app/pages/index.vue'), 'utf8')
+    expect(page).toMatch(/lifeStageLabel/)
+    expect(page).not.toMatch(/r\.lifeStage === 'work'\s*\?\s*'work'/)
   })
 })
 

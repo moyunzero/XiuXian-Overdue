@@ -20,7 +20,7 @@
 
 ## 产品定位（不可漂移）
 
-Web 单机 · 修仙 + 赛博反乌托邦 · **强系统**生存模拟（非宗门爽游）。核心：分数=权限、债务=倒计时、身体=耗材；流程固定为 **S0 入学前夜 → Endless 单线修行（高中/大学/职场为内部段落自动推进）**。玩家即「你」；`StartConfig` 须影响门槛/利率/台词；**禁原著人名**（用制度角色）。`best.md` 仅策划参考，**禁止入库与 UI 引用**。阶段 1 见 [docs/PRD-act1-pre-enrollment.md](./docs/PRD-act1-pre-enrollment.md)。
+Web 单机 · 修仙 + 赛博反乌托邦 · **强系统**生存模拟（非宗门爽游）。核心：分数=权限、债务=倒计时、身体=耗材；流程固定为 **S0 入学前夜 → Ch0 四十周灵贷契约**（`runMode: chapter`；legacy endless 读档可迁移）。玩家即「你」；`StartConfig` 须影响门槛/利率/台词；**禁原著人名**（用制度角色）。`best.md` 仅策划参考，**禁止入库与 UI 引用**。阶段 1 见 [docs/PRD-act1-pre-enrollment.md](./docs/PRD-act1-pre-enrollment.md)。产品真相见 [docs/CURRENT-STATE.md](./docs/CURRENT-STATE.md)。
 
 ## 技术栈与命令
 
@@ -41,9 +41,10 @@ yarn build                      # harness --full --with-build
 |------|------|
 | `app/pages/index.vue` | 开局、`StartConfig`、继续修行 |
 | `app/pages/play/index.vue` | **主玩法** `/play` |
-| `app/composables/usePlayStorage.ts` | 存档 `kunxu_sim_save_v5` |
+| `app/composables/usePlayStorage.ts` | 存档 `kunxu_sim_save_v5`（schema **v6**） |
 | `app/types/play.ts` | `PlayRunState`、`RunMode`、`LifeStage` |
-| `app/logic/play/*` | 压力牌、无尽单线、setpiece |
+| `app/logic/play/*` | 章周推进、来文、setpiece、legacy 压力牌 |
+| `app/composables/useChapterSession.ts` | **Ch0 主循环编排** |
 | `app/composables/useAct1Session.ts` | Act1 编排 |
 | `app/logic/act1/familyLedger.ts` | 家庭账本（防卡点见 PRD §9 + `act1FamilyFlow.spec.ts`） |
 | `app/pages/game.vue` | Legacy 三段式 `/game` |
@@ -67,6 +68,7 @@ yarn build                      # harness --full --with-build
 |------|------|
 | `app/logic/*` | `yarn test` 或窄 spec |
 | `data/events.json` | `yarn validate:events` |
+| `data/pressureCards.json` / `realmTemplates.json` / `collapseEndings.json` | `yarn validate:pressure-cards` / `yarn validate:realm-templates`（schema：`scripts/schemas/`） |
 | `useGameStorage` / `GameState` | `useGameStorage.spec.ts` |
 | Act1 | **`yarn test:act1`**；家庭线确认 `act1FamilyFlow.spec.ts` |
 | Play 编排 / setpiece | manifest 中对应 `contracts` + harness |
@@ -79,15 +81,16 @@ yarn build                      # harness --full --with-build
 
 | 你在做 | 先看 |
 |--------|------|
-| 任意功能 / bugfix | [harness-engineering.md](./docs/harness-engineering.md) + harness |
-| v3 无尽单线（当前主线） | [ROADMAP-v3-endless-only.md](./docs/ROADMAP-v3-endless-only.md) — M-pivot-1 ✅，**M-balance 当前** |
+| 任意功能 / bugfix | [CURRENT-STATE.md](./docs/CURRENT-STATE.md) + [harness-engineering.md](./docs/harness-engineering.md) |
+| v4 Ch0 契约章（**当前主线**） | [REDESIGN-v4](./docs/REDESIGN-v4-chapter-institutional.md) · [R-chapter-0](./docs/planning/R-chapter-0/) · [U-ch0-experience](./docs/planning/U-ch0-experience/) |
+| v3 无尽单线（工程史） | [ROADMAP-v3-endless-only.md](./docs/ROADMAP-v3-endless-only.md) — M-pivot-1 ✅，玩法由 v4 接替 |
 | v2 里程碑 M1～M9 | 本地 `docs/ROADMAP-next-iterations.md` + `docs/planning/Mx-*/` |
 | v3 双端 / 状态机 | 本地 `docs/ROADMAP-iteration-v3-dual-end.md` + `docs/planning/Ix-*/` |
 | Act1 / 家庭催收 | 本地 `docs/PRD-act1-pre-enrollment.md`（gitignore，不公开）+ `yarn test:act1` |
 | 事件 JSON | [事件创作指南.md](./docs/事件创作指南.md) |
 | 架构 | [ARCHITECTURE.md](./docs/ARCHITECTURE.md) + [code-intelligence.mdc](./.cursor/rules/code-intelligence.mdc)（探索时用 Codegraph MCP） |
 | M6 职场 | `docs/planning/M6-work/` |
-| M7 收割 | `docs/planning/M7-campaign-harvest/` |
+| M7 收割（已归档） | [docs/archive/planning/M7-campaign-harvest/](./docs/archive/planning/M7-campaign-harvest/) |
 | M8 元进度 / AI | `docs/planning/M8-meta-ai/` |
 | M9 无尽境 | `docs/planning/M9-endless-realm/` |
 

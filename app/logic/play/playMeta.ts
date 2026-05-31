@@ -9,6 +9,7 @@ export const DEFAULT_PLAY_META: PlayMeta = {
   hiddenStandardsRevealed: [],
   realmNotesUnlocked: {},
   campaignCompletions: 0,
+  chapterCompletions: 0,
   endlessMaxRealmIndex: 0,
   aiEventsEnabled: true
 }
@@ -22,6 +23,7 @@ export function normalizePlayMeta(raw?: Partial<PlayMeta> | null): PlayMeta {
     ],
     realmNotesUnlocked: { ...(raw?.realmNotesUnlocked ?? {}) },
     campaignCompletions: Math.max(0, raw?.campaignCompletions ?? 0),
+    chapterCompletions: Math.max(0, raw?.chapterCompletions ?? 0),
     endlessMaxRealmIndex: Math.max(0, raw?.endlessMaxRealmIndex ?? 0),
     aiEventsEnabled: raw?.aiEventsEnabled !== false
   }
@@ -66,6 +68,12 @@ export function metaUnlockIdsFromRun(run: PlayRunState): string[] {
   if (run.campaign?.chosenEnding) {
     ids.add(`campaign-ended-${run.campaign.chosenEnding}`)
   }
+  if (run.runMode === 'chapter' && run.chapter?.outcomeId) {
+    ids.add(`chapter-outcome-${run.chapter.outcomeId}`)
+    if (run.chapter.chapterId) {
+      ids.add(`chapter-${run.chapter.chapterId}-seen`)
+    }
+  }
   return [...ids]
 }
 
@@ -74,6 +82,9 @@ export function recordRunToPlayMeta(meta: PlayMeta, run: PlayRunState): PlayMeta
 
   if (run.runStatus === 'archived') {
     next = { ...next, campaignCompletions: next.campaignCompletions + 1 }
+    if (run.runMode === 'chapter' && run.chapter?.outcomeId === 'fulfilled') {
+      next = { ...next, chapterCompletions: next.chapterCompletions + 1 }
+    }
   }
 
   const realmIdx = realmIndexForTier(run.realmTier ?? 'mortal')
@@ -121,6 +132,16 @@ export function enrichCarryoverWithPlayMeta(
   }
   if (meta.priorMetaUnlocks.includes('family-guarantor')) {
     hints.push('灵信：家庭担保合约已归档，可比产品列表将按担保档位重算。')
+  }
+  if (meta.priorMetaUnlocks.includes('chapter-outcome-fulfilled')) {
+    hints.push('灵信：四十周契约履约记录已归档——可比产品列表会标注「曾完整履约」。')
+  }
+  if (meta.priorMetaUnlocks.includes('chapter-outcome-collapse_debt')) {
+    delBias += 8
+    hints.push('灵信：上周目档案含「债务强制收束」，本周目授信档可能下调。')
+  }
+  if (meta.priorMetaUnlocks.includes('chapter-outcome-collapse_body')) {
+    hints.push('灵信：上周目档案含「抵押清算」记录，体检贷条款将附加复核。')
   }
 
   for (const id of meta.hiddenStandardsRevealed) {

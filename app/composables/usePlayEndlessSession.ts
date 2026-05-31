@@ -29,6 +29,7 @@ import {
   needsJobChoice
 } from '~/logic/play/workFlow'
 import { appendPlayAiMomentIfDue } from '~/logic/play/playAiMoments'
+import { resolvePlayScreen } from '~/logic/play/resolvePlayScreen'
 
 export function usePlayEndlessSession() {
   const playStorage = usePlayStorage()
@@ -61,6 +62,7 @@ export function usePlayEndlessSession() {
     run.value ? endlessSetpieceBlocksPlay(run.value) : false
   )
   const isCollapsed = computed(() => run.value?.runStatus === 'collapsed')
+  const playScreen = computed(() => resolvePlayScreen(run.value))
 
   function aiMomentsEnabled(): boolean {
     return playStorage.getPlayMeta().aiEventsEnabled
@@ -151,6 +153,7 @@ export function usePlayEndlessSession() {
     roundResolved,
     pressureBlocked,
     isCollapsed,
+    playScreen,
     initFromRun,
     chooseJob,
     toggleCard,
