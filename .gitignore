@@ -29,7 +29,21 @@ logs
 *.backup
 best.md
 
-# Harness runtime artifacts (templates in .harness/*.template.md stay tracked)
+# Harness runtime artifacts (templates + manifest.json stay tracked)
 .harness/last-verify.json
 .harness/PEV.md
 .harness/progress.md
+
+# Internal dev docs — not published (public README + contributor guides only)
+docs/planning/
+docs/ROADMAP-*.md
+docs/PRD-act1-pre-enrollment.md
+
+# E2E / browser automation artifacts
+test-results/
+playwright-report/
+.playwright-mcp/
+
+# Code intelligence — local indexes (see .cursor/rules/code-intelligence.mdc)
+.understand-anything/
+.codegraph/
