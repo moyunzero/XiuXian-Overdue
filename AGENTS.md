@@ -80,7 +80,7 @@ yarn build                      # harness --full --with-build
 | 你在做 | 先看 |
 |--------|------|
 | 任意功能 / bugfix | [harness-engineering.md](./docs/harness-engineering.md) + harness |
-| v3 无尽单线（当前主线） | [ROADMAP-v3-endless-only.md](./docs/ROADMAP-v3-endless-only.md) + M-pivot-1 清理 |
+| v3 无尽单线（当前主线） | [ROADMAP-v3-endless-only.md](./docs/ROADMAP-v3-endless-only.md) — M-pivot-1 ✅，**M-balance 当前** |
 | v2 里程碑 M1～M9 | 本地 `docs/ROADMAP-next-iterations.md` + `docs/planning/Mx-*/` |
 | v3 双端 / 状态机 | 本地 `docs/ROADMAP-iteration-v3-dual-end.md` + `docs/planning/Ix-*/` |
 | Act1 / 家庭催收 | 本地 `docs/PRD-act1-pre-enrollment.md`（gitignore，不公开）+ `yarn test:act1` |

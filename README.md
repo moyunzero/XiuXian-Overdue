@@ -54,6 +54,15 @@
 
 **存档**：浏览器 `localStorage` 键 **`kunxu_sim_save_v5`**，根级 `saveSchemaVersion: 5`，多槽位 + 跨周目元进度（`meta`）。旧版 `kunxu_sim_save_v2`（`/game` 时代）不再作为主存档路径。
 
+### 开发状态（2026-05-31）
+
+| 维度 | 状态 |
+|------|------|
+| v3 单线 pivot（M-pivot-1） | ✅ 已交付（`c80db1c`） |
+| 工程门禁 | ✅ `HARNESS_OK` + E2E 2/2 |
+| 平衡 / 人玩 | 🔶 模拟 0% 崩盘，待人玩验收 |
+| meta / 移动 / 离线 | ❌ 未开始（见 [ROADMAP-v3-endless-only.md](./docs/ROADMAP-v3-endless-only.md)） |
+
 ---
 
 ## 项目亮点
