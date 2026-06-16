@@ -430,6 +430,16 @@
       ]
     },
     {
+      "id": "fate-transition-flow",
+      "spec": "app/logic/play/fateTransition.spec.ts",
+      "doc": "docs/REDESIGN-v5-milestone-fates.md",
+      "triggerPaths": [
+        "app/logic/play/fateTransition.ts",
+        "app/logic/play/chapterCollapse.ts",
+        "app/logic/play/playRunFateDefaults.ts"
+      ]
+    },
+    {
       "id": "chapter-natural-sim-flow",
       "spec": "app/logic/play/chapterNaturalSim.spec.ts",
       "doc": "docs/REDESIGN-v4-chapter-institutional.md#V4-8",

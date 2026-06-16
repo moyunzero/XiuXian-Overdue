@@ -4,15 +4,15 @@
   "path": "/play",
   "waitSelector": ".RunArchiveView",
   "saveV5": {
-    "saveSchemaVersion": 6,
-    "activeRunId": "run_1780231528139_83n0dce",
+    "saveSchemaVersion": 7,
+    "activeRunId": "run_1781587969840_ucmfco5",
     "runs": {
-      "run_1780231528139_83n0dce": {
-        "schemaVersion": 4,
-        "runId": "run_1780231528139_83n0dce",
+      "run_1781587969840_ucmfco5": {
+        "schemaVersion": 5,
+        "runId": "run_1781587969840_ucmfco5",
         "runMode": "chapter",
-        "createdAt": "2026-05-31T12:45:28.139Z",
-        "updatedAt": "2026-05-31T12:45:28.139Z",
+        "createdAt": "2026-06-16T05:32:49.840Z",
+        "updatedAt": "2026-06-16T05:32:49.840Z",
         "lifeStage": "work",
         "chapterIndex": 0,
         "realmTier": "mortal",
@@ -26,6 +26,9 @@
         },
         "slotId": "slot1",
         "runStatus": "archived",
+        "primaryFate": "human",
+        "institutionalTags": [],
+        "stageId": "stage-m0-pre",
         "logs": [
           "第 40 周：契约终局待裁定。",
           "本周身体完整度 -1.1%（负债化损耗）。",

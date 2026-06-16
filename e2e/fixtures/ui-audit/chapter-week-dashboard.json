@@ -4,15 +4,15 @@
   "path": "/play",
   "waitSelector": ".WeekPlan",
   "saveV5": {
-    "saveSchemaVersion": 6,
-    "activeRunId": "run_1780231528146_3m6ek6x",
+    "saveSchemaVersion": 7,
+    "activeRunId": "run_1781587969845_m6fm3ic",
     "runs": {
-      "run_1780231528146_3m6ek6x": {
-        "schemaVersion": 4,
-        "runId": "run_1780231528146_3m6ek6x",
+      "run_1781587969845_m6fm3ic": {
+        "schemaVersion": 5,
+        "runId": "run_1781587969845_m6fm3ic",
         "runMode": "chapter",
-        "createdAt": "2026-05-31T12:45:28.146Z",
-        "updatedAt": "2026-05-31T12:45:28.146Z",
+        "createdAt": "2026-06-16T05:32:49.845Z",
+        "updatedAt": "2026-06-16T05:32:49.845Z",
         "lifeStage": "hs",
         "chapterIndex": 0,
         "realmTier": "mortal",
@@ -26,6 +26,9 @@
         },
         "slotId": "slot1",
         "runStatus": "active",
+        "primaryFate": "human",
+        "institutionalTags": [],
+        "stageId": "stage-m0-pre",
         "logs": [
           "四十周灵贷契约：第 1 / 40 周。",
           "入学昆墟高中：审计员，嵩阳市，贫民。",
@@ -70,7 +73,7 @@
             ]
           }
         ],
-        "seed": 569449771,
+        "seed": 225621087,
         "econ": {
           "cash": 120,
           "collectionFee": 0,

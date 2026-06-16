@@ -8,7 +8,8 @@ import {
   PLAY_SAVE_SCHEMA_VERSION
 } from './usePlayStorage.helpers'
 import { createInitialAct1State } from '~/logic/act1/createInitialAct1State'
-import type { StartConfig } from '~/types/game'
+import { settledChapterRun } from '~/logic/play/chapterTestHelpers'
+import type { PlayRunState } from '~/types/play'
 
 const start: StartConfig = {
   playerName: '测试',
@@ -119,5 +120,88 @@ describe('usePlayStorage.helpers', () => {
     c.runs[run.runId] = run
     expect(findRunBySlot(c, 'slot2')?.runId).toBe(run.runId)
     expect(findRunBySlot(c, 'slot1')).toBeNull()
+  })
+
+  function legacyRunWithoutFateFields(run: PlayRunState): Record<string, unknown> {
+    const { primaryFate: _pf, institutionalTags: _it, stageId: _sid, ...rest } = run
+    return { ...rest, schemaVersion: 4 }
+  }
+
+  it('parseV4Save v6 active chapter → v7 fate defaults', () => {
+    const run = settledChapterRun()
+    const legacy = {
+      saveSchemaVersion: 6,
+      activeRunId: run.runId,
+      runs: { [run.runId]: legacyRunWithoutFateFields(run) },
+      meta: {}
+    }
+    const parsed = parseV4Save(JSON.stringify(legacy))
+    expect(parsed.saveSchemaVersion).toBe(7)
+    const migrated = parsed.runs[run.runId]
+    expect(migrated?.schemaVersion).toBe(5)
+    expect(migrated?.runMode).toBe('chapter')
+    expect(migrated?.runStatus).toBe('active')
+    expect(migrated?.primaryFate).toBe('human')
+    expect(migrated?.institutionalTags).toEqual([])
+    expect(migrated?.stageId).toBe('stage-m1-contract')
+  })
+
+  it('parseV4Save v6 paused chapter → v7 fate defaults', () => {
+    const run = settledChapterRun()
+    run.runStatus = 'paused'
+    const legacy = {
+      saveSchemaVersion: 6,
+      activeRunId: run.runId,
+      runs: { [run.runId]: legacyRunWithoutFateFields(run) },
+      meta: {}
+    }
+    const parsed = parseV4Save(JSON.stringify(legacy))
+    const migrated = parsed.runs[run.runId]
+    expect(migrated?.runStatus).toBe('paused')
+    expect(migrated?.primaryFate).toBe('human')
+    expect(migrated?.institutionalTags).toEqual([])
+    expect(migrated?.stageId).toBe('stage-m1-contract')
+  })
+
+  it('parseV4Save collapsed + failurePostMortem debt_delinquency → fated + tags', () => {
+    const run = settledChapterRun()
+    run.runStatus = 'collapsed'
+    run.chapter!.outcomeId = 'collapse_debt'
+    run.archive = {
+      failurePostMortem: {
+        triggerId: 'debt_delinquency',
+        outcomeId: 'collapse_debt',
+        summaryLine: 'test'
+      }
+    }
+    const legacy = {
+      saveSchemaVersion: 6,
+      activeRunId: run.runId,
+      runs: { [run.runId]: legacyRunWithoutFateFields(run) },
+      meta: {}
+    }
+    const parsed = parseV4Save(JSON.stringify(legacy))
+    const migrated = parsed.runs[run.runId]
+    expect(migrated?.runStatus).toBe('fated')
+    expect(migrated?.primaryFate).toBe('human')
+    const tagIds = migrated?.institutionalTags.map((t) => t.id) ?? []
+    expect(tagIds).toEqual(expect.arrayContaining(['credit_blacklist', 'supply_cut']))
+    expect(migrated?.archive).toBeDefined()
+  })
+
+  it('parseV4Save collapsed + collapse_body 无 postMortem → fated mortgaged', () => {
+    const run = settledChapterRun()
+    run.runStatus = 'collapsed'
+    run.chapter!.outcomeId = 'collapse_body'
+    const legacy = {
+      saveSchemaVersion: 6,
+      activeRunId: run.runId,
+      runs: { [run.runId]: legacyRunWithoutFateFields(run) },
+      meta: {}
+    }
+    const parsed = parseV4Save(JSON.stringify(legacy))
+    const migrated = parsed.runs[run.runId]
+    expect(migrated?.runStatus).toBe('fated')
+    expect(migrated?.primaryFate).toBe('mortgaged')
   })
 })

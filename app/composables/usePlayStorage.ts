@@ -73,7 +73,7 @@ export function usePlayStorage() {
     if (!c.activeRunId) return null
     const cur = c.runs[c.activeRunId]
     if (!cur) return null
-    const next = touchPlayRun({ ...cur, ...patch, runId: cur.runId, schemaVersion: 4 })
+    const next = touchPlayRun({ ...cur, ...patch, runId: cur.runId, schemaVersion: 5 })
     c.runs[next.runId] = next
     writeContainer(c)
     return next

@@ -4,15 +4,15 @@
   "path": "/play",
   "waitSelector": ".BodyMortgage",
   "saveV5": {
-    "saveSchemaVersion": 6,
-    "activeRunId": "run_1780231528147_5rd6r85",
+    "saveSchemaVersion": 7,
+    "activeRunId": "run_1781587969845_aiyqiay",
     "runs": {
-      "run_1780231528147_5rd6r85": {
-        "schemaVersion": 4,
-        "runId": "run_1780231528147_5rd6r85",
+      "run_1781587969845_aiyqiay": {
+        "schemaVersion": 5,
+        "runId": "run_1781587969845_aiyqiay",
         "runMode": "chapter",
-        "createdAt": "2026-05-31T12:45:28.147Z",
-        "updatedAt": "2026-05-31T12:45:28.147Z",
+        "createdAt": "2026-06-16T05:32:49.845Z",
+        "updatedAt": "2026-06-16T05:32:49.845Z",
         "lifeStage": "hs",
         "chapterIndex": 0,
         "realmTier": "mortal",
@@ -26,6 +26,9 @@
         },
         "slotId": "slot1",
         "runStatus": "active",
+        "primaryFate": "human",
+        "institutionalTags": [],
+        "stageId": "stage-m0-pre",
         "logs": [
           "四十周灵贷契约：第 1 / 40 周。",
           "入学昆墟高中：审计员，嵩阳市，贫民。",
@@ -53,7 +56,7 @@
             ]
           }
         ],
-        "seed": 826528401,
+        "seed": 474894476,
         "econ": {
           "cash": 800,
           "collectionFee": 0,
@@ -89,54 +92,54 @@
                 "partId": "LeftPalm",
                 "label": "左手掌",
                 "repaymentValue": 13920,
-                "lockedDebtAdded": 13920,
-                "mortgageType": "debt_reduction",
-                "narrative": "你用身体换取了债务减免。身体的一部分不再属于你，但债也少了。",
+                "lockedDebtAdded": 0,
+                "mortgageType": "cultivation_boost",
+                "narrative": "你消耗身体完整性换取修行加速。修为上去了，但身体在抗议。",
                 "irreversible": true
               },
               {
                 "partId": "RightPalm",
                 "label": "右手掌",
                 "repaymentValue": 13920,
-                "lockedDebtAdded": 13920,
-                "mortgageType": "debt_reduction",
-                "narrative": "你用身体换取了债务减免。身体的一部分不再属于你，但债也少了。",
+                "lockedDebtAdded": 0,
+                "mortgageType": "cultivation_boost",
+                "narrative": "你消耗身体完整性换取修行加速。修为上去了，但身体在抗议。",
                 "irreversible": true
               },
               {
                 "partId": "LeftArm",
                 "label": "左臂",
                 "repaymentValue": 26100,
-                "lockedDebtAdded": 26100,
-                "mortgageType": "debt_reduction",
-                "narrative": "你用身体换取了债务减免。身体的一部分不再属于你，但债也少了。",
+                "lockedDebtAdded": 0,
+                "mortgageType": "cultivation_boost",
+                "narrative": "你消耗身体完整性换取修行加速。修为上去了，但身体在抗议。",
                 "irreversible": true
               },
               {
                 "partId": "RightArm",
                 "label": "右臂",
                 "repaymentValue": 26100,
-                "lockedDebtAdded": 26100,
-                "mortgageType": "debt_reduction",
-                "narrative": "你用身体换取了债务减免。身体的一部分不再属于你，但债也少了。",
+                "lockedDebtAdded": 0,
+                "mortgageType": "cultivation_boost",
+                "narrative": "你消耗身体完整性换取修行加速。修为上去了，但身体在抗议。",
                 "irreversible": true
               },
               {
                 "partId": "LeftLeg",
                 "label": "左腿",
                 "repaymentValue": 31320,
-                "lockedDebtAdded": 31320,
-                "mortgageType": "debt_reduction",
-                "narrative": "你用身体换取了债务减免。身体的一部分不再属于你，但债也少了。",
+                "lockedDebtAdded": 0,
+                "mortgageType": "cultivation_boost",
+                "narrative": "你消耗身体完整性换取修行加速。修为上去了，但身体在抗议。",
                 "irreversible": true
               },
               {
                 "partId": "RightLeg",
                 "label": "右腿",
                 "repaymentValue": 31320,
-                "lockedDebtAdded": 31320,
-                "mortgageType": "debt_reduction",
-                "narrative": "你用身体换取了债务减免。身体的一部分不再属于你，但债也少了。",
+                "lockedDebtAdded": 0,
+                "mortgageType": "cultivation_boost",
+                "narrative": "你消耗身体完整性换取修行加速。修为上去了，但身体在抗议。",
                 "irreversible": true
               }
             ],

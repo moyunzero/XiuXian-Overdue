@@ -16,6 +16,7 @@ import { openSegmentGate, chapterSetpieceBlocksWeek } from '~/logic/play/segment
 import { applySectChoice } from '~/logic/play/uniFlow'
 import { applyJobChoice, applyTrackChoice, buildJobChoicePending, needsJobChoice, needsTrackChoice } from '~/logic/play/workFlow'
 import { SECT_CHOICES } from '~/logic/play/sectChoices'
+import { defaultFateFieldsForRun } from '~/logic/play/playRunFateDefaults'
 import {
   drainPendingMandates,
   mandateQueueBlocksWeekAdvance
@@ -44,6 +45,20 @@ export function settledChapterRun(
     settled: true
   })
   return initChapter(hsRun)
+}
+
+/** Ch0 第 1 周 + fate_run 模式（fateTransition spec 用） */
+export function settledFateRun(
+  start: StartConfig = DEFAULT_START,
+  familyOutcome: 'left' | 'cutoff' = 'left'
+): PlayRunState {
+  const chapter = settledChapterRun(start, familyOutcome)
+  const fate = defaultFateFieldsForRun(chapter)
+  return {
+    ...chapter,
+    runMode: 'fate_run',
+    ...fate
+  }
 }
 
 function confirmBreakthroughChapter(run: PlayRunState): PlayRunState {

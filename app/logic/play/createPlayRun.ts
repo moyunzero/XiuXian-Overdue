@@ -1,6 +1,7 @@
 import type { StartConfig, SaveSlotId } from '~/types/game'
 import type { PlayRunState, RunMode } from '~/types/play'
 import { buildInboxPlaceholders } from './buildInboxPlaceholders'
+import { defaultFateFieldsForRun } from './playRunFateDefaults'
 
 export type CreatePlayRunOptions = {
   runMode?: RunMode
@@ -16,8 +17,8 @@ export function createPlayRunFromStartConfig(
   options?: CreatePlayRunOptions
 ): PlayRunState {
   const now = new Date().toISOString()
-  return {
-    schemaVersion: 4,
+  const base: PlayRunState = {
+    schemaVersion: 5,
     runId: createRunId(),
     runMode: options?.runMode ?? 'chapter',
     createdAt: now,
@@ -29,10 +30,15 @@ export function createPlayRunFromStartConfig(
     start,
     slotId,
     runStatus: 'active',
+    primaryFate: 'human',
+    institutionalTags: [],
+    stageId: '',
     logs: [],
     profileTags: [],
     inbox: buildInboxPlaceholders(null)
   }
+  const fate = defaultFateFieldsForRun(base)
+  return { ...base, ...fate }
 }
 
 export function touchPlayRun(run: PlayRunState): PlayRunState {

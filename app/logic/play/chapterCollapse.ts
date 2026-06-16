@@ -18,8 +18,8 @@ export interface ChapterCollapseCheck {
   logLine: string
 }
 
-function analyzeChapterCollapseMetrics(run: PlayRunState): ChapterCollapseCheck | null {
-  if (run.runMode !== 'chapter' || !run.chapter || !run.econ) return null
+export function analyzeChapterCollapseMetrics(run: PlayRunState): ChapterCollapseCheck | null {
+  if (!run.chapter || !run.econ) return null
 
   const integrity = run.bodyIntegrity ?? 1
   const del = run.econ.delinquency

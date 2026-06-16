@@ -4,15 +4,15 @@
   "path": "/play",
   "waitSelector": ".Act1Desktop, .S0Setpiece",
   "saveV5": {
-    "saveSchemaVersion": 6,
-    "activeRunId": "run_1780231528118_vomatwe",
+    "saveSchemaVersion": 7,
+    "activeRunId": "run_1781587969832_1c8pni2",
     "runs": {
-      "run_1780231528118_vomatwe": {
-        "schemaVersion": 4,
-        "runId": "run_1780231528118_vomatwe",
+      "run_1781587969832_1c8pni2": {
+        "schemaVersion": 5,
+        "runId": "run_1781587969832_1c8pni2",
         "runMode": "chapter",
-        "createdAt": "2026-05-31T12:45:28.118Z",
-        "updatedAt": "2026-05-31T12:45:28.118Z",
+        "createdAt": "2026-06-16T05:32:49.832Z",
+        "updatedAt": "2026-06-16T05:32:49.832Z",
         "lifeStage": "pre",
         "chapterIndex": 0,
         "realmTier": "mortal",
@@ -26,6 +26,9 @@
         },
         "slotId": "slot1",
         "runStatus": "active",
+        "primaryFate": "human",
+        "institutionalTags": [],
+        "stageId": "stage-m0-pre",
         "logs": [],
         "profileTags": [],
         "inbox": [

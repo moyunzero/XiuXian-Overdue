@@ -4,8 +4,9 @@ import type { Act1Persist } from '~/types/act1'
 import { createPlayRunFromStartConfig } from '~/logic/play/createPlayRun'
 import { DEFAULT_PLAY_META, normalizePlayMeta } from '~/logic/play/playMeta'
 import { initChapter } from '~/logic/play/chapterWeekFlow'
+import { upgradeRunToSchemaV5 } from '~/logic/play/playRunFateDefaults'
 
-export const PLAY_SAVE_SCHEMA_VERSION = 6 as const
+export const PLAY_SAVE_SCHEMA_VERSION = 7 as const
 export const PLAY_SAVE_KEY = 'kunxu_sim_save_v5'
 export const LEGACY_SAVE_KEY = 'kunxu_sim_save_v2'
 
@@ -23,7 +24,12 @@ export function parseV4Save(raw: string | null): KunxuSaveV4 {
   try {
     const parsed = JSON.parse(raw) as KunxuSaveV4
     const incomingVersion = parsed.saveSchemaVersion ?? 4
-    if (incomingVersion !== PLAY_SAVE_SCHEMA_VERSION && incomingVersion !== 4 && incomingVersion !== 5) {
+    if (
+      incomingVersion !== PLAY_SAVE_SCHEMA_VERSION &&
+      incomingVersion !== 4 &&
+      incomingVersion !== 5 &&
+      incomingVersion !== 6
+    ) {
       return emptyV4Save()
     }
     const migratedRuns = Object.fromEntries(
@@ -58,9 +64,10 @@ function stripLegacyCampaignSetpiece(setpiece: PlayRunState['setpiece']): PlayRu
 }
 
 function migrateStoredRun(r: PlayRunState & Record<string, unknown>): PlayRunState {
+  const incomingSchema = typeof r.schemaVersion === 'number' ? r.schemaVersion : 4
   let next: PlayRunState = {
-    ...r,
-    schemaVersion: 4,
+    ...(r as PlayRunState),
+    schemaVersion: incomingSchema as PlayRunState['schemaVersion'],
     campaign: undefined,
     setpiece: stripLegacyCampaignSetpiece(r.setpiece)
   }
@@ -78,6 +85,12 @@ function migrateStoredRun(r: PlayRunState & Record<string, unknown>): PlayRunSta
 
   if (next.runMode === 'chapter' && !next.chapter && next.lifeStage !== 'pre') {
     next = initChapter(next)
+  }
+
+  if (next.schemaVersion < 5) {
+    next = upgradeRunToSchemaV5(next)
+  } else if (next.primaryFate === undefined || !next.stageId) {
+    next = upgradeRunToSchemaV5(next)
   }
 
   return next

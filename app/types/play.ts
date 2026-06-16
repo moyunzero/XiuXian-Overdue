@@ -34,8 +34,48 @@ export interface ChapterFailurePostMortem {
 
 export type { ChapterState, EmploymentTrack, MandateState, WeekPlan }
 
-/** v4 主模式 chapter；endless 仅迁移期与显式 legacy */
-export type RunMode = 'chapter' | 'endless'
+/** v4 主模式 chapter；fate_run 为 v5 阶梯 run；endless 仅迁移期与显式 legacy */
+export type RunMode = 'chapter' | 'endless' | 'fate_run'
+
+/** v5 主命运态（互斥） */
+export type PrimaryFate =
+  | 'human'
+  | 'indentured'
+  | 'mortgaged'
+  | 'ghost_voluntary'
+  | 'head_jar'
+  | 'ghost_bound'
+  | 'shattered'
+
+/** 制度 tag（可叠加） */
+export type InstitutionalTagId =
+  | 'supply_cut'
+  | 'credit_blacklist'
+  | 'exam_probation'
+  | 'mandate_flood'
+  | 'family_leverage'
+  | 'organelle_liens'
+
+export interface TagRecord {
+  id: InstitutionalTagId
+  appliedAtWeek?: number
+  expiryWeek?: number
+  source?: string
+}
+
+/** Phase 4 才填 UI 配置；Phase 1 仅占位 */
+export interface FateShell {
+  layoutToken?: string
+  statusBarFields?: string[]
+  disabledActions?: string[]
+}
+
+/** Phase 5 才接 storage；Phase 1 仅占位 */
+export interface MetaProgress {
+  unlockedFatesSeen?: PrimaryFate[]
+  passiveIds?: string[]
+  startBundles?: string[]
+}
 
 /** 人生阶段 */
 export type LifeStage = 'pre' | 'hs' | 'uni' | 'work'
@@ -43,7 +83,7 @@ export type LifeStage = 'pre' | 'hs' | 'uni' | 'work'
 /** 境界层级（无尽模式扩展） */
 export type RealmTierId = 'mortal' | 'qi' | 'foundation' | 'purple' | 'core' | 'nascent' | 'deity' | 'void'
 
-export type PlayRunStatus = 'active' | 'paused' | 'ended' | 'collapsed' | 'archived'
+export type PlayRunStatus = 'active' | 'paused' | 'ended' | 'collapsed' | 'archived' | 'fated'
 
 export type BodyPartId =
   | 'LeftPalm'
@@ -395,7 +435,7 @@ export interface DebtDashboardVM {
 }
 
 export interface PlayRunState {
-  schemaVersion: 4
+  schemaVersion: 5
   runId: string
   runMode: RunMode
   createdAt: string
@@ -407,6 +447,14 @@ export interface PlayRunState {
   start: StartConfig
   slotId: SaveSlotId
   runStatus: PlayRunStatus
+  /** v5 主命运态 */
+  primaryFate: PrimaryFate
+  /** v5 可叠加制度 tag */
+  institutionalTags: TagRecord[]
+  /** v5 当前 stage 里程碑 id */
+  stageId: string
+  /** v5 meta 档关联占位 */
+  metaProgressId?: string
   logs: string[]
   profileTags: string[]
   inbox: InboxThread[]
@@ -468,7 +516,7 @@ export interface PlayMeta {
 }
 
 export interface KunxuSaveV4 {
-  saveSchemaVersion: 4
+  saveSchemaVersion: 7
   activeRunId: string | null
   runs: Record<string, PlayRunState>
   meta: PlayMeta
