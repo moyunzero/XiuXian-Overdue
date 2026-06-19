@@ -7,7 +7,10 @@ import type {
   PrimaryFate,
   TagRecord
 } from '~/types/play'
-import { STAGE_M0_PRE, STAGE_M1_CONTRACT } from '~/logic/play/stageDefs'
+import { STAGE_M0_PRE, STAGE_M1_CONTRACT, STAGE_M2_HS } from '~/logic/play/stageDefs'
+
+const M2_STAGE_LOG =
+  '学籍段切换：四十周契约账期已满，制度将你编入下一学籍卷。'
 
 /** 可继续 tick 周的状态（D-18） */
 export function isPlayableRunStatus(status: PlayRunStatus): boolean {
@@ -22,7 +25,24 @@ export function deriveStageIdFromRun(run: PlayRunState): string {
   if (run.lifeStage === 'pre' || !run.chapter) {
     return STAGE_M0_PRE.id
   }
+  const m1End = STAGE_M1_CONTRACT.weekRange?.[1] ?? 40
+  if (run.chapter.chapterWeekIndex > m1End) {
+    return STAGE_M2_HS.id
+  }
   return STAGE_M1_CONTRACT.id
+}
+
+/** week 越过 M1 上界时切 stage + 制度 log（无 UI 阻断） */
+export function advanceStageIfNeeded(run: PlayRunState): PlayRunState {
+  if (!run.chapter) return run
+  const m1End = STAGE_M1_CONTRACT.weekRange?.[1] ?? 40
+  if (run.chapter.chapterWeekIndex <= m1End) return run
+  if (run.stageId !== STAGE_M1_CONTRACT.id) return run
+  return {
+    ...run,
+    stageId: STAGE_M2_HS.id,
+    logs: [M2_STAGE_LOG, ...run.logs].slice(0, 80)
+  }
 }
 
 export function defaultFateFieldsForRun(

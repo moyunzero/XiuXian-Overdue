@@ -19,3 +19,10 @@ export const STAGE_M1_CONTRACT: StageDef = {
   weekRange: [1, 40],
   contentPack: 'm1-contract'
 }
+
+export const STAGE_M2_HS: StageDef = {
+  id: 'stage-m2-hs',
+  displayName: '高中卷',
+  weekRange: [41, 80],
+  contentPack: 'm2-hs'
+}

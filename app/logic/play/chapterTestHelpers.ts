@@ -154,6 +154,7 @@ export function dismissCurrentSetpiece(
   if (needsTrackChoice(run)) return chooseFirstTrack(run, options?.employmentTrack ?? 'company')
   if (needsJobChoice(run)) return chooseFirstJob(run)
   if (run.chapter?.pendingGateId === 'gate-w40-finale') {
+    if (run.runMode !== 'chapter') return run
     return openSegmentGate(run, 'gate-w40-finale', 'pass')
   }
   if ((run.mandate?.pendingDeliveryIds.length ?? 0) > 0) {
@@ -192,7 +193,7 @@ export function advanceChapterToWeek(
     }
 
     if (next.chapter?.pendingGateId === 'gate-w40-finale') {
-      break
+      if (next.runMode !== 'chapter') break
     }
 
     const { run: afterTick, blocked } = tickChapterWeek(next, plan)

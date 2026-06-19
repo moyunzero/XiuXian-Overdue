@@ -128,6 +128,7 @@ function drainMandatesForProfile(
 }
 
 function finalizeW40(run: PlayRunState): PlayRunState {
+  if (run.runMode !== 'chapter') return run
   if (run.chapter?.pendingGateId === 'gate-w40-finale') {
     return openSegmentGate(run, 'gate-w40-finale', 'pass')
   }

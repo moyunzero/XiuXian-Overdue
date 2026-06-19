@@ -259,7 +259,9 @@ export function markBeatResolvedForWeek(run: PlayRunState, weekIndex?: number): 
 
 /** 提交本周计划并推进章节时钟（配置驱动，禁止 switch week） */
 export function tickChapterWeek(run: PlayRunState, plan: WeekPlan): TickChapterWeekResult {
-  if (run.runMode !== 'chapter' || !run.chapter) {
+  const chapterLike =
+    (run.runMode === 'chapter' || run.runMode === 'fate_run') && !!run.chapter
+  if (!chapterLike) {
     return { run, blocked: false }
   }
   if (chapterSetpieceBlocksWeek(run)) {
@@ -287,9 +289,11 @@ export function tickChapterWeek(run: PlayRunState, plan: WeekPlan): TickChapterW
     next = { ...next, lastWeekPlan: effectivePlan }
     next = applyChapterWeekPlanEffects(next, effectivePlan)
     next = applyChapterBodyDecay(next, effectivePlan)
-    next = applyChapterCollapse(next)
-    if (next.runStatus === 'collapsed') {
-      return { run: next, blocked: false }
+    if (run.runMode !== 'fate_run') {
+      next = applyChapterCollapse(next)
+      if (next.runStatus === 'collapsed') {
+        return { run: next, blocked: false }
+      }
     }
   }
 
@@ -302,7 +306,7 @@ export function tickChapterWeek(run: PlayRunState, plan: WeekPlan): TickChapterW
     }
   }
 
-  if (weekIndex >= config.weekBudget) {
+  if (weekIndex >= config.weekBudget && run.runMode !== 'fate_run') {
     return { run: next, blocked: false }
   }
 
@@ -329,7 +333,9 @@ export function tickChapterWeek(run: PlayRunState, plan: WeekPlan): TickChapterW
   }
 
   next = rollMandatesForWeek(next)
-  next = applyChapterCollapse(next)
+  if (run.runMode !== 'fate_run') {
+    next = applyChapterCollapse(next)
+  }
 
   return { run: next, blocked: false }
 }

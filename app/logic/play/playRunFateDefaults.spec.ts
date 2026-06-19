@@ -8,7 +8,7 @@ import {
   mergeTagRecords,
   upgradeRunToSchemaV5
 } from '~/logic/play/playRunFateDefaults'
-import { STAGE_M0_PRE, STAGE_M1_CONTRACT } from '~/logic/play/stageDefs'
+import { STAGE_M0_PRE, STAGE_M1_CONTRACT, STAGE_M2_HS } from '~/logic/play/stageDefs'
 import type { PlayRunState } from '~/types/play'
 
 describe('playRunFateDefaults', () => {
@@ -43,6 +43,12 @@ describe('playRunFateDefaults', () => {
 
       const preRun = { ...chapterRun, lifeStage: 'pre' as const }
       expect(deriveStageIdFromRun(preRun)).toBe(STAGE_M0_PRE.id)
+    })
+
+    it('deriveStageIdFromRun：week 41 → M2', () => {
+      const run = settledChapterRun()
+      run.chapter!.chapterWeekIndex = 41
+      expect(deriveStageIdFromRun(run)).toBe(STAGE_M2_HS.id)
     })
   })
 

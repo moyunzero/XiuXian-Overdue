@@ -28,8 +28,14 @@ export function runBeatsForWeek(run: PlayRunState, beats: BeatDef[]): BeatRunSum
     if (result.logLine) {
       next = { ...next, logs: [result.logLine, ...next.logs].slice(0, 80) }
     }
-    if (result.blocking || beat.blocking) blocked = true
-    const gateId = result.gateId ?? beat.gateId
+    const blocking = result.blocking !== undefined ? result.blocking : beat.blocking
+    if (blocking) blocked = true
+    const gateId =
+      result.gateId !== undefined
+        ? result.gateId
+        : result.blocking === false
+          ? undefined
+          : beat.gateId
     if (gateId) {
       gateIds.push(gateId)
       next = {

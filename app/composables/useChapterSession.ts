@@ -7,13 +7,13 @@ import { buildDebtDashboardVM } from '~/logic/play/debtDashboard'
 import { refreshRunInbox } from '~/logic/play/inboxFromTemplates'
 import {
   initChapter,
-  tickChapterWeek,
   resolveRepeatWeekPlan,
   DEFAULT_WEEK_PLAN,
   markBeatResolvedForWeek,
   isWeekActionAllowed,
   clampWeekPlanToSegment
 } from '~/logic/play/chapterWeekFlow'
+import { advanceWeek, ensureFateRunMode } from '~/logic/play/milestoneWeekFlow'
 import { dismissExamBoss, hasExamBossPending } from '~/logic/play/examBoss'
 import { confirmBreakthrough } from '~/logic/play/breakthroughFlow'
 import { applySectChoice } from '~/logic/play/uniFlow'
@@ -52,6 +52,7 @@ export function useChapterSession() {
 
   function initFromRun(base: PlayRunState) {
     let next = base.runMode === 'chapter' && base.chapter ? base : initChapter(base, DEFAULT_CHAPTER_ID)
+    next = ensureFateRunMode(next)
     next = refreshRunInbox(next)
     run.value = next
     syncWeekPlanFromRun(next)
@@ -164,7 +165,7 @@ export function useChapterSession() {
     if (!run.value || weekBlocked.value) return
     const psyClamped = clampWeekPlanToPsy(run.value, plan ?? weekPlan.value)
     const effective = clampWeekPlanToSegment(run.value, psyClamped)
-    const { run: next, blocked } = tickChapterWeek(run.value, effective)
+    const { run: next, blocked } = advanceWeek(run.value, effective)
     weekPlan.value = { ...effective }
     persist(refreshRunInbox(next))
     return blocked

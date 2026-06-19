@@ -5,14 +5,14 @@
   "waitSelector": ".WeekPlan",
   "saveV5": {
     "saveSchemaVersion": 7,
-    "activeRunId": "run_1781587969843_pxln5cg",
+    "activeRunId": "run_1781861548956_ieo09hc",
     "runs": {
-      "run_1781587969843_pxln5cg": {
+      "run_1781861548956_ieo09hc": {
         "schemaVersion": 5,
-        "runId": "run_1781587969843_pxln5cg",
+        "runId": "run_1781861548956_ieo09hc",
         "runMode": "chapter",
-        "createdAt": "2026-06-16T05:32:49.843Z",
-        "updatedAt": "2026-06-16T05:32:49.843Z",
+        "createdAt": "2026-06-19T09:32:28.956Z",
+        "updatedAt": "2026-06-19T09:32:28.956Z",
         "lifeStage": "hs",
         "chapterIndex": 0,
         "realmTier": "mortal",

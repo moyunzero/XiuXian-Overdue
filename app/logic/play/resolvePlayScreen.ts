@@ -31,10 +31,11 @@ type ScreenResolver = (run: PlayRunState) => PlayScreenId | null
 const CHAPTER_RESOLVERS: Array<{ priority: number; resolve: ScreenResolver }> = [
   {
     priority: 10,
-    resolve: (run) =>
-      run.runStatus === 'archived' || run.runStatus === 'collapsed' || run.runStatus === 'ended'
-        ? 'run-archive'
-        : null
+    resolve: (run) => {
+      if (run.runStatus === 'archived' || run.runStatus === 'ended') return 'run-archive'
+      if (run.runStatus === 'collapsed') return 'run-archive'
+      return null
+    }
   },
   {
     priority: 20,
@@ -76,7 +77,9 @@ const CHAPTER_RESOLVERS: Array<{ priority: number; resolve: ScreenResolver }> = 
   {
     priority: 60,
     resolve: (run) =>
-      run.chapter?.pendingGateId === 'gate-w40-finale' ? 'contract-finale' : null
+      run.runMode !== 'fate_run' && run.chapter?.pendingGateId === 'gate-w40-finale'
+        ? 'contract-finale'
+        : null
   },
   {
     priority: 100,
@@ -118,7 +121,7 @@ function resolveFromTable(run: PlayRunState, table: typeof CHAPTER_RESOLVERS): P
 
 export function resolvePlayScreen(run: PlayRunState | null | undefined): PlayScreenId {
   if (!run) return 'loading'
-  if (run.runMode === 'chapter') {
+  if (run.runMode === 'chapter' || run.runMode === 'fate_run') {
     return resolveFromTable(run, CHAPTER_RESOLVERS)
   }
   if (run.runMode === 'endless') {

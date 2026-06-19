@@ -149,6 +149,12 @@ export const BEAT_HANDLERS: Record<string, BeatHandler> = {
   },
 
   contractFinale(run, beat) {
+    if (run.runMode === 'fate_run') {
+      return {
+        run: withLog(run, `第 ${beat.week} 周：契约账期已满，阶梯续行。`),
+        blocking: false
+      }
+    }
     return {
       run: withLog(run, `第 ${beat.week} 周：契约终局待裁定。`),
       blocking: true,

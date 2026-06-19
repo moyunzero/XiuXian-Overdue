@@ -26,7 +26,8 @@
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:walkthrough": "playwright test e2e/play-full-walkthrough.e2e.ts",
-    "test:e2e:natural40": "playwright test e2e/play-full-walkthrough.e2e.ts -g \"natural UI 40 weeks\""
+    "test:e2e:natural40": "playwright test e2e/play-full-walkthrough.e2e.ts -g \"natural UI 40 weeks\"",
+    "test:e2e:phase2-uat": "vitest --run app/logic/play/phase2UatFixtures.spec.ts && playwright test e2e/phase2-milestone-uat.e2e.ts"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",

@@ -5,14 +5,14 @@
   "waitSelector": ".Act1Desktop, .S0Setpiece",
   "saveV5": {
     "saveSchemaVersion": 7,
-    "activeRunId": "run_1781587969832_1c8pni2",
+    "activeRunId": "run_1781861548933_an5oc4g",
     "runs": {
-      "run_1781587969832_1c8pni2": {
+      "run_1781861548933_an5oc4g": {
         "schemaVersion": 5,
-        "runId": "run_1781587969832_1c8pni2",
+        "runId": "run_1781861548933_an5oc4g",
         "runMode": "chapter",
-        "createdAt": "2026-06-16T05:32:49.832Z",
-        "updatedAt": "2026-06-16T05:32:49.832Z",
+        "createdAt": "2026-06-19T09:32:28.933Z",
+        "updatedAt": "2026-06-19T09:32:28.933Z",
         "lifeStage": "pre",
         "chapterIndex": 0,
         "realmTier": "mortal",
