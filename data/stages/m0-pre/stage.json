@@ -1,0 +1,13 @@
+{
+  "id": "stage-m0-pre",
+  "displayName": "入学前夜",
+  "contentPack": "m0-pre",
+  "weekRange": [0, 0],
+  "chapterId": null,
+  "mandatePools": {},
+  "lifeStages": ["pre"],
+  "defaultFate": "human",
+  "tagPools": [],
+  "eventPack": "data/events.json",
+  "unlockMeta": {}
+}

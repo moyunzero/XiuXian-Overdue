@@ -5,6 +5,8 @@ import ProgressBar from '~/components/ui/ProgressBar.vue'
 
 const props = defineProps<{
   model: DebtDashboardVM
+  integrity?: number
+  integrityCap?: number
 }>()
 
 const expanded = ref(false)
@@ -24,6 +26,18 @@ const delinquencyClasses = computed(() => {
   if (d >= 1) return 'DebtDash__val DebtDash__val--warn'
   return 'DebtDash__val'
 })
+
+const integrityPct = computed(() =>
+  props.integrity != null ? Math.round(props.integrity * 100) : null
+)
+
+const integrityCapPct = computed(() =>
+  props.integrityCap != null ? Math.round(props.integrityCap * 100) : null
+)
+
+const showIntegrityStrip = computed(
+  () => integrityPct.value != null && integrityCapPct.value != null
+)
 </script>
 
 <template>
@@ -53,6 +67,10 @@ const delinquencyClasses = computed(() => {
       </div>
       <span class="DebtDash__chev">{{ expanded ? '收起' : '明细' }}</span>
     </button>
+
+    <p v-if="showIntegrityStrip && !expanded" class="DebtDash__integrityStrip">
+      完整度 {{ integrityPct }}% · 上限 {{ integrityCapPct }}%
+    </p>
 
     <div
       v-if="!showFullPressureBar"
@@ -135,12 +153,15 @@ const delinquencyClasses = computed(() => {
   flex-direction: column;
   gap: 10px;
   padding: 14px clamp(14px, 2vw, 20px);
-  border: 1px solid var(--border-default);
+  border: 1px solid rgba(255, 80, 100, 0.28);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.03);
+  background:
+    linear-gradient(135deg, rgba(40, 8, 20, 0.55), rgba(8, 12, 24, 0.85)),
+    rgba(255, 255, 255, 0.02);
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
+  box-shadow: inset 0 0 24px rgba(255, 40, 60, 0.06);
 }
 
 .DebtDash:not(.DebtDash--expanded) {
@@ -223,11 +244,20 @@ const delinquencyClasses = computed(() => {
   letter-spacing: 0.06em;
 }
 
+.DebtDash__integrityStrip {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: var(--text-xs);
+  color: var(--fate-integrity-warn, rgba(255, 140, 60, 0.9));
+  line-height: 1.4;
+}
+
 .DebtDash__pressure {
-  height: 4px;
-  border-radius: 2px;
-  background: rgba(255, 255, 255, 0.08);
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.35);
   overflow: hidden;
+  border: 1px solid rgba(255, 80, 80, 0.2);
 }
 
 .DebtDash__pressureFill {
@@ -235,6 +265,7 @@ const delinquencyClasses = computed(() => {
   height: 100%;
   border-radius: inherit;
   background: linear-gradient(90deg, rgba(255, 100, 80, 0.55), var(--danger));
+  box-shadow: 0 0 10px rgba(255, 60, 60, 0.45);
   transition: width 0.35s ease;
 }
 

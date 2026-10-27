@@ -3,11 +3,13 @@ import {
   DEFAULT_PLAY_META,
   enrichCarryoverWithPlayMeta,
   HIDDEN_STANDARD_DEBT_NEVER_ZERO,
+  mergeAccountMetaFromRun,
   mergePriorMetaUnlocks,
   metaUnlockIdsFromRun,
   normalizePlayMeta,
   recordRunToPlayMeta
 } from './playMeta'
+import { emptyMetaProgress } from './metaProgress'
 import { carryoverFromPersist } from '~/logic/act1/act1Carryover'
 import { createInitialAct1State } from '~/logic/act1/createInitialAct1State'
 import type { StartConfig } from '~/types/game'
@@ -124,5 +126,28 @@ describe('playMeta', () => {
     const out = enrichCarryoverWithPlayMeta(base, meta)
     expect(out.startingDelinquencyBias).toBeGreaterThan(0)
     expect(out.unlockedInboxHints?.some((h) => h.includes('债务强制收束'))).toBe(true)
+  })
+
+  it('mergeAccountMetaFromRun adds head_jar when transition hook missed (D-105)', () => {
+    let run = createPlayRunFromStartConfig(start, 'slot1', { runMode: 'fate_run' })
+    run = { ...run, primaryFate: 'head_jar', runStatus: 'fated' }
+    const merged = mergeAccountMetaFromRun(emptyMetaProgress(), run)
+    expect(merged.unlockedFatesSeen).toContain('head_jar')
+  })
+
+  it('enrichCarryoverWithPlayMeta still merges priorMetaUnlocks (T10)', () => {
+    const persist = {
+      startConfig: start,
+      act1: createInitialAct1State(start),
+      metaUnlocks: ['witness-departure'],
+      permanentModifiers: {},
+      settled: true
+    }
+    const base = carryoverFromPersist(persist)
+    const meta = mergePriorMetaUnlocks(DEFAULT_PLAY_META, ['family-guarantor', 'price-aware'])
+    const out = enrichCarryoverWithPlayMeta(base, meta)
+    expect(out.metaUnlocks).toContain('witness-departure')
+    expect(out.metaUnlocks).toContain('family-guarantor')
+    expect(out.metaUnlocks).toContain('price-aware')
   })
 })

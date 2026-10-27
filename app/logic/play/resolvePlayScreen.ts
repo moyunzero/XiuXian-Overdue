@@ -7,6 +7,7 @@ import { chapterSetpieceBlocksWeek } from '~/logic/play/segmentGate'
 
 export type PlayScreenId =
   | 'loading'
+  | 'fate-update'
   | 'pre-act1'
   | 'week-dashboard'
   | 'mandate-inbox'
@@ -36,6 +37,10 @@ const CHAPTER_RESOLVERS: Array<{ priority: number; resolve: ScreenResolver }> = 
       if (run.runStatus === 'collapsed') return 'run-archive'
       return null
     }
+  },
+  {
+    priority: 15,
+    resolve: (run) => (run.setpiece?.fateUpdatePending ? 'fate-update' : null)
   },
   {
     priority: 20,

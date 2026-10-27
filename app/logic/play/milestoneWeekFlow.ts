@@ -96,6 +96,8 @@ export function advanceWeek(run: PlayRunState, plan: WeekPlan): TickChapterWeekR
     after = appendWeek40ContinuityLog(after)
   }
 
-  after = resolveWeekEnd(after)
+  if ((after.mandate?.pendingDeliveryIds.length ?? 0) === 0) {
+    after = resolveWeekEnd(after)
+  }
   return { run: after, blocked: false }
 }

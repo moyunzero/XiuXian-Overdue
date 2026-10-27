@@ -6,7 +6,12 @@ import {
   CHAPTER_BODY_EXHAUSTION_THRESHOLD,
   detectChapterCollapse
 } from '~/logic/play/chapterCollapse'
-import { applyFateTransition, detectFateTransition } from '~/logic/play/fateTransition'
+import { applyBodyMortgageToRun } from '~/logic/play/bodyMortgage'
+import { applyFateTransition, detectFateTransition, exportMetaFateSeenFromTransition } from '~/logic/play/fateTransition'
+import {
+  HEAD_JAR_INTEGRITY,
+  HEAD_JAR_MAINTENANCE_FAILURE_THRESHOLD
+} from '~/logic/play/headJarWeekPlan'
 import { settledChapterRun, settledFateRun } from '~/logic/play/chapterTestHelpers'
 
 function tagIds(run: ReturnType<typeof settledFateRun>) {
@@ -95,5 +100,90 @@ describe('fateTransition', () => {
     expect(detectFateTransition(archived)).toBeNull()
     expect(applyFateTransition(ended)).toEqual(ended)
     expect(applyFateTransition(archived)).toEqual(archived)
+  })
+
+  it('mortgaged fated + integrity below HEAD_JAR → head_jar with fateUpdatePending (D-84)', () => {
+    const run = settledFateRun()
+    run.runStatus = 'fated'
+    run.primaryFate = 'mortgaged'
+    run.bodyIntegrity = HEAD_JAR_INTEGRITY - 0.01
+    expect(detectFateTransition(run)).not.toBeNull()
+    const next = applyFateTransition(run)
+    expect(next.primaryFate).toBe('head_jar')
+    expect(next.setpiece?.fateUpdatePending).toEqual({
+      from: 'mortgaged',
+      to: 'head_jar',
+      trigger: 'integrity_threshold'
+    })
+    expect(next.runStatus).toBe('fated')
+  })
+
+  it('mortgaged fated + maintenanceFailureStreak≥2 → head_jar', () => {
+    const run = settledFateRun()
+    run.runStatus = 'fated'
+    run.primaryFate = 'mortgaged'
+    run.bodyIntegrity = 0.4
+    run.mandate = {
+      ...(run.mandate ?? {
+        numbness: 0,
+        domestication: 0,
+        pendingDeliveryIds: [],
+        supplyCutStreak: 0
+      }),
+      maintenanceFailureStreak: HEAD_JAR_MAINTENANCE_FAILURE_THRESHOLD
+    }
+    const next = applyFateTransition(run)
+    expect(next.primaryFate).toBe('head_jar')
+    expect(next.setpiece?.fateUpdatePending?.trigger).toBe('maintenance_failure')
+  })
+
+  it('mortgaged→head_jar does not repeat when fateUpdatePending already set', () => {
+    const run = settledFateRun()
+    run.runStatus = 'fated'
+    run.primaryFate = 'mortgaged'
+    run.bodyIntegrity = HEAD_JAR_INTEGRITY - 0.01
+    const once = applyFateTransition(run)
+    const twice = applyFateTransition(once)
+    expect(twice.primaryFate).toBe('head_jar')
+    expect(twice).toEqual(once)
+  })
+
+  it('bodyMortgage on fate_run + human sets mortgaged fated without collapse (D-81–D-82)', () => {
+    const run = settledFateRun()
+    expect(run.primaryFate).toBe('human')
+    const next = applyBodyMortgageToRun(run, 'LeftPalm')
+    expect(next.runStatus).toBe('fated')
+    expect(next.primaryFate).toBe('mortgaged')
+    expect(next.runStatus).not.toBe('collapsed')
+    expect(next.setpiece?.fateUpdatePending).toEqual({
+      from: 'human',
+      to: 'mortgaged',
+      trigger: 'body_mortgage'
+    })
+    expect(next.logs.some((l) => l.includes('抵押登记完成'))).toBe(true)
+  })
+
+  it('bodyMortgage on chapter run does not set fate fields', () => {
+    const run = settledChapterRun()
+    const next = applyBodyMortgageToRun(run, 'LeftPalm')
+    expect(next.runStatus).toBe('active')
+    expect(next.primaryFate).toBe('human')
+    expect(next.setpiece?.fateUpdatePending).toBeUndefined()
+  })
+
+  it('exportMetaFateSeenFromTransition returns fate when primaryFate changes', () => {
+    const run = settledFateRun()
+    run.primaryFate = 'ghost_bound'
+    expect(exportMetaFateSeenFromTransition(run, 'head_jar')).toBe('ghost_bound')
+    expect(exportMetaFateSeenFromTransition(run, 'ghost_bound')).toBeUndefined()
+  })
+
+  it('applyFateTransition ensures ghostLedger init for ghost_bound fated run', () => {
+    const run = settledFateRun()
+    run.runStatus = 'fated'
+    run.primaryFate = 'ghost_bound'
+    expect(run.ghostLedger).toBeUndefined()
+    const next = applyFateTransition(run)
+    expect(next.ghostLedger?.yangDebtCarried).toBeGreaterThan(0)
   })
 })

@@ -1,5 +1,6 @@
 import path from 'node:path'
 import { describe, it, expect } from 'vitest'
+import { NATURAL_BASELINE_SEED } from '~/logic/play/chapterNaturalSim'
 import { writeUiAuditFixturesToDisk, buildUiAuditFixtures } from '~/logic/play/uiAuditFixtures'
 
 describe('uiAuditFixtures', () => {
@@ -10,7 +11,7 @@ describe('uiAuditFixtures', () => {
     expect(fixtures.some((f) => f.id === 'chapter-natural-ch0-start')).toBe(true)
     const naturalStart = fixtures.find((f) => f.id === 'chapter-natural-ch0-start')!
     const naturalStartRun = Object.values(naturalStart.saveV5!.runs)[0]
-    expect(naturalStartRun.seed).toBe(20260531)
+    expect(naturalStartRun.seed).toBe(NATURAL_BASELINE_SEED)
     expect(naturalStartRun.chapter?.chapterWeekIndex).toBe(1)
     const collapse = fixtures.find((f) => f.id === 'chapter-collapse-debt')!
     expect(collapse.saveV5?.runs).toBeDefined()

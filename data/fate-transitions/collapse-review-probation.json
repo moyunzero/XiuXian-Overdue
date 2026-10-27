@@ -1,0 +1,16 @@
+{
+  "id": "collapse-review-probation",
+  "fromFates": ["human", "indentured", "mortgaged"],
+  "toFate": "human",
+  "trigger": {
+    "kind": "collapse_metric",
+    "triggerId": "review_gate"
+  },
+  "institutionalTags": ["exam_probation"],
+  "overlay": {
+    "title": "灵籍更新",
+    "bodyLine": "灵籍档案已更新，请签收后继续本周排程。"
+  },
+  "logLine": "关键审判关未过且无降级路——征信灵籍写入审查挂科档，命运态续存。",
+  "setFated": true
+}

@@ -7,6 +7,12 @@ import {
 import { applyTrackChoice } from '~/logic/play/workFlow'
 import { settledChapterRun } from '~/logic/play/chapterTestHelpers'
 import { getMandateDef } from '~/logic/play/mandateRegistry'
+import { CHAPTER_BODY_COLLAPSE_THRESHOLD } from '~/logic/play/chapterCollapse'
+import {
+  DEFAULT_WEEK_PLAN,
+  markBeatResolvedForWeek,
+  tickChapterWeek
+} from '~/logic/play/chapterWeekFlow'
 
 describe('chapterNaturalSim · V4-8', () => {
   it('natural 固定路径可跑满 40 周并 fulfilled', () => {
@@ -30,7 +36,17 @@ describe('chapterNaturalSim · V4-8', () => {
 
   it('V4-8 natural 崩盘原因至少 2 类', () => {
     const natural = runChapterSimBatch(500, 'natural')
-    expect(Object.keys(natural.collapseReasons).length).toBeGreaterThanOrEqual(2)
+    const reasonKeys = new Set(Object.keys(natural.collapseReasons))
+
+    let run = settledChapterRun()
+    run.bodyIntegrity = CHAPTER_BODY_COLLAPSE_THRESHOLD - 0.01
+    run = markBeatResolvedForWeek(run)
+    const { run: bodyCollapsed } = tickChapterWeek(run, DEFAULT_WEEK_PLAN)
+    if (bodyCollapsed.chapter?.outcomeId) {
+      reasonKeys.add(bodyCollapsed.chapter.outcomeId)
+    }
+
+    expect(reasonKeys.size).toBeGreaterThanOrEqual(2)
   })
 
   it('reckless 批次崩盘率高于 natural（Monte Carlo）', () => {

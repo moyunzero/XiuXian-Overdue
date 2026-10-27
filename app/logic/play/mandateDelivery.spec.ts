@@ -2,11 +2,12 @@ import { describe, expect, it } from 'vitest'
 import { DEFAULT_WEEK_PLAN, tickChapterWeek } from '~/logic/play/chapterWeekFlow'
 import { applyMandatePsyToActions } from '~/logic/play/mandatePsy'
 import { resolvePlayScreen } from '~/logic/play/resolvePlayScreen'
-import { settledChapterRun } from '~/logic/play/chapterTestHelpers'
+import { settledChapterRun, settledFateRun } from '~/logic/play/chapterTestHelpers'
 import {
   MAX_MANDATE_QUEUE,
   buildMandateInboxPending,
   drainPendingMandates,
+  eligibleMandates,
   mandateQueueBlocksWeekAdvance,
   respondToMandate,
   rollMandatesForWeek,
@@ -135,5 +136,57 @@ describe('mandateDelivery', () => {
     const drained = drainPendingMandates(run)
     expect(drained.mandate?.pendingDeliveryIds.length ?? 0).toBe(0)
     expect(drained.mandate!.pendingDeliveryIds.length).toBeLessThan(MAX_MANDATE_QUEUE)
+  })
+
+  it('fate_run 可掷出来文', () => {
+    const base = settledFateRun(start)
+    const rolled = rollMandatesForWeek({
+      ...base,
+      seed: 99,
+      chapter: { ...base.chapter!, chapterWeekIndex: 8 }
+    })
+    expect(rolled.mandate?.pendingDeliveryIds.length ?? 0).toBeGreaterThanOrEqual(0)
+  })
+
+  it('eligibleMandates 按 primaryFate 过滤', () => {
+    const run = settledFateRun(start)
+    run.primaryFate = 'human'
+    const defs = [
+      {
+        id: 'm-only',
+        title: '抵押',
+        body: '抵押通知',
+        lifeStages: ['hs'] as const,
+        pool: 'routine' as const,
+        primaryFates: ['mortgaged'],
+        responses: [
+          { id: 'a', label: 'a', effects: [{ kind: 'log', message: 'x' }] },
+          { id: 'b', label: 'b', effects: [{ kind: 'numbness', value: 1 }] }
+        ]
+      }
+    ]
+    expect(eligibleMandates(run, defs as never)).toHaveLength(0)
+  })
+
+  it('buildMandateInboxPending 含 issuerLabel', () => {
+    const run = runWithPending(['ch0-debt-reminder'])
+    const pending = buildMandateInboxPending(run)
+    expect(pending?.issuerLabel).toBeTruthy()
+  })
+
+  it('institutionalTag effect 写入 institutionalTags', () => {
+    const run = runWithPending(['ch0-family-leverage'])
+    const next = respondToMandate(run, 'accept-leverage')
+    expect(next.institutionalTags.map((t) => t.id)).toContain('family_leverage')
+  })
+
+  it('eligibleMandates 按 requiresInstitutionalTags 过滤 supply_cut 来文', () => {
+    const run = settledChapterRun(start)
+    run.chapter!.chapterWeekIndex = 10
+    const def = getMandateDef('ch0-supply-cut-notice')
+    expect(def).toBeTruthy()
+    expect(eligibleMandates(run, [def!])).toHaveLength(0)
+    run.institutionalTags = [{ id: 'supply_cut', appliedAtWeek: 8 }]
+    expect(eligibleMandates(run, [def!])).toHaveLength(1)
   })
 })

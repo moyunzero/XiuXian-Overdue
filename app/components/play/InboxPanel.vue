@@ -41,8 +41,16 @@ const emit = defineEmits<{
   height: 100%;
   min-height: 0;
   min-width: 0;
-  border-left: 1px solid var(--border-default);
-  background: rgba(10, 14, 39, 0.85);
+  border-left: 1px solid rgba(255, 80, 100, 0.15);
+  background:
+    linear-gradient(180deg, rgba(20, 8, 24, 0.95), rgba(6, 10, 20, 0.98)),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 24px,
+      rgba(0, 255, 255, 0.02) 24px,
+      rgba(0, 255, 255, 0.02) 25px
+    );
   font-family: var(--sans);
 }
 .InboxPanel__head {
@@ -68,14 +76,23 @@ const emit = defineEmits<{
   padding: 8px;
   overflow-y: auto;
   flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 .InboxPanel__item {
-  margin-bottom: 6px;
+  flex: 1 1 auto;
+  min-height: 72px;
+  margin-bottom: 0;
 }
 .InboxPanel__btn {
   width: 100%;
+  height: 100%;
+  min-height: 72px;
   text-align: left;
-  padding: 10px 12px;
+  padding: 12px 14px;
+  box-sizing: border-box;
   border: 1px solid transparent;
   border-radius: 8px;
   background: var(--bg-card);

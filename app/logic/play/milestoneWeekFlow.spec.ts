@@ -9,27 +9,18 @@ import {
 } from '~/logic/play/chapterWeekFlow'
 import {
   advanceChapterToWeek,
+  advanceFateToWeek,
   dismissCurrentSetpiece,
   settledChapterRun,
   settledFateRun
 } from '~/logic/play/chapterTestHelpers'
 import { advanceWeek, ensureFateRunMode, resolveWeekEnd } from '~/logic/play/milestoneWeekFlow'
+import { respondMandateAndMaybeFinalize } from '~/logic/play/scheduleMandateFlow'
+import { getMandateDef } from '~/logic/play/mandateRegistry'
 import { deriveStageIdFromRun } from '~/logic/play/playRunFateDefaults'
-import { STAGE_M1_CONTRACT, STAGE_M2_HS } from '~/logic/play/stageDefs'
-import type { PlayRunState } from '~/types/play'
 
-function advanceFateToWeek(run: PlayRunState, targetWeek: number): PlayRunState {
-  let next = ensureFateRunMode(run)
-  let steps = 0
-  while ((next.chapter?.chapterWeekIndex ?? 0) < targetWeek && steps < 800) {
-    steps += 1
-    if (next.runStatus === 'collapsed' || next.runStatus === 'archived') break
-    next = dismissCurrentSetpiece(next)
-    const { run: after, blocked } = advanceWeek(next, DEFAULT_WEEK_PLAN)
-    next = blocked ? dismissCurrentSetpiece(after) : after
-  }
-  return next
-}
+const M1_STAGE_ID = 'stage-m1-contract'
+const M2_STAGE_ID = 'stage-m2-hs'
 
 describe('milestoneWeekFlow', () => {
   it('fate_run W39→W40→W41 不 archived，无 gate-w40-finale，有 continuity log', () => {
@@ -56,7 +47,16 @@ describe('milestoneWeekFlow', () => {
     let run = settledFateRun()
     run.bodyIntegrity = CHAPTER_BODY_COLLAPSE_THRESHOLD - 0.01
     run = markBeatResolvedForWeek(run)
-    const { run: next } = advanceWeek(run, DEFAULT_WEEK_PLAN)
+    const { run: after } = advanceWeek(run, DEFAULT_WEEK_PLAN)
+    let next = after
+    while ((next.mandate?.pendingDeliveryIds.length ?? 0) > 0) {
+      const id = next.mandate!.pendingDeliveryIds[0]!
+      const def = getMandateDef(id)
+      const responseId =
+        def?.responses.find((r) => r.id === 'ack-min')?.id ?? def?.responses[0]?.id
+      if (!responseId) break
+      next = respondMandateAndMaybeFinalize(next, responseId)
+    }
     expect(next.runStatus).toBe('fated')
     expect(next.primaryFate).toBe('mortgaged')
     expect(next.runStatus).not.toBe('collapsed')
@@ -74,10 +74,10 @@ describe('milestoneWeekFlow', () => {
   it('week 41 → stage M2 + 制度 log', () => {
     const run = settledFateRun()
     run.chapter!.chapterWeekIndex = 41
-    run.stageId = STAGE_M1_CONTRACT.id
+    run.stageId = M1_STAGE_ID
     const next = resolveWeekEnd(run)
-    expect(next.stageId).toBe(STAGE_M2_HS.id)
-    expect(deriveStageIdFromRun(next)).toBe(STAGE_M2_HS.id)
+    expect(next.stageId).toBe(M2_STAGE_ID)
+    expect(deriveStageIdFromRun(next)).toBe(M2_STAGE_ID)
     expect(next.logs.some((l) => l.includes('学籍段切换'))).toBe(true)
   })
 

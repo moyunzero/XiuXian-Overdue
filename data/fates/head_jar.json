@@ -1,0 +1,11 @@
+{
+  "id": "head_jar",
+  "displayName": "器藏维生",
+  "playable": true,
+  "shell": {
+    "layoutToken": "fate-head-jar",
+    "statusBarFields": ["debt", "maintenance", "integrity"],
+    "disabledActions": ["study", "parttime", "rest", "repay_hero"],
+    "scheduleMode": "delegation_two"
+  }
+}

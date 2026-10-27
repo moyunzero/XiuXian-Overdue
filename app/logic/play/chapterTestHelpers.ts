@@ -12,6 +12,7 @@ import {
   markBeatResolvedForWeek
 } from '~/logic/play/chapterWeekFlow'
 import { dismissExamBoss } from '~/logic/play/examBoss'
+import { dismissBodyMortgage } from '~/logic/play/bodyMortgage'
 import { openSegmentGate, chapterSetpieceBlocksWeek } from '~/logic/play/segmentGate'
 import { applySectChoice } from '~/logic/play/uniFlow'
 import { applyJobChoice, applyTrackChoice, buildJobChoicePending, needsJobChoice, needsTrackChoice } from '~/logic/play/workFlow'
@@ -21,6 +22,11 @@ import {
   drainPendingMandates,
   mandateQueueBlocksWeekAdvance
 } from '~/logic/play/mandateDelivery'
+import { finalizeWeek, weekEndFinalizePending } from '~/logic/play/scheduleMandateFlow'
+import { advanceWeek, ensureFateRunMode } from '~/logic/play/milestoneWeekFlow'
+import { advanceScheduleWeek } from '~/logic/play/scheduleMandateFlow'
+import { planFromScheduleMode } from '~/logic/play/weekPlanTiles'
+import type { DelegationJobId, MaintenanceTier } from '~/types/chapter'
 
 const DEFAULT_START: StartConfig = {
   playerName: '你',
@@ -142,11 +148,49 @@ function dismissExam(run: PlayRunState): PlayRunState {
   return next
 }
 
+export function finalizeAfterMandateDrain(run: PlayRunState): PlayRunState {
+  let next = drainPendingMandates(run)
+  if (
+    (next.mandate?.pendingDeliveryIds.length ?? 0) === 0 &&
+    weekEndFinalizePending(next)
+  ) {
+    next = finalizeWeek(next)
+  }
+  return next
+}
+
+/** fate_run 自然周推进至 targetWeek（milestoneWeekFlow + setpiece/mandate 排水） */
+export function advanceFateToWeek(run: PlayRunState, targetWeek: number): PlayRunState {
+  let next = ensureFateRunMode(run)
+  let steps = 0
+  while ((next.chapter?.chapterWeekIndex ?? 0) < targetWeek && steps < 800) {
+    steps += 1
+    if (next.runStatus === 'collapsed' || next.runStatus === 'archived') break
+    next = dismissCurrentSetpiece(next)
+    const { run: after, blocked } = advanceWeek(next, DEFAULT_WEEK_PLAN)
+    if (blocked) {
+      next = dismissCurrentSetpiece(after)
+    } else {
+      next = after
+      if ((next.mandate?.pendingDeliveryIds.length ?? 0) > 0) {
+        next = finalizeAfterMandateDrain(next)
+      }
+    }
+  }
+  return next
+}
+
 /** 自动处理当前阻塞 setpiece / 择轨 / 择岗 / W40 终局闸门 */
 export function dismissCurrentSetpiece(
   run: PlayRunState,
   options?: { employmentTrack?: EmploymentTrack }
 ): PlayRunState {
+  if (run.setpiece?.fateUpdatePending) {
+    const setpiece = { ...run.setpiece }
+    delete setpiece.fateUpdatePending
+    return { ...run, setpiece }
+  }
+  if (run.setpiece?.bodyMortgagePending) return dismissBodyMortgage(run)
   if (run.setpiece?.examBossPending) return dismissExam(run)
   if (run.setpiece?.breakthroughPending) return confirmBreakthroughChapter(run)
   if (run.setpiece?.sectChoicePending) return confirmSectChoiceFirst(run)
@@ -204,4 +248,73 @@ export function advanceChapterToWeek(
   }
 
   return drainPendingMandates(next)
+}
+
+function dismissFateUpdateIfPending(run: PlayRunState): PlayRunState {
+  if (!run.setpiece?.fateUpdatePending) return run
+  return {
+    ...run,
+    setpiece: { ...run.setpiece, fateUpdatePending: undefined }
+  }
+}
+
+export function buildHeadJarWeekPlan(
+  tier: MaintenanceTier = 'austerity',
+  job: DelegationJobId = 'yang_patrol'
+): WeekPlan {
+  return planFromScheduleMode({ primaryFate: 'head_jar' }, { maintenanceTier: tier, delegationJob: job })
+}
+
+/** Phase 6：ghost_bound 链来文 id（与 ch0-routine.json 对齐） */
+export const GHOST_SUMMON_ID = 'ch0-ghost-bound-summon'
+export const GHOST_BIND_ID = 'ch0-ghost-bound-bind'
+
+export function forceHeadJar(run: PlayRunState): PlayRunState {
+  return { ...run, primaryFate: 'head_jar', runStatus: 'fated' }
+}
+
+export function injectGhostBoundChain(run: PlayRunState): PlayRunState {
+  const delinquency = Math.max(2, run.econ?.delinquency ?? 0)
+  const mandate = run.mandate ?? {
+    numbness: 0,
+    domestication: 0,
+    pendingDeliveryIds: [],
+    supplyCutStreak: 0
+  }
+  return {
+    ...forceHeadJar(run),
+    econ: run.econ ? { ...run.econ, delinquency } : run.econ,
+    mandate: {
+      ...mandate,
+      pendingDeliveryIds: [GHOST_SUMMON_ID, GHOST_BIND_ID]
+    }
+  }
+}
+
+export function buildGhostBoundWeekPlan(
+  tier: MaintenanceTier = 'austerity',
+  job: DelegationJobId = 'yang_patrol'
+): WeekPlan {
+  return planFromScheduleMode({ primaryFate: 'ghost_bound' }, { maintenanceTier: tier, delegationJob: job })
+}
+
+export function simGhostBoundWeek(run: PlayRunState, plan: WeekPlan): PlayRunState {
+  return simFateWeek(run, plan)
+}
+
+/** dismiss setpiece → advanceScheduleWeek → drain mandates → finalize when pending */
+export function simFateWeek(run: PlayRunState, plan: WeekPlan): PlayRunState {
+  let next = run
+  const weekBefore = next.chapter?.chapterWeekIndex ?? 0
+
+  for (let guard = 0; guard < 24; guard++) {
+    next = dismissFateUpdateIfPending(dismissCurrentSetpiece(next))
+    const { run: after, blocked } = advanceScheduleWeek(next, plan)
+    next = blocked ? after : finalizeAfterMandateDrain(after)
+    if ((next.chapter?.chapterWeekIndex ?? 0) > weekBefore) {
+      return next
+    }
+  }
+
+  return next
 }

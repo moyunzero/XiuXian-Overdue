@@ -1,6 +1,7 @@
 import type { WeekPlan } from '~/types/chapter'
 import type { PlayRunState } from '~/types/play'
 import { NUMBNESS_MUTE_THRESHOLD } from '~/logic/play/mandatePsy'
+import { isChapterLikeRun } from '~/logic/play/mandateDelivery'
 import { syncFoundationProgressFromStats } from '~/logic/play/uniFlow'
 import { clamp, round1 } from '~/utils/rng'
 
@@ -30,7 +31,7 @@ function studyFocusFactor(run: PlayRunState): number {
 
 /** 章节周：刷题/吐纳/休息对 stats 的结算（纯函数） */
 export function applyChapterWeekPlanEffects(run: PlayRunState, plan: WeekPlan): PlayRunState {
-  if (run.runMode !== 'chapter' || !run.stats) return run
+  if (!isChapterLikeRun(run) || !run.stats) return run
 
   let stats = { ...run.stats }
   const logs = [...run.logs]

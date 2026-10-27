@@ -1,0 +1,17 @@
+{
+  "id": "mortgaged-to-head-jar-maintenance",
+  "fromFates": ["mortgaged"],
+  "toFate": "head_jar",
+  "trigger": {
+    "kind": "metric_threshold",
+    "field": "maintenanceFailureStreak",
+    "op": "gte",
+    "valueRef": "HEAD_JAR_MAINTENANCE_FAILURE_THRESHOLD"
+  },
+  "overlay": {
+    "title": "灵籍更新",
+    "bodyLine": "维生欠账连周——制度将你编入器藏维生档。"
+  },
+  "logLine": "维生欠账连续触发——制度将你编入器藏维生档。",
+  "requiresRunStatus": ["fated"]
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildDebtDashboardVM } from './debtDashboard'
+import { buildAntiPatternLines, buildDebtDashboardVM } from './debtDashboard'
 import { settledChapterRun } from './chapterTestHelpers'
 import { tickChapterWeek, DEFAULT_WEEK_PLAN } from './chapterWeekFlow'
 import { createPlayRunFromStartConfig } from './createPlayRun'
@@ -43,5 +43,26 @@ describe('buildDebtDashboardVM', () => {
     const vm = buildDebtDashboardVM(run)
     expect(vm?.billingPeriodLabel).toBeUndefined()
     expect(vm?.daysUntilPayment).toBeGreaterThanOrEqual(0)
+  })
+})
+
+describe('buildAntiPatternLines', () => {
+  it('delinquency >= 2 headline embeds minPayment and delinquency count', () => {
+    const run = settledChapterRun()
+    run.econ!.delinquency = 3
+    const anti = buildAntiPatternLines(run)
+    expect(anti.delinquency).toBe(3)
+    expect(anti.headline).toContain('3')
+    expect(anti.headline).toContain('¥')
+  })
+
+  it('mingUnderpayStreak >= 2 takes headline priority on ghost ledger', () => {
+    const run = settledChapterRun()
+    run.primaryFate = 'ghost_bound'
+    run.ghostLedger = { yangDebtCarried: 12_000, mingCoin: 10, mingUnderpayStreak: 2 }
+    const anti = buildAntiPatternLines(run)
+    expect(anti.mingUnderpayStreak).toBe(2)
+    expect(anti.headline).toContain('2')
+    expect(anti.pressureDetail).toContain('2')
   })
 })

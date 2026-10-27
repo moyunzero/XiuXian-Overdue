@@ -2,9 +2,12 @@ import type { StartConfig, SaveSlotId } from '~/types/game'
 import type { PlayRunState, RunMode } from '~/types/play'
 import { buildInboxPlaceholders } from './buildInboxPlaceholders'
 import { defaultFateFieldsForRun } from './playRunFateDefaults'
+import { applyStartBundlePassive } from './startBundleRegistry'
 
 export type CreatePlayRunOptions = {
   runMode?: RunMode
+  /** Phase 5: optional meta start bundle (D-108) */
+  startBundleId?: string | null
 }
 
 export function createRunId(): string {
@@ -38,7 +41,9 @@ export function createPlayRunFromStartConfig(
     inbox: buildInboxPlaceholders(null)
   }
   const fate = defaultFateFieldsForRun(base)
-  return { ...base, ...fate }
+  let run: PlayRunState = { ...base, ...fate, metaProgressId: 'default' }
+  run = applyStartBundlePassive(run, options?.startBundleId)
+  return run
 }
 
 export function touchPlayRun(run: PlayRunState): PlayRunState {

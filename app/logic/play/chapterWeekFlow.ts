@@ -12,6 +12,7 @@ import { runBeatsForWeek } from '~/logic/play/beatRunner'
 import { chapterSetpieceBlocksWeek } from '~/logic/play/segmentGate'
 import { advancePlayRunCalendarDay, shouldSkipWeeklyExamForPlay } from '~/logic/play/playDayCycle'
 import {
+  isChapterLikeRun,
   mandateQueueBlocksWeekAdvance,
   rollMandatesForWeek
 } from '~/logic/play/mandateDelivery'
@@ -69,7 +70,7 @@ export function initChapter(run: PlayRunState, chapterId: ChapterId = DEFAULT_CH
 }
 
 export function isWeekActionAllowed(run: PlayRunState, actionId: WeekActionId): boolean {
-  if (run.runMode !== 'chapter' || !run.chapter) return false
+  if (!isChapterLikeRun(run)) return false
   const config = getChapterConfig(run.chapter.chapterId)
   const segment = segmentForWeek(config, run.chapter.chapterWeekIndex)
   const allowed = segment?.allowedActions ?? config.weekActions
@@ -78,7 +79,7 @@ export function isWeekActionAllowed(run: PlayRunState, actionId: WeekActionId): 
 
 /** 清除当前段不允许的周计划字段（在 psy clamp 之后调用） */
 export function clampWeekPlanToSegment(run: PlayRunState, plan: WeekPlan): WeekPlan {
-  if (run.runMode !== 'chapter' || !run.chapter) return plan
+  if (!isChapterLikeRun(run)) return plan
 
   let next: WeekPlan = { ...plan }
 
@@ -204,7 +205,7 @@ export function applySupplyCutAfterRepayment(
   amountPaid: number,
   minPayRequired: number
 ): PlayRunState {
-  if (run.runMode !== 'chapter' || !run.econ || minPayRequired <= 0) return run
+  if (!isChapterLikeRun(run) || !run.econ || minPayRequired <= 0) return run
 
   const mandate = run.mandate ?? {
     numbness: 0,
@@ -244,6 +245,8 @@ export interface TickChapterWeekResult {
   run: PlayRunState
   /** 因 setpiece 阻塞未能推进到下一周 */
   blocked: boolean
+  /** head_jar 排程未完成等可展示原因 */
+  blockReason?: string
 }
 
 export function markBeatResolvedForWeek(run: PlayRunState, weekIndex?: number): PlayRunState {

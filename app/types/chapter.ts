@@ -24,6 +24,12 @@ export type WeekActionId =
   | 'borrow'
   | 'inbox'
 
+/** head_jar 维生档位（周末结算扣费，开本周仅预览） */
+export type MaintenanceTier = 'sustain' | 'austerity'
+
+/** head_jar 委托指令（双槽排程） */
+export type DelegationJobId = 'yang_patrol' | 'collection_escort' | 'penalty_register'
+
 export type BeatKind =
   | 'monthly_exam'
   | 'hs_graduation'
@@ -99,6 +105,8 @@ export interface MandateState {
   domestication: number
   pendingDeliveryIds: string[]
   supplyCutStreak: number
+  /** head_jar 维生费连续不足次数（≥2 可触发器藏升级） */
+  maintenanceFailureStreak?: number
 }
 
 export type MandatePoolKey = 'routine' | 'nodeBonus' | 'family'
@@ -110,11 +118,20 @@ export type MandateEffectKind =
   | 'numbness'
   | 'supplyCutStreak'
   | 'log'
+  | 'institutionalTag'
+  | 'queueMandate'
+  | 'primaryFateTransition'
 
 export interface MandateEffect {
   kind: MandateEffectKind
   value?: number
   message?: string
+  tagId?: string
+  expiryWeek?: number
+  /** queueMandate: 追加队列的来文 id */
+  mandateId?: string
+  /** primaryFateTransition: 目标主命运态 id */
+  toFate?: string
 }
 
 export interface MandateResponseDef {
@@ -123,6 +140,10 @@ export interface MandateResponseDef {
   /** 麻木时仍保留的劣质出路（拖、借、硬扛） */
   grit?: boolean
   effects: MandateEffect[]
+  /** UI cost hint (灵石± / 压力±) */
+  costHint?: string
+  /** instant = 选后立即生效；weekend = 本周末入账 */
+  effectTiming?: 'instant' | 'weekend'
 }
 
 export interface MandateDeliveryDef {
@@ -136,6 +157,18 @@ export interface MandateDeliveryDef {
   minDelinquency?: number
   pool?: MandatePoolKey
   responses: MandateResponseDef[]
+  /** LOOP-04: stage ladder filter (empty = any) */
+  stageIds?: string[]
+  /** LOOP-04: primary fate filter */
+  primaryFates?: string[]
+  /** LOOP-04: required institutional tags */
+  requiresInstitutionalTags?: string[]
+  /** Weight for weighted pick (default 1) */
+  weight?: number
+  /** Min effects count on responses to avoid pure narrative */
+  minEffectCount?: number
+  /** Display issuer tag for UI */
+  issuerTag?: string
 }
 
 export interface WeekPlan {
@@ -146,6 +179,10 @@ export interface WeekPlan {
   workHours: number
   rest: boolean
   repeatLastWeek?: boolean
+  /** head_jar：维生档位（开本周必填，周末扣费） */
+  maintenanceTier?: MaintenanceTier
+  /** head_jar：委托指令（开本周必填） */
+  delegationJob?: DelegationJobId
 }
 
 export const DEFAULT_CHAPTER_ID: ChapterId = 'ch0-forty-week-contract'

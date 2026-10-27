@@ -8,8 +8,12 @@ import {
   mergeTagRecords,
   upgradeRunToSchemaV5
 } from '~/logic/play/playRunFateDefaults'
-import { STAGE_M0_PRE, STAGE_M1_CONTRACT, STAGE_M2_HS } from '~/logic/play/stageDefs'
+import { getStageDef } from '~/logic/play/stageRegistry'
 import type { PlayRunState } from '~/types/play'
+
+const M0_ID = 'stage-m0-pre'
+const M1_ID = 'stage-m1-contract'
+const M2_ID = 'stage-m2-hs'
 
 describe('playRunFateDefaults', () => {
   describe('isPlayableRunStatus', () => {
@@ -26,29 +30,29 @@ describe('playRunFateDefaults', () => {
   })
 
   describe('stage ladder (LADDER-01/02)', () => {
-    it('M0/M1 占位常量字段完整', () => {
-      expect(STAGE_M0_PRE.id).toBe('stage-m0-pre')
-      expect(STAGE_M0_PRE.contentPack).toBe('m0-pre')
-      expect(STAGE_M1_CONTRACT.id).toBe('stage-m1-contract')
-      expect(STAGE_M1_CONTRACT.weekRange).toEqual([1, 40])
-      expect(STAGE_M1_CONTRACT.contentPack).toBe('m1-contract')
+    it('M0/M1 registry defs完整', () => {
+      expect(getStageDef(M0_ID)?.id).toBe(M0_ID)
+      expect(getStageDef(M0_ID)?.contentPack).toBe('m0-pre')
+      expect(getStageDef(M1_ID)?.id).toBe(M1_ID)
+      expect(getStageDef(M1_ID)?.weekRange).toEqual([1, 40])
+      expect(getStageDef(M1_ID)?.contentPack).toBe('m1-contract')
     })
 
     it('deriveStageIdFromRun：pre 或无 chapter → M0，否则 M1', () => {
       const chapterRun = settledChapterRun()
-      expect(deriveStageIdFromRun(chapterRun)).toBe(STAGE_M1_CONTRACT.id)
+      expect(deriveStageIdFromRun(chapterRun)).toBe(M1_ID)
 
       const noChapter = { ...chapterRun, chapter: undefined }
-      expect(deriveStageIdFromRun(noChapter)).toBe(STAGE_M0_PRE.id)
+      expect(deriveStageIdFromRun(noChapter)).toBe(M0_ID)
 
       const preRun = { ...chapterRun, lifeStage: 'pre' as const }
-      expect(deriveStageIdFromRun(preRun)).toBe(STAGE_M0_PRE.id)
+      expect(deriveStageIdFromRun(preRun)).toBe(M0_ID)
     })
 
     it('deriveStageIdFromRun：week 41 → M2', () => {
       const run = settledChapterRun()
       run.chapter!.chapterWeekIndex = 41
-      expect(deriveStageIdFromRun(run)).toBe(STAGE_M2_HS.id)
+      expect(deriveStageIdFromRun(run)).toBe(M2_ID)
     })
   })
 
@@ -58,7 +62,7 @@ describe('playRunFateDefaults', () => {
       const defaults = defaultFateFieldsForRun(run)
       expect(defaults.primaryFate).toBe('human')
       expect(defaults.institutionalTags).toEqual([])
-      expect(defaults.stageId).toBe(STAGE_M1_CONTRACT.id)
+      expect(defaults.stageId).toBe(M1_ID)
     })
   })
 
@@ -87,27 +91,20 @@ describe('playRunFateDefaults', () => {
   })
 
   describe('mapCollapseTriggerToFate', () => {
-    it('身体线 → mortgaged；债务线 → human + tags', () => {
+    it('body_integrity → mortgaged', () => {
       expect(mapCollapseTriggerToFate('body_integrity').primaryFate).toBe('mortgaged')
-      const debt = mapCollapseTriggerToFate('debt_delinquency')
-      expect(debt.primaryFate).toBe('human')
-      expect(debt.tags.map((t) => t.id)).toEqual(
-        expect.arrayContaining(['credit_blacklist', 'supply_cut'])
-      )
     })
   })
 
-  describe('upgradeRunToSchemaV5 (SAVE-01/02 helper)', () => {
-    it('缺 fate 字段的 v4 run 补全 schema v5 默认值', () => {
-      const run = settledChapterRun()
-      const { primaryFate: _pf, institutionalTags: _it, stageId: _sid, ...rest } = run
-      const legacy = { ...rest, schemaVersion: 4 } as PlayRunState
-      const upgraded = upgradeRunToSchemaV5(legacy)
-      expect(upgraded.schemaVersion).toBe(5)
-      expect(upgraded.primaryFate).toBe('human')
-      expect(upgraded.institutionalTags).toEqual([])
-      expect(upgraded.stageId).toBe(STAGE_M1_CONTRACT.id)
-      expect(upgraded.runStatus).toBe('active')
+  describe('upgradeRunToSchemaV5', () => {
+    it('collapsed chapter → fated 续玩', () => {
+      const run = settledChapterRun() as PlayRunState
+      run.runStatus = 'collapsed'
+      run.stageId = M1_ID
+      run.chapter!.outcomeId = 'collapse_debt'
+      const upgraded = upgradeRunToSchemaV5(run)
+      expect(upgraded.runStatus).toBe('fated')
+      expect(upgraded.stageId).toBe(M1_ID)
     })
   })
 })

@@ -1,0 +1,16 @@
+{
+  "id": "collapse-debt-stress",
+  "fromFates": ["human", "indentured", "mortgaged"],
+  "toFate": "human",
+  "trigger": {
+    "kind": "collapse_metric",
+    "triggerId": "debt_stress_ratio"
+  },
+  "institutionalTags": ["credit_blacklist"],
+  "overlay": {
+    "title": "灵籍更新",
+    "bodyLine": "灵籍档案已更新，请签收后继续本周排程。"
+  },
+  "logLine": "债务压力比触发征信标记——命运态续存。",
+  "setFated": true
+}

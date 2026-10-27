@@ -122,4 +122,54 @@ describe('resolvePlayScreen', () => {
     })
     expect(resolvePlayScreen(hs)).toBe('endless-pressure')
   })
+
+  it('fateUpdatePending 时 resolvePlayScreen 为 fate-update', () => {
+    const base = createPlayRunFromStartConfig(start, 'slot1', { runMode: 'fate_run' })
+    const hs = advanceRunToHs(base)
+    const run = initChapter({
+      ...hs,
+      primaryFate: 'mortgaged',
+      setpiece: {
+        fateUpdatePending: { from: 'human', to: 'mortgaged', trigger: 'body_integrity' }
+      }
+    })
+    expect(resolvePlayScreen(run)).toBe('fate-update')
+  })
+
+  it('bodyMortgagePending 且无 fateUpdate 时仍为 body-mortgage', () => {
+    const base = createPlayRunFromStartConfig(start, 'slot1', { runMode: 'fate_run' })
+    const hs = advanceRunToHs(base)
+    const run = initChapter({
+      ...hs,
+      setpiece: {
+        bodyMortgagePending: {
+          mandatory: false,
+          offers: [
+            {
+              partId: 'LeftPalm',
+              label: '左手',
+              repaymentValue: 1000,
+              lockedDebtAdded: 5000,
+              mortgageType: 'debt_reduction',
+              narrative: 'test',
+              irreversible: true
+            }
+          ]
+        }
+      }
+    })
+    expect(resolvePlayScreen(run)).toBe('body-mortgage')
+  })
+
+  it('mandate-inbox 优先于 week-dashboard', () => {
+    const base = createPlayRunFromStartConfig(start, 'slot1', { runMode: 'chapter' })
+    const run = initChapter(advanceRunToHs(base))
+    run.mandate = {
+      numbness: 0,
+      domestication: 0,
+      pendingDeliveryIds: ['ch0-debt-reminder'],
+      supplyCutStreak: 0
+    }
+    expect(resolvePlayScreen(run)).toBe('mandate-inbox')
+  })
 })

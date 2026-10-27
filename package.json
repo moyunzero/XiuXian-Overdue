@@ -15,6 +15,7 @@
     "validate:realm-templates": "node scripts/validate-realm-templates.mjs",
     "validate:chapters": "node scripts/validate-chapters.mjs",
     "validate:mandates": "node scripts/validate-mandates.mjs",
+    "validate:stages": "node scripts/validate-stages.mjs",
     "analyze:collapse-distribution": "node scripts/simulate-collapse-distribution.mjs",
     "analyze:chapter-natural": "node scripts/simulate-chapter-natural.mjs",
     "test": "vitest --run",
@@ -27,7 +28,14 @@
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:walkthrough": "playwright test e2e/play-full-walkthrough.e2e.ts",
     "test:e2e:natural40": "playwright test e2e/play-full-walkthrough.e2e.ts -g \"natural UI 40 weeks\"",
-    "test:e2e:phase2-uat": "vitest --run app/logic/play/phase2UatFixtures.spec.ts && playwright test e2e/phase2-milestone-uat.e2e.ts"
+    "test:e2e:phase2-uat": "vitest --run app/logic/play/phase2UatFixtures.spec.ts && playwright test e2e/phase2-milestone-uat.e2e.ts",
+    "test:e2e:phase3-uat": "vitest --run app/logic/play/phase3UatFixtures.spec.ts && playwright test e2e/phase3-schedule-mandate-uat.e2e.ts",
+    "test:e2e:phase4-uat": "vitest --run app/logic/play/phase4UatFixtures.spec.ts && playwright test e2e/phase4-fate-slice-uat.e2e.ts",
+    "test:e2e:phase5-uat": "vitest --run app/logic/play/phase5UatFixtures.spec.ts && playwright test e2e/phase5-meta-multi-save-uat.e2e.ts",
+    "test:e2e:phase6-uat": "vitest --run app/logic/play/phase6UatFixtures.spec.ts && playwright test e2e/phase6-ghost-dual-ledger-uat.e2e.ts",
+    "test:e2e:phase7-uat": "vitest --run app/logic/play/phase7UatFixtures.spec.ts && playwright test e2e/phase7-stage-content-uat.e2e.ts",
+    "test:e2e:phase8-uat": "vitest --run app/logic/play/phase8UatFixtures.spec.ts && playwright test e2e/phase8-v5-handoff-uat.e2e.ts",
+    "test:e2e:v5-playtest": "playwright test e2e/v5-playtest-simulation.e2e.ts"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",

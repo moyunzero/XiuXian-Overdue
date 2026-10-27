@@ -22,6 +22,9 @@ export function usePlayOrchestrator(input: PlayOrchestratorInput) {
     if (run.runMode === 'chapter' && run.lifeStage !== 'pre' && !input.chapterDebtReady.value) {
       return 'loading'
     }
+    if (run.runMode === 'fate_run' && run.lifeStage !== 'pre' && !input.chapterDebtReady.value) {
+      return 'loading'
+    }
     if (run.runMode === 'endless' && !input.endlessDebtReady.value) return 'loading'
 
     return screen
@@ -30,7 +33,7 @@ export function usePlayOrchestrator(input: PlayOrchestratorInput) {
   const isPreAct1 = computed(() => playScreen.value === 'pre-act1')
   const isChapterRun = computed(
     () =>
-      input.playRun.value?.runMode === 'chapter' &&
+      (input.playRun.value?.runMode === 'chapter' || input.playRun.value?.runMode === 'fate_run') &&
       input.playRun.value.lifeStage !== 'pre' &&
       playScreen.value !== 'loading'
   )

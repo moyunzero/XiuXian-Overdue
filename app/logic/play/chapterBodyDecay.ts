@@ -1,5 +1,6 @@
 import type { WeekPlan } from '~/types/chapter'
 import type { PlayRunState } from '~/types/play'
+import { getMortgagedIntegrityCap } from '~/logic/play/headJarWeekPlan'
 
 /** 每周基础完整度损耗（40 周累计约 -0.08） */
 export const CHAPTER_BODY_DECAY_BASE = 0.002
@@ -27,7 +28,7 @@ function mortgagedPartCount(run: PlayRunState): number {
 
 /** 纯函数：计算本周 bodyIntegrity 衰减量 */
 export function weekBodyDecayAmount(run: PlayRunState, plan: WeekPlan): number {
-  if (run.runMode !== 'chapter') return 0
+  if (run.runMode !== 'chapter' && run.runMode !== 'fate_run') return 0
 
   let decay = CHAPTER_BODY_DECAY_BASE
   const streak = run.mandate?.supplyCutStreak ?? 0
@@ -55,15 +56,18 @@ export function weekBodyDecayAmount(run: PlayRunState, plan: WeekPlan): number {
   return decay
 }
 
-/** 章节周推进后施加身体完整度衰减 */
+/** 章节 / 命运周推进后施加身体完整度衰减 */
 export function applyChapterBodyDecay(run: PlayRunState, plan: WeekPlan): PlayRunState {
-  if (run.runMode !== 'chapter') return run
+  if (run.runMode !== 'chapter' && run.runMode !== 'fate_run') return run
 
   const before = run.bodyIntegrity ?? 1
   const delta = weekBodyDecayAmount(run, plan)
   if (delta <= 0) return run
 
-  const after = Math.max(0, Number((before - delta).toFixed(4)))
+  let after = Math.max(0, Number((before - delta).toFixed(4)))
+  if (run.primaryFate === 'mortgaged') {
+    after = Math.max(after, getMortgagedIntegrityCap())
+  }
   if (after >= before) return run
 
   const logs = [...run.logs]

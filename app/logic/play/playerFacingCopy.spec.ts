@@ -2,13 +2,21 @@ import { describe, expect, it } from 'vitest'
 import {
   assertPlayerFacingStringsAreLocalized,
   assertPlayerFacingTextDoesNotLeakInternalIds,
+  delegationPanelCopy,
+  dualLedgerLabelMing,
+  dualLedgerLabelYang,
+  fateUpdateOverlayBodyLine,
+  formatContinuePlayLabel,
   formatEmploymentTrackLabel,
   formatGateLabel,
+  formatInstitutionalTagStamp,
   formatLifeStageChain,
   formatPlayAiMomentLogLine,
   formatPlayLogLine,
   formatPlayerFacingTagLine,
-  formatPressureCardTagLine
+  formatPressureCardTagLine,
+  formatPrimaryFateLabel,
+  META_NEW_HUMAN_OTHER_SLOT_HINT
 } from './playerFacingCopy'
 
 describe('playerFacingCopy', () => {
@@ -74,5 +82,71 @@ describe('playerFacingCopy', () => {
     const line = formatPlayerFacingTagLine(['some-unknown-tag-xyz'], { fallback: '无' })
     expect(line).toBe('制度档案备注')
     expect(line).not.toMatch(/some-unknown/)
+  })
+
+  it('formatContinuePlayLabel 命运档继续文案 (D-110)', () => {
+    expect(formatContinuePlayLabel('mortgaged')).toBe('继续 · 抵押运行档')
+    expect(formatContinuePlayLabel('head_jar')).toBe('继续 · 器藏维生档')
+    expect(formatContinuePlayLabel('human', '高中 · 你')).toBe('继续修行 · 高中 · 你')
+    assertPlayerFacingStringsAreLocalized([
+      formatContinuePlayLabel('mortgaged'),
+      formatContinuePlayLabel('head_jar')
+    ])
+  })
+
+  it('META_NEW_HUMAN_OTHER_SLOT_HINT 锁定文案 (D-112)', () => {
+    expect(META_NEW_HUMAN_OTHER_SLOT_HINT).toBe(
+      '新档仍从人类身份签约；上周目的命运态已收入账号档案。'
+    )
+    assertPlayerFacingTextDoesNotLeakInternalIds(META_NEW_HUMAN_OTHER_SLOT_HINT)
+  })
+
+  it('formatPrimaryFateLabel 不暴露 primaryFate ID', () => {
+    expect(formatPrimaryFateLabel('human')).toBe('肉身修士')
+    expect(formatPrimaryFateLabel('mortgaged')).toBe('抵押运行')
+    expect(formatPrimaryFateLabel('head_jar')).toBe('器藏维生')
+    expect(formatPrimaryFateLabel('unknown')).toBe('肉身修士')
+    assertPlayerFacingStringsAreLocalized([
+      formatPrimaryFateLabel('human'),
+      formatPrimaryFateLabel('mortgaged'),
+      formatPrimaryFateLabel('head_jar')
+    ])
+  })
+
+  it('formatInstitutionalTagStamp 输出 tag stamp 中文', () => {
+    expect(formatInstitutionalTagStamp('supply_cut')).toBe('断供')
+    expect(formatInstitutionalTagStamp('credit_blacklist')).toBe('征信黑')
+    expect(formatInstitutionalTagStamp('family_leverage')).toBe('连坐')
+    expect(formatInstitutionalTagStamp('exam_probation')).toBe('制度标记')
+  })
+
+  it('delegationPanelCopy ghost_bound 不含 raw tag ids (D-125)', () => {
+    const ghost = delegationPanelCopy('ghost_bound')
+    expect(ghost.panelTag).toBe('冥籍绑定')
+    expect(ghost.panelTitle).toBe('本周阴司工单')
+    expect(ghost.confirmLabel).toBe('开本周')
+    expect(JSON.stringify(ghost)).not.toMatch(/ghost_bound|head_jar/)
+    assertPlayerFacingStringsAreLocalized([ghost.panelTag, ghost.panelTitle, ghost.confirmLabel])
+  })
+
+  it('delegationPanelCopy head_jar defaults unchanged (D-125)', () => {
+    const head = delegationPanelCopy('head_jar')
+    expect(head.panelTag).toBe('器藏维生')
+    expect(head.panelTitle).toBe('本周委托')
+    expect(head.confirmLabel).toBe('开本周')
+  })
+
+  it('dualLedgerLabelYang/Ming 不含制度二字 (D-123)', () => {
+    expect(dualLedgerLabelYang()).toBe('人账阳债')
+    expect(dualLedgerLabelMing()).toBe('鬼账冥币')
+    expect(dualLedgerLabelYang()).not.toContain('制度')
+    expect(dualLedgerLabelMing()).not.toContain('制度')
+  })
+
+  it('fateUpdateOverlayBodyLine ghost_bound 不含 raw id (D-127)', () => {
+    const body = fateUpdateOverlayBodyLine('ghost_bind', 'ghost_bound')
+    expect(body).toContain('绑定幽影')
+    expect(body).not.toMatch(/ghost_bound|head_jar/)
+    assertPlayerFacingStringsAreLocalized([body])
   })
 })

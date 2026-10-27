@@ -1,4 +1,4 @@
-import type { KunxuSaveV4, PlayMeta, PlayRunState } from '~/types/play'
+import type { KunxuSaveV4, MetaProgress, PlayMeta, PlayRunState } from '~/types/play'
 import type { SaveSlotId } from '~/types/game'
 import type { Act1Persist } from '~/types/act1'
 import {
@@ -13,6 +13,8 @@ import {
 } from './usePlayStorage.helpers'
 import { touchPlayRun } from '~/logic/play/createPlayRun'
 import { normalizePlayMeta, recordRunToPlayMeta } from '~/logic/play/playMeta'
+import { mergeFatesFromRun, recordFateIfChanged as recordFateIfChangedLogic } from '~/logic/play/metaProgress'
+import { readMetaContainer, writeMetaProgress } from './useMetaStorage'
 
 function readLegacyAct1BySlot(): Record<string, Act1Persist> | null {
   if (!import.meta.client) return null
@@ -121,7 +123,30 @@ export function usePlayStorage() {
     const c = readContainer()
     c.meta = recordRunToPlayMeta(c.meta, run)
     writeContainer(c)
+    const accountMeta = mergeFatesFromRun(readMetaContainer().progress, run)
+    writeMetaProgress(accountMeta)
     return c.meta
+  }
+
+  function listActiveRunsBySlot(): Partial<Record<SaveSlotId, PlayRunState>> {
+    const c = readContainer()
+    const out: Partial<Record<SaveSlotId, PlayRunState>> = {}
+    for (const run of Object.values(c.runs)) {
+      if (run.runStatus === 'active') {
+        out[run.slotId] = run
+      }
+    }
+    return out
+  }
+
+  /** Chapter session: persist fate change to account meta (D-106) */
+  function recordFateIfChanged(prevRun: PlayRunState, nextRun: PlayRunState): MetaProgress {
+    const progress = readMetaContainer().progress
+    const next = recordFateIfChangedLogic(prevRun.primaryFate, nextRun.primaryFate, progress)
+    if (next !== progress) {
+      writeMetaProgress(next)
+    }
+    return next
   }
 
   return {
@@ -134,6 +159,8 @@ export function usePlayStorage() {
     clearActiveRun,
     getPlayMeta,
     updatePlayMeta,
-    recordRunMeta
+    recordRunMeta,
+    listActiveRunsBySlot,
+    recordFateIfChanged
   }
 }

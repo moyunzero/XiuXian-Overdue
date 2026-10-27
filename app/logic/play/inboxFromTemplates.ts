@@ -1,4 +1,6 @@
 import inboxTemplatesJson from '../../../data/inboxTemplates.json'
+import { buildMandateInboxPending } from '~/logic/play/mandateDelivery'
+import { getMandateDef } from '~/logic/play/mandateRegistry'
 import type {
   InboxMessage,
   InboxTemplate,
@@ -74,8 +76,40 @@ export function buildInboxFromTemplates(run: PlayRunState): InboxThread[] {
   return [...byThread.values()]
 }
 
+export function mergeMandateInboxThreads(run: PlayRunState, threads: InboxThread[]): InboxThread[] {
+  const pending = run.mandate?.pendingDeliveryIds ?? []
+  if (!pending.length) {
+    return threads.filter((t) => t.id !== 'thread-mandate')
+  }
+  const inboxPending = buildMandateInboxPending(run)
+  const firstId = pending[0]!
+  const def = getMandateDef(firstId)
+  const day = run.school?.day ?? run.act1?.day ?? 1
+  const mandateThread: InboxThread = {
+    id: 'thread-mandate',
+    kind: 'system',
+    title: inboxPending?.issuerLabel ?? '仙司来文',
+    unreadCount: pending.length,
+    messages: [
+      {
+        id: `msg-mandate-${firstId}`,
+        threadId: 'thread-mandate',
+        sender: inboxPending?.issuerLabel ?? '仙司',
+        title: inboxPending?.title ?? def?.title ?? '来文',
+        preview: def?.body?.slice(0, 48) ?? inboxPending?.body?.slice(0, 48) ?? '',
+        body: inboxPending?.body ?? def?.body ?? '',
+        day,
+        read: false,
+        required: true
+      }
+    ]
+  }
+  return [mandateThread, ...threads.filter((t) => t.id !== 'thread-mandate')]
+}
+
 export function refreshRunInbox(run: PlayRunState, stage?: LifeStage): PlayRunState {
   const lifeStage = stage ?? run.lifeStage
-  if (lifeStage !== 'hs' && lifeStage !== 'uni') return run
-  return { ...run, inbox: buildInboxFromTemplates(run) }
+  if (lifeStage !== 'hs' && lifeStage !== 'uni' && lifeStage !== 'work') return run
+  const threads = mergeMandateInboxThreads(run, buildInboxFromTemplates(run))
+  return { ...run, inbox: threads }
 }

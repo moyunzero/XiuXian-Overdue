@@ -1,0 +1,22 @@
+{
+  "id": "phase5-start-bundle-picker",
+  "label": "Phase5 · start bundle picker on new human",
+  "path": "/",
+  "waitSelector": ".StartBundleRow",
+  "metaV1": {
+    "saveSchemaVersion": 1,
+    "metaProgressId": "default",
+    "progress": {
+      "unlockedFatesSeen": [
+        "human",
+        "mortgaged"
+      ],
+      "passiveIds": [],
+      "startBundles": [
+        "bundle-mortgage-file-copy"
+      ]
+    }
+  },
+  "clearPlaySave": true,
+  "expectBundleCatalog": true
+}

@@ -7,13 +7,14 @@ import {
 } from '~/logic/play/chapterWeekFlow'
 import {
   advanceChapterToWeek,
+  advanceFateToWeek,
   dismissCurrentSetpiece,
+  finalizeAfterMandateDrain,
   settledChapterRun,
   settledFateRun
 } from '~/logic/play/chapterTestHelpers'
 import { CHAPTER_BODY_COLLAPSE_THRESHOLD } from '~/logic/play/chapterCollapse'
-import { advanceWeek, ensureFateRunMode } from '~/logic/play/milestoneWeekFlow'
-import { STAGE_M2_HS } from '~/logic/play/stageDefs'
+import { advanceWeek } from '~/logic/play/milestoneWeekFlow'
 import {
   DEFAULT_PLAY_META,
   PLAY_SAVE_SCHEMA_VERSION,
@@ -43,16 +44,7 @@ function saveContainerFromRun(run: PlayRunState): KunxuSaveV4 {
 }
 
 function advanceFateRunToWeek(run: PlayRunState, targetWeek: number): PlayRunState {
-  let next = ensureFateRunMode(run)
-  let steps = 0
-  while ((next.chapter?.chapterWeekIndex ?? 0) < targetWeek && steps < 800) {
-    steps += 1
-    if (next.runStatus === 'collapsed' || next.runStatus === 'archived') break
-    next = dismissCurrentSetpiece(next)
-    const { run: after, blocked } = advanceWeek(next, DEFAULT_WEEK_PLAN)
-    next = blocked ? dismissCurrentSetpiece(after) : after
-  }
-  return next
+  return advanceFateToWeek(run, targetWeek)
 }
 
 function normalizeRunForUiSeed(run: PlayRunState): PlayRunState {
@@ -81,8 +73,8 @@ function fateRunWeek41WithM2(): PlayRunState {
   let run = advanceFateRunToWeek(settledFateRun(), 40)
   run = dismissCurrentSetpiece(run)
   const to41 = advanceWeek(run, DEFAULT_WEEK_PLAN)
-  run = to41.run
-  if (run.stageId !== STAGE_M2_HS.id) {
+  run = finalizeAfterMandateDrain(to41.run)
+  if (run.stageId !== 'stage-m2-hs') {
     throw new Error(`expected M2 after W41 advance, got ${run.stageId}`)
   }
   return run
@@ -134,7 +126,7 @@ export function buildPhase2UatFixtures(): Phase2UatFixtureExport[] {
       waitSelector: '.WeekPlan',
       saveV5: saveContainerFromRun(fateW41M2),
       expectWeekIndex: 41,
-      expectStageId: STAGE_M2_HS.id,
+      expectStageId: 'stage-m2-hs',
       expectRunMode: 'fate_run'
     }
   ]

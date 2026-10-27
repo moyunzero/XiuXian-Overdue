@@ -1,0 +1,15 @@
+{
+  "id": "collapse-body-to-mortgaged",
+  "fromFates": ["human", "indentured"],
+  "toFate": "mortgaged",
+  "trigger": {
+    "kind": "collapse_metric",
+    "triggerIds": ["body_integrity", "body_exhaustion"]
+  },
+  "overlay": {
+    "title": "灵籍更新",
+    "bodyLine": "完整度跌破制度线——灵贷契约改写为抵押运行。"
+  },
+  "logLine": "完整度跌破制度线——灵贷契约改写为抵押运行。",
+  "setFated": true
+}

@@ -1,0 +1,324 @@
+{
+  "id": "phase7-w41-m2-stage",
+  "label": "Test5 · W41 → M2 学籍段",
+  "path": "/play",
+  "waitSelector": ".WeekPlan",
+  "saveV5": {
+    "saveSchemaVersion": 7,
+    "activeRunId": "run_1781936748521_7wot7rv",
+    "runs": {
+      "run_1781936748521_7wot7rv": {
+        "schemaVersion": 5,
+        "runId": "run_1781936748521_7wot7rv",
+        "runMode": "fate_run",
+        "createdAt": "2026-06-20T06:25:48.521Z",
+        "updatedAt": "2026-06-20T06:25:48.521Z",
+        "lifeStage": "work",
+        "chapterIndex": 0,
+        "realmTier": "mortal",
+        "realmIndex": 0,
+        "start": {
+          "playerName": "你",
+          "background": "贫民",
+          "talent": "无灵根",
+          "initialDebt": 20000,
+          "startingCity": "嵩阳市"
+        },
+        "slotId": "slot1",
+        "runStatus": "fated",
+        "primaryFate": "mortgaged",
+        "institutionalTags": [
+          {
+            "id": "supply_cut",
+            "appliedAtWeek": 41,
+            "source": "supply_cut_streak"
+          },
+          {
+            "id": "family_leverage",
+            "appliedAtWeek": 41,
+            "source": "family_delinquency_threshold"
+          }
+        ],
+        "stageId": "stage-m2-hs",
+        "logs": [
+          "学籍段切换：四十周契约账期已满，制度将你编入下一学籍卷。",
+          "你回复了标准话术——系统记录为「配合」。",
+          "你把周报改成 996 版——KPI 暂时过关。",
+          "契约账期已满，制度登记续行——下一学籍段待接入。",
+          "进入第 41 / 40 周。",
+          "周结算通报（第40周）：职场周度结算：债务压力：极高；当前总债务：¥28,360,796.9；风险倍率：利率×1.08，最低周还款×1.09，催收权重×1.18；当前画像：财务风险：极高风险。",
+          "周结算：制度复利¥419,101；学籍维护费与风控费¥1,600。共计¥420,701已计入债务。",
+          "第 40 周：契约账期已满，阶梯续行。",
+          "洞府灵气配额未达最低还款——断供计数 40。",
+          "你把仪表盘改成「保命版」。",
+          "还款计划已挂账——利息照计。",
+          "你回复了标准话术——系统记录为「配合」。",
+          "进入第 40 / 40 周。",
+          "周结算通报（第39周）：职场周度结算：债务压力：极高；当前总债务：¥23,682,366.1；风险倍率：利率×1.08，最低周还款×1.09，催收权重×1.18；当前画像：财务风险：极高风险。",
+          "周结算：制度复利¥349,962；学籍维护费与风控费¥1,600。共计¥351,562已计入债务。",
+          "洞府灵气配额未达最低还款——断供计数 39。",
+          "账期复利已滚动——债务计数写入本周流水（制度 stub）。",
+          "还款计划已挂账——利息照计。",
+          "你把周报改成 996 版——KPI 暂时过关。",
+          "进入第 39 / 40 周。",
+          "周结算通报（第38周）：职场周度结算：债务压力：极高；当前总债务：¥19,775,474.2；风险倍率：利率×1.08，最低周还款×1.09，催收权重×1.18；当前画像：财务风险：极高风险。",
+          "周结算：制度复利¥292,224；学籍维护费与风控费¥1,600。共计¥293,824已计入债务。",
+          "洞府灵气配额未达最低还款——断供计数 38。",
+          "你把周报改成 996 版——KPI 暂时过关。",
+          "你回复了标准话术——系统记录为「配合」。",
+          "还款计划已挂账——利息照计。",
+          "进入第 38 / 40 周。",
+          "周结算通报（第37周）：职场周度结算：债务压力：极高；当前总债务：¥16,512,884.4；风险倍率：利率×1.08，最低周还款×1.09，催收权重×1.18；当前画像：财务风险：极高风险。",
+          "周结算：制度复利¥244,009；学籍维护费与风控费¥1,600。共计¥245,609已计入债务。",
+          "洞府灵气配额未达最低还款——断供计数 37。",
+          "你回复了标准话术——系统记录为「配合」。",
+          "还款计划已挂账——利息照计。",
+          "你把周报改成 996 版——KPI 暂时过关。",
+          "进入第 37 / 40 周。",
+          "周结算通报（第36周）：职场周度结算：债务压力：极高；当前总债务：¥13,788,341.1；风险倍率：利率×1.08，最低周还款×1.09，催收权重×1.18；当前画像：财务风险：极高风险。",
+          "周结算：制度复利¥203,744；学籍维护费与风控费¥1,600。共计¥205,344已计入债务。",
+          "第 36 周：KPI 复核 0 分已归档。",
+          "洞府灵气配额未达最低还款——断供计数 36。",
+          "你把周报改成 996 版——KPI 暂时过关。",
+          "你回复了标准话术——系统记录为「配合」。",
+          "还款计划已挂账——利息照计。",
+          "进入第 36 / 40 周。",
+          "周结算通报（第35周）：职场周度结算：债务压力：极高；当前总债务：¥11,513,114.2；风险倍率：利率×1.08，最低周还款×1.09，催收权重×1.18；当前画像：财务风险：极高风险。",
+          "周结算：制度复利¥170,120；学籍维护费与风控费¥1,600。共计¥171,720已计入债务。",
+          "洞府灵气配额未达最低还款——断供计数 35。",
+          "你把周报改成 996 版——KPI 暂时过关。",
+          "进入第 35 / 40 周。",
+          "周结算通报（第34周）：职场周度结算：债务压力：极高；当前总债务：¥9,613,104.2；风险倍率：利率×1.08，最低周还款×1.09，催收权重×1.18；当前画像：财务风险：极高风险。",
+          "周结算：制度复利¥142,041；学籍维护费与风控费¥1,600。共计¥143,641已计入债务。",
+          "本周身体完整度 -2.1%（负债化损耗）。",
+          "洞府灵气配额未达最低还款——断供计数 34。",
+          "还款计划已挂账——利息照计。",
+          "进入第 34 / 40 周。",
+          "周结算通报（第33周）：职场周度结算：债务压力：极高；当前总债务：¥8,026,432.6；风险倍率：利率×1.08，最低周还款×1.09，催收权重×1.18；当前画像：财务风险：极高风险。",
+          "周结算：制度复利¥118,593；学籍维护费与风控费¥1,600。共计¥120,193已计入债务。",
+          "本周身体完整度 -2.1%（负债化损耗）。",
+          "洞府灵气配额未达最低还款——断供计数 33。",
+          "你把周报改成 996 版——KPI 暂时过关。",
+          "进入第 33 / 40 周。",
+          "周结算通报（第32周）：职场周度结算：债务压力：极高；当前总债务：¥6,701,425；风险倍率：利率×1.08，最低周还款×1.09，催收权重×1.18；当前画像：财务风险：极高风险。",
+          "周结算：制度复利¥99,012；学籍维护费与风控费¥1,600。共计¥100,612已计入债务。",
+          "第 32 周：KPI 复核 0 分已归档。",
+          "本周身体完整度 -2.1%（负债化损耗）。",
+          "洞府灵气配额未达最低还款——断供计数 32。",
+          "说明已上传——短期内不会再弹同类来文。",
+          "节点周提醒已读——系统记一次「主动配合」。",
+          "还款计划已挂账——利息照计。",
+          "进入第 32 / 40 周。",
+          "周结算通报（第31周）：职场周度结算：债务压力：极高；当前总债务：¥5,594,929.6；风险倍率：利率×1.08，最低周还款×1.09，催收权重×1.18；当前画像：财务风险：极高风险。",
+          "周结算：制度复利¥82,660；学籍维护费与风控费¥1,600。共计¥84,260已计入债务。",
+          "本周身体完整度 -2.1%（负债化损耗）。",
+          "洞府灵气配额未达最低还款——断供计数 31。",
+          "还款计划已挂账——利息照计。",
+          "你把周报改成 996 版——KPI 暂时过关。",
+          "进入第 31 / 40 周。",
+          "周结算通报（第30周）：职场周度结算：债务压力：极高；当前总债务：¥4,670,910.8；风险倍率：利率×1.08，最低周还款×1.09，催收权重×1.18；当前画像：财务风险：极高风险。",
+          "周结算：制度复利¥69,004；学籍维护费与风控费¥1,600。共计¥70,604已计入债务。",
+          "本周身体完整度 -2.1%（负债化损耗）。",
+          "洞府灵气配额未达最低还款——断供计数 30。",
+          "你把周报改成 996 版——KPI 暂时过关。"
+        ],
+        "profileTags": [
+          "prior-debt",
+          "mother-left",
+          "witness-departure",
+          "sect-cloud",
+          "sect-chosen",
+          "uni-foundation",
+          "job-errand-runner",
+          "employment-track"
+        ],
+        "inbox": [],
+        "metaProgressId": "default",
+        "seed": 996281629,
+        "econ": {
+          "cash": 0,
+          "collectionFee": 62000,
+          "debtPrincipal": 20930,
+          "debtInterestAccrued": 28277866.9,
+          "dailyRate": 0.0239,
+          "delinquency": 24,
+          "lastPaymentDay": 0
+        },
+        "stats": {
+          "daoXin": 6.6,
+          "faLi": 9,
+          "rouTi": 0.6,
+          "fatigue": 0,
+          "focus": 100
+        },
+        "school": {
+          "day": 281,
+          "week": 41,
+          "slot": "morning",
+          "classTier": "末位班",
+          "lastExamScore": 510,
+          "lastRank": 176,
+          "perks": {
+            "mealSubsidy": 0,
+            "focusBonus": -6
+          }
+        },
+        "carryoverFromAct1": {
+          "metaUnlocks": [],
+          "permanentModifiers": {},
+          "familyOutcome": "left",
+          "unlockedInboxHints": [],
+          "startingDelinquencyBias": 0
+        },
+        "pressure": {
+          "round": 1,
+          "offeredCardIds": [
+            "uni-harvest-fee",
+            "uni-closed-cultivation",
+            "uni-method-sub",
+            "uni-rest-hall"
+          ],
+          "playedCardIds": [],
+          "resolved": false
+        },
+        "setpiece": {
+          "examBoss": {
+            "lastScore": 484,
+            "lastRank": 198,
+            "tierBefore": "末位班",
+            "tierAfter": "末位班"
+          },
+          "examsCompleted": 3,
+          "uniFoundationGateResolved": true
+        },
+        "act1": {
+          "chapter": "act1-pre-enrollment",
+          "day": 1,
+          "cash": 120,
+          "familyResilience": 0,
+          "pressure": 18,
+          "delinquency": 1,
+          "profileTags": [
+            "prior-debt",
+            "mother-left",
+            "witness-departure"
+          ],
+          "interview": {
+            "completed": false,
+            "score": 0,
+            "answers": {}
+          },
+          "loanMeta": {
+            "adDismissCount": 0,
+            "compareViewMs": 0,
+            "comparedProducts": false,
+            "popupAcknowledged": false
+          },
+          "loans": [
+            {
+              "id": "loan-prior-credit",
+              "lenderName": "既有征信欠款",
+              "principal": 20000,
+              "drawn": 20000,
+              "accruedInterest": 0,
+              "dailyRate": 0.01,
+              "graceDaysLeft": 0,
+              "nextRepaymentDay": 7,
+              "tags": [
+                "prior-debt"
+              ]
+            }
+          ],
+          "creditLineUsed": 0,
+          "familyMeta": {
+            "moneyRequests": 0,
+            "collectionStage": 0
+          },
+          "completedModules": [],
+          "pendingTodos": [
+            "todo-interview-open"
+          ],
+          "familyOutcome": "left"
+        },
+        "bodyIntegrity": 0.35,
+        "chapter": {
+          "chapterId": "ch0-forty-week-contract",
+          "weekBudget": 40,
+          "chapterWeekIndex": 41,
+          "weeksRemaining": 0,
+          "segmentId": "work",
+          "resolvedBeatWeeks": [
+            4,
+            8,
+            12,
+            16,
+            17,
+            28,
+            29
+          ]
+        },
+        "mandate": {
+          "numbness": 18,
+          "domestication": 100,
+          "pendingDeliveryIds": [],
+          "supplyCutStreak": 40
+        },
+        "work": {
+          "jobId": "errand-runner",
+          "educationTags": [
+            "hs-graduated",
+            "uni-enrolled",
+            "tier-tail"
+          ],
+          "monthlyTarget": 130196,
+          "kpiScore": 0,
+          "shameEvents": 0,
+          "employmentTrack": "gig"
+        },
+        "lastWeekPlan": {
+          "repay": "min",
+          "studyHours": 0,
+          "tunaHours": 0,
+          "parttimeHours": 0,
+          "workHours": 0,
+          "rest": false
+        },
+        "buyDebasement": 0,
+        "uni": {
+          "majorId": "foundation-track",
+          "sectId": "sect-cloud",
+          "foundationKpi": {
+            "daoXin": 2,
+            "faLi": 1.4,
+            "rouTi": 1.1
+          },
+          "foundationProgress": {
+            "daoXin": 6.6,
+            "faLi": 9,
+            "rouTi": 0.6
+          },
+          "subscriptions": [
+            {
+              "id": "spirit-root-lease",
+              "label": "灵根租",
+              "monthlyCost": 2400,
+              "active": true
+            },
+            {
+              "id": "method-sub",
+              "label": "功法订阅",
+              "monthlyCost": 1800,
+              "active": true
+            }
+          ],
+          "rankCohort": "elite",
+          "rankingLabel": "内门预科榜"
+        }
+      }
+    },
+    "meta": {}
+  },
+  "expectRunMode": "fate_run",
+  "expectStageId": "stage-m2-hs",
+  "expectWeekIndex": 41
+}

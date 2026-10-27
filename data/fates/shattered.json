@@ -1,0 +1,11 @@
+{
+  "id": "shattered",
+  "displayName": "碎裂态",
+  "playable": false,
+  "shell": {
+    "layoutToken": "fate-shattered",
+    "statusBarFields": ["debt"],
+    "disabledActions": ["study", "parttime", "rest", "repay_hero"],
+    "scheduleMode": "delegation_two"
+  }
+}

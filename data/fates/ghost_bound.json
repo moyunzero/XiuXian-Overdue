@@ -1,0 +1,11 @@
+{
+  "id": "ghost_bound",
+  "displayName": "绑定幽影",
+  "playable": true,
+  "shell": {
+    "layoutToken": "fate-ghost-bound",
+    "statusBarFields": ["debt", "integrity"],
+    "disabledActions": ["study", "parttime", "rest", "repay_hero"],
+    "scheduleMode": "delegation_two"
+  }
+}

@@ -120,7 +120,7 @@ test.describe('Phase 2 milestoneWeekFlow · UAT 自动化', () => {
     const run = await readActiveRun(page)
     expect(run?.runMode).toBe('fate_run')
     expect(run?.runStatus).not.toBe('archived')
-    await expect(page.getByRole('region', { name: '周仪表盘' })).toBeVisible()
+    await expect(page.getByRole('region', { name: /周排程|周仪表盘/ })).toBeVisible()
     await recorder.capture(page, {
       testId: 1,
       testName: t1Name,
@@ -187,7 +187,7 @@ test.describe('Phase 2 milestoneWeekFlow · UAT 自动化', () => {
     const archiveVisible = await page.locator('.RunArchiveView__post-mortem').isVisible().catch(() => false)
     expect(run?.runStatus).toBe('fated')
     expect(archiveVisible).toBe(false)
-    await expect(page.getByRole('region', { name: '周仪表盘' })).toBeVisible()
+    await expect(page.getByRole('region', { name: /周排程|周仪表盘/ })).toBeVisible()
     await recorder.capture(page, {
       testId: 3,
       testName: t3Name,
@@ -205,7 +205,7 @@ test.describe('Phase 2 milestoneWeekFlow · UAT 自动化', () => {
     const run = await readActiveRun(page)
     expect(run?.stageId).toBe('stage-m2-hs')
     expect(run?.logs.some((l) => l.includes('学籍段切换'))).toBe(true)
-    await expect(page.getByRole('region', { name: '周仪表盘' })).toBeVisible()
+    await expect(page.getByRole('region', { name: /周排程|周仪表盘/ })).toBeVisible()
     await recorder.capture(page, {
       testId: 4,
       testName: t4Name,

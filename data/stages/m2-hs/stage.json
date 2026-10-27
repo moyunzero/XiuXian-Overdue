@@ -1,0 +1,13 @@
+{
+  "id": "stage-m2-hs",
+  "displayName": "高中卷",
+  "contentPack": "m2-hs",
+  "weekRange": [41, 80],
+  "chapterId": null,
+  "mandatePools": {},
+  "lifeStages": ["hs"],
+  "defaultFate": "human",
+  "tagPools": [],
+  "eventPack": "data/events.json",
+  "unlockMeta": {}
+}

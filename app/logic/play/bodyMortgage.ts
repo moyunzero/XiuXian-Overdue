@@ -139,7 +139,7 @@ export function applyBodyMortgageToRun(run: PlayRunState, partId: BodyPartId): P
   const setpiece = { ...run.setpiece }
   delete setpiece.bodyMortgagePending
 
-  return {
+  let next: PlayRunState = {
     ...run,
     econ: { ...g.econ },
     stats: { ...g.stats },
@@ -152,6 +152,25 @@ export function applyBodyMortgageToRun(run: PlayRunState, partId: BodyPartId): P
     logs: [logLine, ...run.logs].slice(0, 80),
     setpiece
   }
+
+  if (run.runMode === 'fate_run' && run.primaryFate === 'human') {
+    next = {
+      ...next,
+      runStatus: 'fated',
+      primaryFate: 'mortgaged',
+      setpiece: {
+        ...next.setpiece,
+        fateUpdatePending: {
+          from: 'human',
+          to: 'mortgaged',
+          trigger: 'body_mortgage'
+        }
+      },
+      logs: ['抵押登记完成——灵籍改写为抵押运行。', ...next.logs].slice(0, 80)
+    }
+  }
+
+  return next
 }
 
 export function dismissBodyMortgage(run: PlayRunState): PlayRunState {
@@ -167,4 +186,23 @@ export function dismissBodyMortgage(run: PlayRunState): PlayRunState {
 
 export function debtAfterMortgageDelta(before: PlayRunState, after: PlayRunState): number {
   return fullDebtFromRun(before) - fullDebtFromRun(after)
+}
+
+const BLOOD_DRAW_CASH = 800
+const BLOOD_DRAW_INTEGRITY_COST = 0.04
+
+/** mortgaged 态 grit：抽血换现，完整度代价；不触发 archive/collapse */
+export function applyBloodDrawGrit(run: PlayRunState): PlayRunState {
+  if (run.primaryFate !== 'mortgaged' || !run.econ) return run
+  const before = run.bodyIntegrity ?? 1
+  const after = Math.max(0, Number((before - BLOOD_DRAW_INTEGRITY_COST).toFixed(4)))
+  return {
+    ...run,
+    econ: { ...run.econ, cash: run.econ.cash + BLOOD_DRAW_CASH },
+    bodyIntegrity: after,
+    logs: [
+      `抽血换现：+¥${BLOOD_DRAW_CASH.toLocaleString()}，完整度 -${(BLOOD_DRAW_INTEGRITY_COST * 100).toFixed(0)}%。`,
+      ...run.logs
+    ].slice(0, 80)
+  }
 }

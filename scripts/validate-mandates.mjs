@@ -16,7 +16,30 @@ const EFFECT_KINDS = new Set([
   'domestication',
   'numbness',
   'supplyCutStreak',
-  'log'
+  'institutionalTag',
+  'log',
+  'queueMandate',
+  'primaryFateTransition'
+])
+
+const PRIMARY_FATES = new Set([
+  'human',
+  'indentured',
+  'mortgaged',
+  'ghost_voluntary',
+  'head_jar',
+  'ghost_bound',
+  'shattered'
+])
+
+const INSTITUTIONAL_TAG_IDS = new Set([
+  'supply_cut',
+  'credit_blacklist',
+  'exam_probation',
+  'mandate_flood',
+  'family_leverage',
+  'organelle_liens',
+  'ghost_chain_seed'
 ])
 
 const POOLS = new Set(['routine', 'nodeBonus', 'family'])
@@ -90,6 +113,22 @@ for (const file of files) {
       continue
     }
 
+    if (def.issuerTag !== undefined && typeof def.issuerTag !== 'string') {
+      errors.push(`${prefix}: issuerTag 须为 string`)
+    }
+    const OPTIONAL_ARRAY_FIELDS = ['stageIds', 'primaryFates', 'requiresInstitutionalTags']
+    for (const key of OPTIONAL_ARRAY_FIELDS) {
+      if (def[key] !== undefined && !Array.isArray(def[key])) {
+        errors.push(`${prefix}: ${key} 须为数组`)
+      }
+    }
+    if (def.weight !== undefined && typeof def.weight !== 'number') {
+      errors.push(`${prefix}: weight 须为 number`)
+    }
+    if (def.minEffectCount !== undefined && typeof def.minEffectCount !== 'number') {
+      errors.push(`${prefix}: minEffectCount 须为 number`)
+    }
+
     const responseIds = new Set()
     for (const resp of def.responses) {
       if (typeof resp.id !== 'string' || !resp.id.trim()) {
@@ -114,6 +153,21 @@ for (const file of files) {
         if (effect.kind === 'log') {
           if (typeof effect.message !== 'string' || !effect.message.trim()) {
             errors.push(`${prefix} · ${resp.id}: log effect 须含 message`)
+          }
+        } else if (effect.kind === 'institutionalTag') {
+          if (typeof effect.tagId !== 'string' || !INSTITUTIONAL_TAG_IDS.has(effect.tagId)) {
+            errors.push(`${prefix} · ${resp.id}: institutionalTag 须含合法 tagId`)
+          }
+          if (effect.expiryWeek !== undefined && typeof effect.expiryWeek !== 'number') {
+            errors.push(`${prefix} · ${resp.id}: institutionalTag expiryWeek 须为 number`)
+          }
+        } else if (effect.kind === 'queueMandate') {
+          if (typeof effect.mandateId !== 'string' || !effect.mandateId.trim()) {
+            errors.push(`${prefix} · ${resp.id}: queueMandate 须含 mandateId`)
+          }
+        } else if (effect.kind === 'primaryFateTransition') {
+          if (typeof effect.toFate !== 'string' || !PRIMARY_FATES.has(effect.toFate)) {
+            errors.push(`${prefix} · ${resp.id}: primaryFateTransition 须含合法 toFate`)
           }
         } else if (typeof effect.value !== 'number') {
           errors.push(`${prefix} · ${resp.id}: ${effect.kind} effect 须含 number value`)

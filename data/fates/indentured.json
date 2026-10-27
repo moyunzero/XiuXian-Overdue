@@ -1,0 +1,11 @@
+{
+  "id": "indentured",
+  "displayName": "肉身修士",
+  "playable": true,
+  "shell": {
+    "layoutToken": "fate-indentured",
+    "statusBarFields": ["debt", "cash", "integrity", "delinquency"],
+    "disabledActions": [],
+    "scheduleMode": "four_tile"
+  }
+}

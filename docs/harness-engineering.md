@@ -140,3 +140,14 @@ yarn harness:architecture
 4. 在本文档 Gate 表补一行说明。
 
 **不要**只靠 AGENTS.md 口头要求；**要**让 `verify.mjs` 跑得到。
+
+---
+
+## 10. v5 里程碑交付（Phase 8）
+
+| 场景 | 命令 |
+|------|------|
+| **发布门禁（TEST-01）** | `yarn harness:verify --full` → **HARNESS_OK** |
+| 预览前推荐 | `yarn harness:verify --full --with-build`（`--full` 已含 build 时等价） |
+| UI preflight | `yarn test:e2e:phase8-uat`（串行 Playwright + 截图） |
+| 人玩前 | [playtest-checklist-v5.md](./playtest-checklist-v5.md) §0 |

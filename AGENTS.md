@@ -72,6 +72,7 @@ yarn build                      # harness --full --with-build
 | `useGameStorage` / `GameState` | `useGameStorage.spec.ts` |
 | Act1 | **`yarn test:act1`**；家庭线确认 `act1FamilyFlow.spec.ts` |
 | Play 编排 / setpiece | manifest 中对应 `contracts` + harness |
+| v5 交付 / 试玩 preflight | `yarn harness:verify --full` + `yarn test:e2e:phase8-uat` |
 
 交付前：**必须** `yarn harness:verify`，回复写明 `HARNESS_OK` 或失败 gate。
 

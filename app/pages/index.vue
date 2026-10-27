@@ -1,26 +1,40 @@
 <script setup lang="ts">
 import type { Background, StartConfig, Talent } from '~/types/game'
-import type { PlayRunState } from '~/types/play'
+import type { MetaProgress, PlayRunState, SaveSlotId } from '~/types/play'
 import { computed, onMounted, ref } from 'vue'
 import { navigateTo } from '#app'
 import { useAct1Storage } from '~/composables/useAct1Storage'
+import { useMetaStorage } from '~/composables/useMetaStorage'
 import { usePlayStorage } from '~/composables/usePlayStorage'
 import { emptyV4Save, LEGACY_SAVE_KEY } from '~/composables/usePlayStorage.helpers'
 import { createPlayRunFromStartConfig } from '~/logic/play/createPlayRun'
 import { carryoverFromPersist } from '~/logic/act1/act1Carryover'
 import { formatMetaUnlocksLine } from '~/logic/act1/metaUnlockLabels'
+import { formatMetaProgressLine } from '~/logic/play/metaProgressCopy'
 import { mergePriorMetaForNewRun } from '~/logic/play/playMeta'
+import {
+  formatContinuePlayLabel,
+  META_NEW_HUMAN_OTHER_SLOT_HINT
+} from '~/logic/play/playerFacingCopy'
+import { START_BUNDLE_REGISTRY } from '~/logic/play/startBundleRegistry'
 import { lifeStageLabel } from '~/logic/play/chapterFlow'
 import Act1ArchivePanel from '~/components/home/Act1ArchivePanel.vue'
+import AccountProfileZone from '~/components/home/AccountProfileZone.vue'
+import FateCodexStrip from '~/components/home/FateCodexStrip.vue'
 import HeroSection from '~/components/home/HeroSection.vue'
 import IdentitySelector from '~/components/home/IdentitySelector.vue'
+import PlaySlotSummaryCard from '~/components/home/PlaySlotSummaryCard.vue'
 import QuickStartButton from '~/components/home/QuickStartButton.vue'
+import StartBundlePicker from '~/components/home/StartBundlePicker.vue'
 import ParticleBackground from '~/components/home/ParticleBackground.vue'
 import Button from '~/components/ui/Button.vue'
 import Card from '~/components/ui/Card.vue'
 import Pill from '~/components/ui/Pill.vue'
 
-const selectedNewGameSlot = ref<'slot1' | 'slot2' | 'slot3'>('slot1')
+const SLOT_IDS: SaveSlotId[] = ['slot1', 'slot2', 'slot3']
+
+const selectedNewGameSlot = ref<SaveSlotId>('slot1')
+const selectedBundleId = ref('standard')
 const playerName = ref('龙傲天')
 const background = ref<Background>('贫民')
 const talent = ref<Talent>('无灵根')
@@ -35,9 +49,47 @@ const playHsCarryover = useState<ReturnType<typeof carryoverFromPersist> | null>
 const playRunMode = useState<'chapter' | 'endless'>('playRunMode', () => 'chapter')
 const aiEventsEnabled = ref(true)
 
+const act1Storage = useAct1Storage()
+const playStorage = usePlayStorage()
+const metaStorage = useMetaStorage()
+const meta = ref<MetaProgress>({ unlockedFatesSeen: ['human'] })
+const activePlayRun = ref<PlayRunState | null>(null)
+const savedAct1Slot = ref<'slot1' | 'slot2' | 'slot3' | null>(null)
+
 const globalMetaLine = computed(() => {
+  const metaLine = formatMetaProgressLine(meta.value)
   const ids = playStorage.getPlayMeta().priorMetaUnlocks
-  return ids.length ? formatMetaUnlocksLine(ids, 5) : ''
+  const legacy = ids.length ? formatMetaUnlocksLine(ids, 5) : ''
+  if (metaLine && legacy) return `${metaLine} · ${legacy}`
+  return metaLine || legacy
+})
+
+const activeRunsBySlot = computed(() => playStorage.listActiveRunsBySlot())
+
+const eligibleBundleOptions = computed(() =>
+  metaStorage.getEligibleBundles().map((id) => {
+    const def = START_BUNDLE_REGISTRY[id]
+    return {
+      id,
+      label: def?.playerLabel ?? id,
+      description: '前若干周来文措辞更直白，不改变数值。'
+    }
+  })
+)
+
+const showStartBundlePicker = computed(
+  () => showNewGameSetup.value && !hasAct1InProgress.value && eligibleBundleOptions.value.length > 0
+)
+
+const headJarOtherSlotHint = computed(() => {
+  if (!showNewGameSetup.value) return ''
+  const hasHeadJarElsewhere = Object.values(activeRunsBySlot.value).some(
+    (run) =>
+      run &&
+      run.primaryFate === 'head_jar' &&
+      run.slotId !== selectedNewGameSlot.value
+  )
+  return hasHeadJarElsewhere ? META_NEW_HUMAN_OTHER_SLOT_HINT : ''
 })
 
 const hasActiveRun = computed(() => !!activePlayRun.value)
@@ -45,7 +97,12 @@ const hasAct1InProgress = computed(() => !activePlayRun.value && !!savedAct1Slot
 const showNewGameSetup = computed(() => !hasActiveRun.value)
 
 const continuePlayLabel = computed(() => {
-  if (activePlayRun.value) return `继续修行 · ${activePlayRunLabel.value}`
+  if (activePlayRun.value) {
+    return formatContinuePlayLabel(
+      activePlayRun.value.primaryFate,
+      activePlayRunLabel.value
+    )
+  }
   if (savedAct1Slot.value) return `继续修行 · 入学前夜（${slotLabel(savedAct1Slot.value)}）`
   return '继续修行'
 })
@@ -66,11 +123,6 @@ function buildStartConfig(): StartConfig {
   }
 }
 
-const act1Storage = useAct1Storage()
-const playStorage = usePlayStorage()
-const activePlayRun = ref<PlayRunState | null>(null)
-const savedAct1Slot = ref<'slot1' | 'slot2' | 'slot3' | null>(null)
-
 const settledAct1ForSlot = computed(() => {
   const saved = act1Storage.loadAct1(selectedNewGameSlot.value)
   return saved?.settled ? saved : null
@@ -78,18 +130,29 @@ const settledAct1ForSlot = computed(() => {
 
 const slotLabel = (id: string) => (id === 'slot1' ? '存档槽 1' : id === 'slot2' ? '存档槽 2' : '存档槽 3')
 
+function syncFormFromRun(run: PlayRunState) {
+  playerName.value = run.start.playerName
+  background.value = run.start.background
+  talent.value = run.start.talent
+  startingCity.value = run.start.startingCity
+  initialDebt.value = run.start.initialDebt
+}
+
+function onSlotCardClick(slotId: SaveSlotId) {
+  selectedNewGameSlot.value = slotId
+  const run = activeRunsBySlot.value[slotId]
+  if (run) syncFormFromRun(run)
+}
+
 onMounted(() => {
+  meta.value = metaStorage.readMeta()
   activePlayRun.value = playStorage.getActiveRun()
   if (activePlayRun.value) {
     selectedNewGameSlot.value = activePlayRun.value.slotId
-    playerName.value = activePlayRun.value.start.playerName
-    background.value = activePlayRun.value.start.background
-    talent.value = activePlayRun.value.start.talent
-    startingCity.value = activePlayRun.value.start.startingCity
-    initialDebt.value = activePlayRun.value.start.initialDebt
+    syncFormFromRun(activePlayRun.value)
   }
   aiEventsEnabled.value = playStorage.getPlayMeta().aiEventsEnabled
-  for (const slot of ['slot1', 'slot2', 'slot3'] as const) {
+  for (const slot of SLOT_IDS) {
     const saved = act1Storage.loadAct1(slot)
     if (saved && !saved.settled) {
       savedAct1Slot.value = slot
@@ -115,10 +178,21 @@ async function onStartJourney() {
   const fromSlot = prev?.settled ? (prev.metaUnlocks ?? []) : []
   act1PriorMetaUnlocks.value = mergePriorMetaForNewRun(playStorage.getPlayMeta(), fromSlot)
 
+  const bundleId =
+    selectedBundleId.value === 'standard' ? null : selectedBundleId.value
+  const eligible = metaStorage.getEligibleBundles()
+  if (bundleId && !eligible.includes(bundleId)) return
+
+  if (!(meta.value.unlockedFatesSeen?.length ?? 0)) {
+    meta.value = metaStorage.recordFateSeen('human')
+  }
+
   const run = createPlayRunFromStartConfig(cfg, selectedNewGameSlot.value, {
-    runMode: 'chapter'
+    runMode: 'chapter',
+    startBundleId: bundleId
   })
   playStorage.setActiveRun(run)
+  activePlayRun.value = run
   await navigateTo('/play')
 }
 
@@ -164,7 +238,7 @@ function onClearSaves() {
   )
   if (!ok) return
   playStorage.writeContainer(emptyV4Save())
-  for (const slot of ['slot1', 'slot2', 'slot3'] as const) {
+  for (const slot of SLOT_IDS) {
     act1Storage.clearAct1(slot)
   }
   if (import.meta.client) {
@@ -188,60 +262,98 @@ function onClearSaves() {
     <div class="Container">
       <HeroSection />
 
+      <AccountProfileZone
+        class="IndexPage__profile"
+        :meta-summary-line="globalMetaLine"
+      >
+        <template #archive>
+          <FateCodexStrip :unlocked-fates-seen="meta.unlockedFatesSeen ?? []" />
+        </template>
+
+        <div class="IndexPage__start">
+          <template v-if="hasActiveRun">
+            <Card class="IndexPage__continueCard" padding="md">
+              <p class="IndexPage__continue-kicker">进行中的战役</p>
+              <p class="IndexPage__continue-title">{{ activePlayRunLabel }}</p>
+            </Card>
+            <QuickStartButton
+              :text="continuePlayLabel"
+              @click="onContinuePlay"
+            />
+            <button
+              type="button"
+              class="IndexPage__glassBtn"
+              @click="showAdvanced = true"
+            >
+              开新局（覆盖当前进度）
+            </button>
+          </template>
+
+          <template v-else>
+            <Act1ArchivePanel
+              v-if="settledAct1ForSlot"
+              :persist="settledAct1ForSlot"
+              :slot-label="slotLabel(selectedNewGameSlot)"
+            />
+
+            <QuickStartButton
+              v-if="hasAct1InProgress"
+              :text="continuePlayLabel"
+              @click="onContinuePlay"
+            />
+
+            <StartBundlePicker
+              v-if="showStartBundlePicker"
+              v-model="selectedBundleId"
+              :bundles="eligibleBundleOptions"
+              class="IndexPage__bundlePicker"
+            />
+
+            <p
+              v-if="headJarOtherSlotHint"
+              class="IndexPage__headJarHint"
+            >
+              {{ headJarOtherSlotHint }}
+            </p>
+
+            <QuickStartButton
+              :disabled="!selectedNewGameSlot"
+              :text="hasAct1InProgress ? '开新局' : '签署契约并开始'"
+              :subtitle="hasAct1InProgress ? '' : '入学前夜 → 高中 → 预科 → 职场 → 无尽境'"
+              @click="onStartJourney"
+            />
+          </template>
+        </div>
+      </AccountProfileZone>
+
       <IdentitySelector
         v-if="showNewGameSetup"
         v-model="background"
         class="IndexPage__identity"
       />
 
-      <div class="IndexPage__start">
-        <template v-if="hasActiveRun">
-          <Card class="IndexPage__continueCard" padding="md">
-            <p class="IndexPage__continue-kicker">进行中的战役</p>
-            <p class="IndexPage__continue-title">{{ activePlayRunLabel }}</p>
-            <p v-if="globalMetaLine" class="IndexPage__continue-meta">{{ globalMetaLine }}</p>
-          </Card>
-          <QuickStartButton
-            :text="continuePlayLabel"
-            @click="onContinuePlay"
-          />
-          <button
-            type="button"
-            class="IndexPage__glassBtn"
-            @click="showAdvanced = true"
-          >
-            开新局（覆盖当前进度）
-          </button>
-        </template>
-
-        <template v-else>
-          <Act1ArchivePanel
-            v-if="settledAct1ForSlot"
-            :persist="settledAct1ForSlot"
-            :slot-label="slotLabel(selectedNewGameSlot)"
-          />
-
-          <Card v-if="globalMetaLine" class="IndexPage__meta" padding="md">
-            <p class="IndexPage__mode-label">跨周目制度备注</p>
-            <p class="IndexPage__meta-line">{{ globalMetaLine }}</p>
-          </Card>
-
-          <QuickStartButton
-            v-if="hasAct1InProgress"
-            :text="continuePlayLabel"
-            @click="onContinuePlay"
-          />
-
-          <QuickStartButton
-            :disabled="!selectedNewGameSlot"
-            :text="hasAct1InProgress ? '开新局' : '签署契约并开始'"
-            :subtitle="hasAct1InProgress ? '' : '入学前夜 → 高中 → 预科 → 职场 → 无尽境'"
-            @click="onStartJourney"
-          />
-        </template>
-
+      <div v-if="hasActiveRun" class="IndexPage__start IndexPage__start--secondary">
         <button
-          v-if="showNewGameSetup || hasActiveRun"
+          class="IndexPage__advanced-toggle"
+          @click="showAdvanced = !showAdvanced"
+        >
+          {{ showAdvanced ? '收起' : '高级设置' }}
+          <svg
+            class="IndexPage__chevron"
+            :class="{ 'IndexPage__chevron--up': showAdvanced }"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </button>
+      </div>
+
+      <div v-else class="IndexPage__start IndexPage__start--secondary">
+        <button
+          v-if="showNewGameSetup"
           class="IndexPage__advanced-toggle"
           @click="showAdvanced = !showAdvanced"
         >
@@ -261,6 +373,17 @@ function onClearSaves() {
 
       <Transition name="slide">
         <Card v-if="showAdvanced" class="IndexPage__advanced" padding="md">
+          <div class="IndexPage__slotGrid">
+            <PlaySlotSummaryCard
+              v-for="slotId in SLOT_IDS"
+              :key="slotId"
+              :slot-id="slotId"
+              :run="activeRunsBySlot[slotId] ?? null"
+              :is-active="selectedNewGameSlot === slotId"
+              @click="onSlotCardClick(slotId)"
+            />
+          </div>
+
           <div class="IndexPage__advanced-grid">
             <div class="IndexPage__field">
               <label class="Label">角色名</label>
@@ -351,6 +474,10 @@ function onClearSaves() {
   min-height: 100vh;
 }
 
+.IndexPage__profile {
+  margin-top: 24px;
+}
+
 .IndexPage__identity {
   margin-top: 24px;
 }
@@ -360,7 +487,12 @@ function onClearSaves() {
   flex-direction: column;
   align-items: center;
   gap: 16px;
-  margin-top: 32px;
+  width: 100%;
+  min-width: 0;
+}
+
+.IndexPage__start--secondary {
+  margin-top: 16px;
 }
 
 .IndexPage__continueCard {
@@ -381,51 +513,49 @@ function onClearSaves() {
   font-weight: 600;
   color: var(--text-primary);
 }
-.IndexPage__continue-meta {
-  margin: 10px 0 0;
+
+.IndexPage__bundlePicker {
+  width: 100%;
+  max-width: 420px;
+}
+
+.IndexPage__headJarHint {
+  width: 100%;
+  max-width: 420px;
+  margin: 0;
   font-family: var(--mono);
   font-size: var(--text-xs);
   line-height: 1.5;
   color: var(--text-secondary);
+  text-align: center;
 }
-.IndexPage__devLink {
+
+.IndexPage__slotGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  margin-bottom: 20px;
+}
+
+.IndexPage__glassBtn {
   width: 100%;
   max-width: 320px;
   text-align: center;
   font-family: var(--mono);
   font-size: var(--text-xs);
   color: rgba(180, 220, 255, 0.85);
-  text-decoration: none;
-  padding: 8px 12px;
+  background: transparent;
   border: 1px dashed rgba(120, 200, 255, 0.35);
   border-radius: 8px;
+  padding: 8px 12px;
   box-sizing: border-box;
+  cursor: pointer;
 }
-.IndexPage__devLink:hover {
+.IndexPage__glassBtn:hover {
   color: var(--neon-cyan);
   border-color: rgba(120, 200, 255, 0.55);
-}
-
-.IndexPage__mode {
-  width: 100%;
-  max-width: 420px;
-}
-
-.IndexPage__mode-label {
-  margin: 0 0 12px;
-  font-size: var(--text-xs);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--neon-cyan);
-  font-family: var(--mono);
-}
-
-.IndexPage__meta-line {
-  margin: 0;
-  font-family: var(--mono);
-  font-size: var(--text-xs);
-  line-height: 1.55;
-  color: var(--text-secondary);
 }
 
 .IndexPage__confirmNewRun {
@@ -472,6 +602,8 @@ function onClearSaves() {
 
 .IndexPage__advanced {
   margin-top: 16px;
+  width: 100%;
+  min-width: 0;
 }
 
 .IndexPage__advanced-grid {
@@ -525,7 +657,7 @@ function onClearSaves() {
 .slide-enter-to,
 .slide-leave-from {
   opacity: 1;
-  max-height: 500px;
+  max-height: 800px;
 }
 
 /* Debt Slider */

@@ -7,6 +7,7 @@ import {
   seedPayloadForScenario,
   type UiFixtureScenario
 } from './playUiFixtures'
+import { NATURAL_BASELINE_SEED } from '~/logic/play/chapterNaturalSim'
 
 export const WALKTHROUGH_OUT_DIR = path.join(process.cwd(), 'e2e/artifacts/walkthrough')
 export const WALKTHROUGH_REPORT_PATH = path.join(process.cwd(), 'docs/playwright-walkthrough-report.md')
@@ -147,9 +148,13 @@ export async function completeAct1FamilyShortPath(page: Page) {
   await page.locator('.Act1Settlement, .RunArchiveView').first().waitFor({ state: 'visible', timeout: 20_000 })
 }
 
+export async function waitForWeekPlanRegion(page: Page) {
+  await page.getByRole('region', { name: /周排程|周仪表盘/ }).waitFor({ state: 'visible', timeout: 30_000 })
+}
+
 export async function finishAct1Settlement(page: Page) {
   await page.getByRole('button', { name: '确认并进入昆墟高中' }).click()
-  await page.getByRole('region', { name: '周仪表盘' }).waitFor({ state: 'visible', timeout: 30_000 })
+  await waitForWeekPlanRegion(page)
 }
 
 export async function respondMandateInboxIfVisible(page: Page): Promise<boolean> {
@@ -161,21 +166,43 @@ export async function respondMandateInboxIfVisible(page: Page): Promise<boolean>
 }
 
 /** 与 chapterNaturalSim.drainMandatesForProfile 同源；guard 每批 drain 从 0 计，勿跨周累加 */
+async function respondMandateCardNatural(page: Page, seed: number, guard: number): Promise<boolean> {
+  const pickGrit = (seed + guard * NATURAL_SIM_GRIT_MOD) % 100 < NATURAL_SIM_GRIT_PCT
+  const gritLink = page.locator('.MandateCard__grit').first()
+  const leftZone = page.locator('.MandateCard__zone--left').first()
+  const rightZone = page.locator('.MandateCard__zone--right').first()
+
+  if (await page.locator('.MandateCardStack').isVisible().catch(() => false)) {
+    if (pickGrit && (await gritLink.isVisible().catch(() => false))) {
+      await gritLink.click({ timeout: 4000 }).catch(() => leftZone.click({ timeout: 4000 }).catch(() => {}))
+    } else if (await leftZone.isVisible().catch(() => false)) {
+      await leftZone.click({ timeout: 4000 }).catch(() => rightZone.click({ timeout: 4000 }).catch(() => {}))
+    } else {
+      return false
+    }
+    await page.waitForTimeout(400)
+    return true
+  }
+
+  const gritBtn = page.locator('.MandateInbox__btn--grit').first()
+  const firstBtn = page.locator('.MandateInbox__btn').first()
+  if (!(await firstBtn.isVisible().catch(() => false))) return false
+  if (pickGrit && (await gritBtn.isVisible().catch(() => false))) {
+    await gritBtn.click({ timeout: 4000 }).catch(() => firstBtn.click({ timeout: 4000 }).catch(() => {}))
+  } else {
+    await firstBtn.click({ timeout: 4000 }).catch(() => {})
+  }
+  return true
+}
+
 export async function drainMandatesNaturalIfVisible(page: Page, seed: number): Promise<boolean> {
   let acted = false
   let guard = 0
   while (await page.locator('.MandateInbox').isVisible().catch(() => false)) {
     guard += 1
     acted = true
-    const pickGrit = (seed + guard * NATURAL_SIM_GRIT_MOD) % 100 < NATURAL_SIM_GRIT_PCT
-    const gritBtn = page.locator('.MandateInbox__btn--grit').first()
-    const firstBtn = page.locator('.MandateInbox__btn').first()
-
-    if (pickGrit && (await gritBtn.isVisible().catch(() => false))) {
-      await gritBtn.click({ timeout: 4000 }).catch(() => firstBtn.click({ timeout: 4000 }).catch(() => {}))
-    } else {
-      await firstBtn.click({ timeout: 4000 }).catch(() => {})
-    }
+    const responded = await respondMandateCardNatural(page, seed, guard)
+    if (!responded) break
     await page.locator('.MandateInbox').waitFor({ state: 'hidden', timeout: 15_000 }).catch(() => {})
   }
   return acted
@@ -187,7 +214,6 @@ export async function respondMandateNaturalIfVisible(page: Page, seed: number): 
   return drainMandatesNaturalIfVisible(page, seed)
 }
 
-const NATURAL_BASELINE_SEED = 20260531
 const NATURAL_SIM_GRIT_PCT = 6
 const NATURAL_SIM_GRIT_MOD = 23
 
@@ -268,7 +294,7 @@ export async function prepareNaturalWeekPlan(page: Page) {
   const weekPlan = page.locator('.WeekPlan')
   if (!(await weekPlan.isVisible().catch(() => false))) return
 
-  const confirmBtn = page.getByRole('button', { name: '确认本周计划' })
+  const confirmBtn = page.getByRole('button', { name: /开本周|确认本周计划/ })
   if (await confirmBtn.isDisabled().catch(() => true)) return
 
   const seed = await getRunSeedFromPage(page)
@@ -298,7 +324,7 @@ export async function prepareNaturalWeekPlan(page: Page) {
 }
 
 export async function confirmWeekPlanIfReady(page: Page, useNaturalPlan = false): Promise<boolean> {
-  const btn = page.getByRole('button', { name: '确认本周计划' })
+  const btn = page.getByRole('button', { name: /开本周|确认本周计划/ })
   if (!(await btn.isVisible().catch(() => false))) return false
   if (useNaturalPlan) await prepareNaturalWeekPlan(page)
   if (await btn.isDisabled()) return false

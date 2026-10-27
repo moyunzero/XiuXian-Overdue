@@ -66,8 +66,12 @@ const {
 const endlessSession = usePlayEndlessSession()
 const chapterSession = useChapterSession()
 
+function isChapterLikeRunMode(mode: PlayRunState['runMode'] | undefined): boolean {
+  return mode === 'chapter' || mode === 'fate_run'
+}
+
 const playRun = computed(() => {
-  if (chapterSession.run.value?.runMode === 'chapter') return chapterSession.run.value
+  if (isChapterLikeRunMode(chapterSession.run.value?.runMode)) return chapterSession.run.value
   if (endlessSession.run.value?.runMode === 'endless') return endlessSession.run.value
   return activeRun.value
 })
@@ -112,8 +116,8 @@ const inboxThreads = computed(() => {
 
 const statusBar = computed<PlayStatusBarModel>(() => {
   const chapter = getChapterMeta(lifeStage.value, activeRun.value?.chapterIndex ?? 0)
-  if (lifeStage.value !== 'pre' && chapterSession.run.value?.runMode === 'chapter') {
-    const r = chapterSession.run.value
+  if (lifeStage.value !== 'pre' && isChapterLikeRunMode(chapterSession.run.value?.runMode)) {
+    const r = chapterSession.run.value!
     const hud = chapterSession.chapterHud.value
     return {
       day: r.school?.day ?? 1,
@@ -125,7 +129,8 @@ const statusBar = computed<PlayStatusBarModel>(() => {
       rankLabel: hud?.contractRankLabel ?? hud?.weekLabel ?? chapter?.title ?? lifeStageLabel(r.lifeStage),
       delinquency: r.econ?.delinquency ?? 0,
       realmLabel: realmTierLabel(r.realmTier ?? 'mortal'),
-      lifeStageLabel: lifeStageLabel(r.lifeStage)
+      lifeStageLabel: lifeStageLabel(r.lifeStage),
+      flash: chapterSession.statusFlash.value
     }
   }
   if (lifeStage.value !== 'pre' && endlessSession.run.value) {
@@ -162,7 +167,7 @@ function syncInboxToRun() {
 function initPlaySession(run: PlayRunState) {
   activeRun.value = run
   hsCarryover.value = null
-  if (run.runMode === 'chapter') {
+  if (isChapterLikeRunMode(run.runMode)) {
     chapterSession.initFromRun(run)
   } else {
     endlessSession.initFromRun(run)
@@ -213,7 +218,7 @@ onMounted(async () => {
     initSession()
   } else if (run) {
     activeRun.value = run
-    if (run.runMode === 'chapter') {
+    if (isChapterLikeRunMode(run.runMode)) {
       chapterSession.initFromRun(run)
     } else {
       endlessSession.initFromRun({ ...run, runMode: 'endless' })

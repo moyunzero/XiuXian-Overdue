@@ -1,0 +1,13 @@
+{
+  "id": "stage-m4-work",
+  "displayName": "职场卷",
+  "contentPack": "m4-work",
+  "weekRange": [121, 160],
+  "chapterId": null,
+  "mandatePools": {},
+  "lifeStages": ["work"],
+  "defaultFate": "human",
+  "tagPools": [],
+  "eventPack": "data/events.json",
+  "unlockMeta": {}
+}

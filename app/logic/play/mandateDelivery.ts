@@ -6,13 +6,16 @@ import type {
   MandateState
 } from '~/types/chapter'
 import { NUMBNESS_MUTE_THRESHOLD } from '~/logic/play/mandatePsy'
-import type { PlayRunState } from '~/types/play'
+import type { InstitutionalTagId, PlayRunState, PrimaryFate } from '~/types/play'
+import { initGhostLedgerOnTransition } from '~/logic/play/ghostLedger'
+import { mergeTagRecords } from '~/logic/play/playRunFateDefaults'
 import type { FamilyOutcome } from '~/types/act1'
 import {
   getChapterConfig,
   isNodeWeek
 } from '~/logic/play/chapterRegistry'
-import { getMandateDef, listMandatesForPool } from '~/logic/play/mandateRegistry'
+import { getMandateDef, listMandatesForRunPool } from '~/logic/play/mandateRegistry'
+import { clauseLiterateActive, isClauseCreditMandate } from '~/logic/play/startBundleRegistry'
 
 export const MAX_MANDATE_QUEUE = 3
 export const ROUTINE_ROLL_MAX = 2
@@ -24,6 +27,13 @@ const FAMILY_ROLL_CHANCE: Partial<Record<FamilyOutcome, number>> = {
   cutoff: 0.12
 }
 
+export interface MandateInboxFuzzFlags {
+  costBlur?: boolean
+  issuerNoise?: boolean
+  /** Phase 5: one response id stays sharp under numbness when clause-literate active */
+  clauseLiterateUnblurId?: string
+}
+
 export interface MandateInboxPending {
   deliveryId: string
   title: string
@@ -31,6 +41,12 @@ export interface MandateInboxPending {
   queueSize: number
   responses: MandateResponseDef[]
   numbness: number
+  issuerLabel?: string
+  fuzzFlags?: MandateInboxFuzzFlags
+}
+
+export function isChapterLikeRun(run: PlayRunState): boolean {
+  return run.runMode === 'chapter' || run.runMode === 'fate_run'
 }
 
 function clamp(n: number, min: number, max: number): number {
@@ -56,12 +72,22 @@ function ensureMandate(run: PlayRunState): MandateState {
   )
 }
 
-function eligibleMandates(run: PlayRunState, defs: MandateDeliveryDef[]): MandateDeliveryDef[] {
+function institutionalTagIds(run: PlayRunState): string[] {
+  return (run.institutionalTags ?? []).map((t) => t.id)
+}
+
+function hasNonLogEffects(def: MandateDeliveryDef): boolean {
+  return def.responses.some((r) => r.effects.some((e) => e.kind !== 'log'))
+}
+
+/** LOOP-04: stage, fate, institutional tags, minEffectCount; weight used at pick time */
+export function eligibleMandates(run: PlayRunState, defs: MandateDeliveryDef[]): MandateDeliveryDef[] {
   if (!run.chapter) return []
   const week = run.chapter.chapterWeekIndex
   const lifeStage = run.lifeStage
   const delinquency = run.econ?.delinquency ?? 0
   const pending = new Set(run.mandate?.pendingDeliveryIds ?? [])
+  const instTags = institutionalTagIds(run)
 
   return defs.filter((def) => {
     if (pending.has(def.id)) return false
@@ -73,20 +99,49 @@ function eligibleMandates(run: PlayRunState, defs: MandateDeliveryDef[]): Mandat
       const ok = def.requiresTags.some((t) => run.profileTags.includes(t))
       if (!ok) return false
     }
+    if (def.stageIds?.length) {
+      if (!run.stageId || !def.stageIds.includes(run.stageId)) return false
+    }
+    if (def.primaryFates?.length) {
+      if (!run.primaryFate || !def.primaryFates.includes(run.primaryFate)) return false
+    }
+    if (def.requiresInstitutionalTags?.length) {
+      const ok = def.requiresInstitutionalTags.some((t) => instTags.includes(t))
+      if (!ok) return false
+    }
+    if (def.minEffectCount !== undefined) {
+      if (!hasNonLogEffects(def)) return false
+    }
     return true
   })
 }
 
-function pickRandom<T>(items: T[], rand: () => number): T | null {
+export function weightedPick<T>(
+  items: T[],
+  weightOf: (item: T) => number,
+  rand: () => number
+): T | null {
   if (!items.length) return null
-  return items[Math.floor(rand() * items.length)] ?? null
+  const weights = items.map(weightOf)
+  const total = weights.reduce((a, b) => a + b, 0)
+  if (total <= 0) return items[Math.floor(rand() * items.length)] ?? null
+  let roll = rand() * total
+  for (let i = 0; i < items.length; i++) {
+    roll -= weights[i]!
+    if (roll <= 0) return items[i] ?? null
+  }
+  return items[items.length - 1] ?? null
 }
 
-function routineRollCount(rand: () => number): number {
+function routineRollCount(run: PlayRunState, rand: () => number): number {
   const r = rand()
-  if (r < 0.25) return 0
-  if (r < 0.7) return 1
-  return 2
+  let count = r < 0.25 ? 0 : r < 0.7 ? 1 : 2
+  const delinquency = run.econ?.delinquency ?? 0
+  const flood = institutionalTagIds(run).includes('mandate_flood')
+  if (delinquency >= 2 || flood) {
+    count += 1
+  }
+  return Math.min(count, MAX_MANDATE_QUEUE)
 }
 
 function familyOutcomeOf(run: PlayRunState): FamilyOutcome | undefined {
@@ -159,9 +214,52 @@ function applyEffect(run: PlayRunState, effect: MandateEffect): PlayRunState {
         }
       }
       break
+    case 'institutionalTag': {
+      const tagId = effect.tagId as InstitutionalTagId | undefined
+      if (!tagId) break
+      const week = run.chapter?.chapterWeekIndex
+      next = {
+        ...next,
+        institutionalTags: mergeTagRecords(next.institutionalTags, [
+          {
+            id: tagId,
+            appliedAtWeek: week,
+            expiryWeek: effect.expiryWeek,
+            source: 'mandate'
+          }
+        ])
+      }
+      break
+    }
     case 'log':
       if (effect.message) logs.unshift(effect.message)
       break
+    case 'queueMandate':
+      if (effect.mandateId) {
+        next = appendPending(next, effect.mandateId)
+      }
+      break
+    case 'primaryFateTransition': {
+      const toFate = effect.toFate as PrimaryFate | undefined
+      if (!toFate || toFate === run.primaryFate) break
+      if (toFate === 'ghost_bound') {
+        next = {
+          ...next,
+          primaryFate: 'ghost_bound',
+          setpiece: {
+            ...next.setpiece,
+            fateUpdatePending: {
+              from: run.primaryFate,
+              to: 'ghost_bound',
+              trigger: 'ghost_bind'
+            }
+          }
+        }
+        next = initGhostLedgerOnTransition(next)
+        logs.unshift('阴司绑定登记完成——阳债转入冥籍双账。')
+      }
+      break
+    }
     default:
       break
   }
@@ -173,9 +271,44 @@ function applyEffects(run: PlayRunState, effects: MandateEffect[]): PlayRunState
   return effects.reduce((acc, eff) => applyEffect(acc, eff), run)
 }
 
+function issuerLabelForDef(def: MandateDeliveryDef): string {
+  if (def.issuerTag?.trim()) return def.issuerTag.trim()
+  const sep = def.title.indexOf('·')
+  if (sep > 0) return def.title.slice(0, sep).trim()
+  return def.title.trim()
+}
+
+function fuzzFlagsForRun(run: PlayRunState): MandateInboxFuzzFlags {
+  const numbness = run.mandate?.numbness ?? 0
+  const mandateFlood = institutionalTagIds(run).includes('mandate_flood')
+  return {
+    costBlur: numbness >= NUMBNESS_MUTE_THRESHOLD,
+    issuerNoise: mandateFlood || numbness >= NUMBNESS_MUTE_THRESHOLD
+  }
+}
+
+/** Prefer stable left compliant id (ack-min) for spec-stable unblur (RESEARCH A2) */
+export function clauseLiterateUnblurIdForResponses(responses: MandateResponseDef[]): string | undefined {
+  const compliant = responses.filter((r) => !r.grit)
+  const left = compliant[0]
+  if (left?.id) return left.id
+  return responses[0]?.id
+}
+
+export function fuzzFlagsForRunWithResponses(
+  run: PlayRunState,
+  responses: MandateResponseDef[]
+): MandateInboxFuzzFlags {
+  const base = fuzzFlagsForRun(run)
+  if (!clauseLiterateActive(run)) return base
+  const unblurId = clauseLiterateUnblurIdForResponses(responses)
+  if (!unblurId) return base
+  return { ...base, clauseLiterateUnblurId: unblurId }
+}
+
 /** 新周开始时掷来文并追加队列（config 驱动，禁止 week 魔数） */
 export function rollMandatesForWeek(run: PlayRunState): PlayRunState {
-  if (run.runMode !== 'chapter' || !run.chapter) return run
+  if (!isChapterLikeRun(run) || !run.chapter) return run
 
   const mandate = ensureMandate(run)
   if (mandate.pendingDeliveryIds.length >= MAX_MANDATE_QUEUE) return run
@@ -188,17 +321,25 @@ export function rollMandatesForWeek(run: PlayRunState): PlayRunState {
   const picked = new Set<string>()
 
   const tryPick = (pool: MandatePoolKey) => {
-    const eligible = eligibleMandates(next, listMandatesForPool(config, pool)).filter(
+    const eligible = eligibleMandates(next, listMandatesForRunPool(next, pool)).filter(
       (d) => !picked.has(d.id)
     )
-    const choice = pickRandom(eligible, rand)
+    const choice = weightedPick(
+      eligible,
+      (d) => {
+        let w = d.weight ?? 1
+        if (clauseLiterateActive(next) && isClauseCreditMandate(d)) w += 1
+        return w
+      },
+      rand
+    )
     if (!choice) return
     picked.add(choice.id)
     next = appendPending(next, choice.id)
   }
 
   const routineCount = Math.min(
-    routineRollCount(rand),
+    routineRollCount(next, rand),
     MAX_MANDATE_QUEUE - (next.mandate?.pendingDeliveryIds.length ?? 0)
   )
   for (let i = 0; i < routineCount; i++) {
@@ -238,13 +379,16 @@ export function buildMandateInboxPending(run: PlayRunState): MandateInboxPending
   if (!id) return null
   const def = getMandateDef(id)
   if (!def) return null
+  const responses = visibleResponsesForRun(run, def)
   return {
     deliveryId: id,
     title: def.title,
     body: def.body,
     queueSize: run.mandate!.pendingDeliveryIds.length,
-    responses: visibleResponsesForRun(run, def),
-    numbness: run.mandate!.numbness
+    responses,
+    numbness: run.mandate!.numbness,
+    issuerLabel: issuerLabelForDef(def),
+    fuzzFlags: fuzzFlagsForRunWithResponses(run, responses)
   }
 }
 

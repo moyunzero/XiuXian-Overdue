@@ -263,6 +263,18 @@
       ]
     },
     {
+      "id": "validate:stages",
+      "title": "stages/fates/transitions 结构校验",
+      "command": "yarn validate:stages",
+      "required": true,
+      "triggerPaths": [
+        "data/stages/**",
+        "data/fates/**",
+        "data/fate-transitions/**",
+        "scripts/validate-stages.mjs"
+      ]
+    },
+    {
       "id": "m8-meta-ai-flow",
       "spec": [
         "app/logic/play/playMeta.spec.ts",
@@ -448,6 +460,76 @@
         "app/logic/play/compoundWeekSettlement.ts",
         "app/logic/play/playRunFateDefaults.ts",
         "app/composables/useChapterSession.ts"
+      ]
+    },
+    {
+      "id": "schedule-mandate-flow",
+      "spec": "app/logic/play/scheduleMandateFlow.spec.ts",
+      "doc": "docs/REDESIGN-v5-milestone-fates.md",
+      "triggerPaths": [
+        "app/logic/play/scheduleMandateFlow.ts",
+        "app/logic/play/weekPlanTiles.ts",
+        "app/logic/play/mandateDelivery.ts",
+        "app/logic/play/milestoneWeekFlow.ts",
+        "app/composables/useChapterSession.ts"
+      ]
+    },
+    {
+      "id": "fate-continuity-flow",
+      "spec": "app/logic/play/fateContinuityFlow.spec.ts",
+      "doc": "docs/REDESIGN-v5-milestone-fates.md",
+      "triggerPaths": [
+        "app/logic/play/fateContinuityFlow.spec.ts",
+        "app/logic/play/scheduleMandateFlow.ts",
+        "app/logic/play/weekPlanTiles.ts",
+        "app/logic/play/headJarWeekPlan.ts",
+        "app/logic/play/fateTransition.ts",
+        "app/logic/play/fateShellRegistry.ts",
+        "app/logic/play/chapterTestHelpers.ts"
+      ]
+    },
+    {
+      "id": "ghost-bound-flow",
+      "spec": "app/logic/play/ghostBoundFlow.spec.ts",
+      "doc": "docs/REDESIGN-v5-milestone-fates.md",
+      "triggerPaths": [
+        "app/logic/play/ghostLedger.ts",
+        "app/logic/play/ghostBoundWeekPlan.ts",
+        "app/logic/play/ghostBoundFlow.spec.ts",
+        "app/logic/play/fateTransition.ts",
+        "app/logic/play/mandateDelivery.ts",
+        "app/logic/play/scheduleMandateFlow.ts",
+        "app/logic/play/compoundWeekSettlement.ts"
+      ]
+    },
+    {
+      "id": "stage-content-flow",
+      "spec": "app/logic/play/stageContentFlow.spec.ts",
+      "doc": "docs/REDESIGN-v5-milestone-fates.md",
+      "triggerPaths": [
+        "app/logic/play/stageContentFlow.spec.ts",
+        "app/logic/play/stageRegistry.ts",
+        "app/logic/play/fateCatalog.ts",
+        "app/logic/play/mandateRegistry.ts",
+        "app/logic/play/stageDefs.ts",
+        "app/logic/play/playRunFateDefaults.ts",
+        "app/logic/play/fateTransition.ts",
+        "app/logic/play/milestoneWeekFlow.ts",
+        "data/stages/**",
+        "data/fates/**",
+        "data/fate-transitions/**"
+      ]
+    },
+    {
+      "id": "fate-meta-unlock",
+      "doc": "docs/REDESIGN-v5-milestone-fates.md §7",
+      "triggerPaths": [
+        "app/logic/play/metaProgress.ts",
+        "app/logic/play/startBundleRegistry.ts",
+        "app/logic/play/mandateCostHints.ts",
+        "app/logic/play/mandateDelivery.ts",
+        "app/composables/useMetaStorage.ts",
+        "app/pages/index.vue"
       ]
     },
     {

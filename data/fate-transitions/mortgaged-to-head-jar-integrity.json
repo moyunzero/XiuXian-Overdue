@@ -1,0 +1,17 @@
+{
+  "id": "mortgaged-to-head-jar-integrity",
+  "fromFates": ["mortgaged"],
+  "toFate": "head_jar",
+  "trigger": {
+    "kind": "metric_threshold",
+    "field": "bodyIntegrity",
+    "op": "lt",
+    "valueRef": "HEAD_JAR_INTEGRITY"
+  },
+  "overlay": {
+    "title": "灵籍更新",
+    "bodyLine": "完整度跌破器藏阈值——维生容器登记启动。"
+  },
+  "logLine": "完整度跌破器藏阈值——维生容器登记启动。",
+  "requiresRunStatus": ["fated"]
+}

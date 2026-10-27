@@ -164,5 +164,207 @@
         ]
       }
     ]
+  },
+  {
+    "id": "ch0-mortgaged-recovery",
+    "title": "抵押登记 · 追偿预审",
+    "body": "检测到抵押资产登记未结清。本周须提交还款计划或接受额度下调。拒绝配合将触发强制清算流程登记。",
+    "lifeStages": ["hs", "uni", "work"],
+    "minWeek": 12,
+    "pool": "routine",
+    "primaryFates": ["mortgaged"],
+    "issuerTag": "抵押登记",
+    "weight": 2,
+    "minEffectCount": 3,
+    "responses": [
+      {
+        "id": "submit-plan",
+        "label": "提交还款计划",
+        "costHint": "压力+1",
+        "effectTiming": "weekend",
+        "effects": [
+          { "kind": "domestication", "value": 4 },
+          { "kind": "delinquency", "value": 1 },
+          { "kind": "log", "message": "还款计划已挂账——利息照计。" }
+        ]
+      },
+      {
+        "id": "stall-mortgaged",
+        "label": "拖一周再说",
+        "grit": true,
+        "costHint": "逾期+1",
+        "effects": [
+          { "kind": "delinquency", "value": 1 },
+          { "kind": "numbness", "value": 2 },
+          { "kind": "log", "message": "追偿预审未回执——抵押侧备注已更新。" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ch0-supply-cut-notice",
+    "title": "洞府灵司 · 配额下调通知",
+    "body": "连续未达最低还款，洞府灵气配额已列入观察名单。本周须按通知补登记，否则维生补贴将再减一档。",
+    "lifeStages": ["hs", "uni"],
+    "minWeek": 6,
+    "pool": "routine",
+    "requiresInstitutionalTags": ["supply_cut"],
+    "issuerTag": "洞府灵司",
+    "weight": 2,
+    "minEffectCount": 1,
+    "responses": [
+      {
+        "id": "ack-supply-cut",
+        "label": "按通知补登记",
+        "costHint": "驯化+2",
+        "effects": [
+          { "kind": "domestication", "value": 2 },
+          { "kind": "log", "message": "配额观察回执已登记——本周灵气按下调档执行。" }
+        ]
+      },
+      {
+        "id": "stall-supply-cut",
+        "label": "先拖一周",
+        "grit": true,
+        "costHint": "断供+1",
+        "effects": [
+          { "kind": "supplyCutStreak", "value": 1 },
+          { "kind": "numbness", "value": 1 },
+          { "kind": "log", "message": "配额通知未回执——断供计数已更新。" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ch0-family-leverage",
+    "title": "家庭催收 · 连带登记",
+    "body": "系统检测到家庭担保链与本周逾期交叉。须确认连带义务或提交豁免材料，否则家庭侧额度将被冻结。",
+    "lifeStages": ["hs", "uni"],
+    "minWeek": 10,
+    "minDelinquency": 2,
+    "pool": "family",
+    "requiresTags": ["witness-departure"],
+    "issuerTag": "家庭催收",
+    "weight": 2,
+    "minEffectCount": 1,
+    "responses": [
+      {
+        "id": "accept-leverage",
+        "label": "确认连带登记",
+        "costHint": "驯化+4",
+        "effects": [
+          { "kind": "institutionalTag", "tagId": "family_leverage" },
+          { "kind": "domestication", "value": 4 },
+          { "kind": "log", "message": "家庭连带登记已写入灵籍——额度冻结待复核。" }
+        ]
+      },
+      {
+        "id": "defer-leverage",
+        "label": "提交豁免材料",
+        "grit": true,
+        "effects": [
+          { "kind": "numbness", "value": 2 },
+          { "kind": "delinquency", "value": 1 },
+          { "kind": "log", "message": "豁免材料已上传——审核排队中。" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ch0-blacklist-nudge",
+    "title": "征信灵籍 · 黑名单复核",
+    "body": "你已被列入信用观察名单。本周须完成最低还款或提交收入说明，否则灵气配额将再下调一档。",
+    "lifeStages": ["hs", "uni"],
+    "minWeek": 8,
+    "minDelinquency": 2,
+    "pool": "routine",
+    "requiresInstitutionalTags": ["credit_blacklist"],
+    "issuerTag": "征信灵籍",
+    "weight": 3,
+    "responses": [
+      {
+        "id": "ack-blacklist",
+        "label": "本周按最低还",
+        "costHint": "驯化+3",
+        "effectTiming": "instant",
+        "effects": [
+          { "kind": "domestication", "value": 3 },
+          { "kind": "log", "message": "复核回执已登记——系统记录为「配合」。" }
+        ]
+      },
+      {
+        "id": "explain-income",
+        "label": "提交收入说明",
+        "effects": [
+          { "kind": "domestication", "value": 5 },
+          { "kind": "numbness", "value": 1 },
+          { "kind": "log", "message": "收入说明已上传——审核排队中。" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ch0-ghost-bound-summon",
+    "title": "阴司 · 召令登记",
+    "body": "器藏维生档检测到连续逾期。阴司备案组通知：本周须回执召令，否则阳债将转入冥籍预审队列。",
+    "lifeStages": ["hs", "uni", "work"],
+    "minWeek": 8,
+    "pool": "routine",
+    "primaryFates": ["head_jar"],
+    "minDelinquency": 2,
+    "requiresInstitutionalTags": ["ghost_chain_seed"],
+    "issuerTag": "阴司备案",
+    "weight": 2,
+    "responses": [
+      {
+        "id": "ack-summons",
+        "label": "确认出席",
+        "effects": [
+          { "kind": "queueMandate", "mandateId": "ch0-ghost-bound-bind" },
+          { "kind": "log", "message": "阴司召令已挂账——下一通来文将登记绑定。" }
+        ]
+      },
+      {
+        "id": "defer-summons",
+        "label": "拖一周",
+        "grit": true,
+        "effects": [
+          { "kind": "delinquency", "value": 1 },
+          { "kind": "log", "message": "召令未回执——阴司已将你列入绑定观察。" }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ch0-ghost-bound-bind",
+    "title": "冥司 · 绑定登记",
+    "body": "召令回执已收。冥司通知：接受绑定登记后，阳债将转入冥籍双账，工单维生改为冥币配额制。拒绝视为自愿放弃器藏维生资格。",
+    "lifeStages": ["hs", "uni", "work"],
+    "minWeek": 8,
+    "pool": "routine",
+    "primaryFates": ["head_jar"],
+    "requiresInstitutionalTags": ["ghost_chain_seed"],
+    "issuerTag": "冥司登记",
+    "weight": 2,
+    "responses": [
+      {
+        "id": "accept-bind",
+        "label": "接受绑定",
+        "effects": [
+          { "kind": "primaryFateTransition", "toFate": "ghost_bound" },
+          { "kind": "log", "message": "绑定条款已签署——阳债将转入冥籍。" }
+        ]
+      },
+      {
+        "id": "refuse-bind",
+        "label": "拒绝绑定",
+        "grit": true,
+        "effects": [
+          { "kind": "delinquency", "value": 1 },
+          { "kind": "domestication", "value": 4 },
+          { "kind": "log", "message": "拒绝已登记——阴司保留强制绑定权利。" }
+        ]
+      }
+    ]
   }
 ]

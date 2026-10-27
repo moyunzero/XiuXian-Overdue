@@ -1,7 +1,8 @@
 import { formatProfileTags, formatProfileTagsLine } from '~/logic/act1/profileTagLabels'
 import type { EmploymentTrack } from '~/types/chapter'
-import type { LifeStage, PlayAiTrigger } from '~/types/play'
+import type { InstitutionalTagId, LifeStage, PlayAiTrigger, PrimaryFate } from '~/types/play'
 import { lifeStageLabel } from '~/logic/play/chapterFlow'
+import { resolveOverlayCopy } from '~/logic/play/fateCatalog'
 
 /** kebab-case 内部档案标签 ID（如 hs-graduated、tier-tail） */
 const INTERNAL_TAG_ID = /^[a-z][a-z0-9]*(-[a-z][a-z0-9]*)+$/
@@ -45,6 +46,108 @@ const EMPLOYMENT_TRACK_LABELS: Record<EmploymentTrack, string> = {
   company: '进公司',
   gig: '散修零工',
   startup: '挂靠工作室'
+}
+
+const PRIMARY_FATE_LABELS: Record<PrimaryFate, string> = {
+  human: '肉身修士',
+  indentured: '肉身修士',
+  mortgaged: '抵押运行',
+  ghost_voluntary: '自愿幽影',
+  head_jar: '器藏维生',
+  ghost_bound: '绑定幽影',
+  shattered: '碎裂态'
+}
+
+const INSTITUTIONAL_TAG_STAMP_LABELS: Partial<Record<InstitutionalTagId, string>> = {
+  supply_cut: '断供',
+  credit_blacklist: '征信黑',
+  family_leverage: '连坐'
+}
+
+/** D-112: other slot head_jar while starting fresh human */
+export const META_NEW_HUMAN_OTHER_SLOT_HINT =
+  '新档仍从人类身份签约；上周目的命运态已收入账号档案。'
+
+/** D-110: Continue CTA when slot fate ≠ human */
+export function formatContinuePlayLabel(
+  fate: PrimaryFate | undefined,
+  detailLabel?: string
+): string {
+  if (fate && fate !== 'human' && fate !== 'indentured') {
+    return `继续 · ${formatPrimaryFateLabel(fate)}档`
+  }
+  if (detailLabel) return `继续修行 · ${detailLabel}`
+  return '继续修行'
+}
+
+/** D-125：delegation_two 面板 copy（禁止 raw fate id） */
+export function delegationPanelCopy(fate: PrimaryFate): {
+  panelTag: string
+  panelTitle: string
+  confirmLabel: string
+} {
+  if (fate === 'ghost_bound') {
+    return {
+      panelTag: '冥籍绑定',
+      panelTitle: '本周阴司工单',
+      confirmLabel: '开本周'
+    }
+  }
+  return {
+    panelTag: '器藏维生',
+    panelTitle: '本周委托',
+    confirmLabel: '开本周'
+  }
+}
+
+/** D-127：灵籍更新 overlay 正文（禁止 raw fate id） */
+export function fateUpdateOverlayBodyLine(
+  trigger: string | undefined,
+  toFate: PrimaryFate
+): string {
+  const fromCatalog = resolveOverlayCopy(trigger, toFate)
+  if (fromCatalog) return fromCatalog
+  if (toFate === 'ghost_bound') {
+    return '阳债未清，阴司将你编入绑定幽影档——双账并行结算。'
+  }
+  switch (trigger) {
+    case 'body_mortgage':
+      return '抵押登记完成——制度将你编入抵押运行档。'
+    case 'body_integrity':
+      return '完整度跌破制度线——灵贷契约改写为抵押运行。'
+    case 'integrity_threshold':
+      return '完整度跌破器藏阈值——维生容器登记启动。'
+    case 'maintenance_failure':
+      return '维生欠账连周——制度将你编入器藏维生档。'
+    default:
+      return '灵籍档案已更新，请签收后继续本周排程。'
+  }
+}
+
+/** D-123：双账只读标签（禁止「制度」二字） */
+export function dualLedgerLabelYang(): string {
+  return '人账阳债'
+}
+
+export function dualLedgerLabelMing(): string {
+  return '鬼账冥币'
+}
+
+/** 主形态 → 玩家可见灵籍标签（禁止 raw primaryFate ID） */
+export function formatPrimaryFateLabel(fate: PrimaryFate | string | null | undefined): string {
+  if (!fate) return '肉身修士'
+  if (fate in PRIMARY_FATE_LABELS) {
+    return PRIMARY_FATE_LABELS[fate as PrimaryFate]
+  }
+  return '肉身修士'
+}
+
+/** 制度 tag → 状态栏 stamp 短标签 */
+export function formatInstitutionalTagStamp(tagId: InstitutionalTagId | string): string {
+  if (tagId in INSTITUTIONAL_TAG_STAMP_LABELS) {
+    return INSTITUTIONAL_TAG_STAMP_LABELS[tagId as InstitutionalTagId]!
+  }
+  return '制度标记'
 }
 
 /** 档案标签 ID 列表 → 玩家可见中文标签数组（须经本模块或 profileTagLabels 格式化）。 */

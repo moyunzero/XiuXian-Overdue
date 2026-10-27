@@ -1,0 +1,24 @@
+{
+  "id": "phase5-meta-codex-mortgaged",
+  "label": "Phase5 · homepage codex mortgaged unlock",
+  "path": "/",
+  "waitSelector": ".FateCodexStrip",
+  "metaV1": {
+    "saveSchemaVersion": 1,
+    "metaProgressId": "default",
+    "progress": {
+      "unlockedFatesSeen": [
+        "human",
+        "mortgaged"
+      ],
+      "passiveIds": [],
+      "startBundles": [
+        "bundle-mortgage-file-copy"
+      ]
+    }
+  },
+  "clearPlaySave": true,
+  "clearMeta": false,
+  "expectMetaMortgagedSeen": true,
+  "expectBundleCatalog": true
+}

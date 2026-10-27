@@ -1,0 +1,22 @@
+{
+  "id": "stage-m1-contract",
+  "displayName": "灵贷契约章",
+  "contentPack": "m1-contract",
+  "weekRange": [1, 40],
+  "chapterId": "ch0-forty-week-contract",
+  "mandatePools": {
+    "routine": "data/mandates/ch0-routine.json",
+    "nodeBonus": "data/mandates/ch0-node.json",
+    "family": "data/mandates/ch0-family.json"
+  },
+  "lifeStages": ["hs", "uni", "work"],
+  "defaultFate": "human",
+  "tagPools": [],
+  "eventPack": "data/events.json",
+  "eventFilter": {
+    "includeLifeStages": ["hs", "uni", "work"],
+    "includeIdPrefixes": ["ch0_", "collector_"],
+    "excludeIds": []
+  },
+  "unlockMeta": {}
+}

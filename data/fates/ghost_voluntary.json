@@ -1,0 +1,11 @@
+{
+  "id": "ghost_voluntary",
+  "displayName": "自愿幽影",
+  "playable": false,
+  "shell": {
+    "layoutToken": "fate-ghost-voluntary",
+    "statusBarFields": ["debt", "integrity"],
+    "disabledActions": ["parttime", "repay_hero"],
+    "scheduleMode": "four_tile"
+  }
+}

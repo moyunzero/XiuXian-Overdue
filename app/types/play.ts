@@ -55,6 +55,7 @@ export type InstitutionalTagId =
   | 'mandate_flood'
   | 'family_leverage'
   | 'organelle_liens'
+  | 'ghost_chain_seed'
 
 export interface TagRecord {
   id: InstitutionalTagId
@@ -63,11 +64,15 @@ export interface TagRecord {
   source?: string
 }
 
-/** Phase 4 才填 UI 配置；Phase 1 仅占位 */
+/** head_jar 委托双槽 vs 人类/抵押四格排程 */
+export type ScheduleMode = 'four_tile' | 'delegation_two'
+
+/** 命运态 UI 壳配置（logic 侧单一真相，Vue 只消费） */
 export interface FateShell {
-  layoutToken?: string
-  statusBarFields?: string[]
-  disabledActions?: string[]
+  layoutToken: string
+  statusBarFields: string[]
+  disabledActions: string[]
+  scheduleMode: ScheduleMode
 }
 
 /** Phase 5 才接 storage；Phase 1 仅占位 */
@@ -378,6 +383,8 @@ export interface SetpieceState {
   /** 无尽境：破境关口 */
   breakthroughPending?: BreakthroughPending
   collectionLadder?: { stage: 0 | 1 | 2 | 3 }
+  /** 命运阶梯升级待确认（04 UI overlay） */
+  fateUpdatePending?: { from: PrimaryFate; to: PrimaryFate; trigger: string }
 }
 
 export interface InboxTemplateTrigger {
@@ -402,6 +409,14 @@ export interface InboxTemplate {
   body: string
   required: boolean
   choices?: { id: string; label: string; effects: PlayEffect[] }[]
+}
+
+/** Phase 6：ghost_* 双账（与 human econ.cash 语义分离，D-121） */
+export interface GhostLedger {
+  yangDebtCarried: number
+  mingCoin: number
+  /** 连续未达冥币配额的周数（反模式计数） */
+  mingUnderpayStreak?: number
 }
 
 export interface DebtDashboardVM {
@@ -432,6 +447,12 @@ export interface DebtDashboardVM {
   /** 职场催收档位 */
   workCollectionTitle?: string
   workCollectionBody?: string
+  /** LOOP-06：反模式标题（与 buildAntiPatternLines 同源） */
+  antiPatternHeadline?: string
+  /** ghost_bound 阳债结转（供 06-03 rail） */
+  dualLedgerYang?: number
+  /** ghost_bound 冥币结余（供 06-03 rail） */
+  dualLedgerMing?: number
 }
 
 export interface PlayRunState {
@@ -453,8 +474,14 @@ export interface PlayRunState {
   institutionalTags: TagRecord[]
   /** v5 当前 stage 里程碑 id */
   stageId: string
-  /** v5 meta 档关联占位 */
+  /** v5 meta 档关联（MVP 默认 "default"，D-104） */
   metaProgressId?: string
+  /** Phase 5：新人类档所选开局包 id（null/standard = 无附加） */
+  selectedStartBundleId?: string
+  /** Phase 5：开局包 clause-literate 剩余有效周数（bounded，非 permanent passiveIds） */
+  startBundlePassiveWeeksLeft?: number
+  /** Phase 5：每周 mandate hint 锐化槽位索引（可选轮转） */
+  clauseLiterateRevealIndex?: number
   logs: string[]
   profileTags: string[]
   inbox: InboxThread[]
@@ -497,6 +524,8 @@ export interface PlayRunState {
   mandate?: MandateState
   /** 上一周提交的周计划（「沿用上周」） */
   lastWeekPlan?: WeekPlan
+  /** Phase 6：ghost_bound / ghost_voluntary 冥币·阳债双账 */
+  ghostLedger?: GhostLedger
 }
 
 /** M8：轻量 AI 瞬间触发点 */
@@ -530,4 +559,6 @@ export interface PlayStatusBarModel {
   delinquency: number
   realmLabel: string
   lifeStageLabel: string
+  /** Instant feedback after mandate respond (2s TTL) */
+  flash?: string | null
 }

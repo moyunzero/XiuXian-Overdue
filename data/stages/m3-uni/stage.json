@@ -1,0 +1,13 @@
+{
+  "id": "stage-m3-uni",
+  "displayName": "预科择宗",
+  "contentPack": "m3-uni",
+  "weekRange": [81, 120],
+  "chapterId": null,
+  "mandatePools": {},
+  "lifeStages": ["uni"],
+  "defaultFate": "human",
+  "tagPools": [],
+  "eventPack": "data/events.json",
+  "unlockMeta": {}
+}

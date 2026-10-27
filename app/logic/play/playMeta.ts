@@ -1,6 +1,9 @@
 import type { Act1Carryover } from '~/types/act1'
-import type { PlayMeta, PlayRunState, RealmTierId } from '~/types/play'
+import type { MetaProgress, PlayMeta, PlayRunState, RealmTierId } from '~/types/play'
 import { listRealmTemplates } from '~/logic/play/realmTemplates'
+import { collectFatesFromRun, mergeFatesFromRun } from '~/logic/play/metaProgress'
+
+export { collectFatesFromRun, mergeFatesFromRun }
 
 export const HIDDEN_STANDARD_DEBT_NEVER_ZERO = 'standard-debt-never-zero'
 
@@ -161,4 +164,14 @@ export function enrichCarryoverWithPlayMeta(
 
 export function mergePriorMetaForNewRun(containerMeta: PlayMeta, slotUnlocks: string[]): string[] {
   return [...new Set([...containerMeta.priorMetaUnlocks, ...slotUnlocks])]
+}
+
+/** Phase 5: account meta safety merge on run archive — composable chains in 05-02 */
+export function mergeMetaFromRunArchive(meta: MetaProgress, run: PlayRunState): MetaProgress {
+  return mergeFatesFromRun(meta, run)
+}
+
+/** Alias for archive path tests and composable wiring (D-105) */
+export function mergeAccountMetaFromRun(progress: MetaProgress, run: PlayRunState): MetaProgress {
+  return mergeFatesFromRun(progress, run)
 }

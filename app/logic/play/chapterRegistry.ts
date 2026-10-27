@@ -5,6 +5,7 @@ import type {
   ChapterId,
   SegmentDef
 } from '~/types/chapter'
+import { getStageDef } from '~/logic/play/stageRegistry'
 
 const CHAPTER_CONFIGS: Record<string, ChapterConfig> = {
   [ch0Config.id]: ch0Config as ChapterConfig
@@ -43,4 +44,10 @@ export function weeksRemaining(config: ChapterConfig, weekIndex: number): number
 
 export function getGateDef(config: ChapterConfig, gateId: string) {
   return config.gates.find((g) => g.id === gateId) ?? null
+}
+
+export function getChapterConfigForStage(stageId: string): ChapterConfig | undefined {
+  const chapterId = getStageDef(stageId)?.chapterId
+  if (!chapterId) return undefined
+  return getChapterConfig(chapterId as ChapterId)
 }

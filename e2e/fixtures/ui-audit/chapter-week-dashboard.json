@@ -5,14 +5,14 @@
   "waitSelector": ".WeekPlan",
   "saveV5": {
     "saveSchemaVersion": 7,
-    "activeRunId": "run_1781861548959_vsvwj9d",
+    "activeRunId": "run_1781936742880_dbpfk2g",
     "runs": {
-      "run_1781861548959_vsvwj9d": {
+      "run_1781936742880_dbpfk2g": {
         "schemaVersion": 5,
-        "runId": "run_1781861548959_vsvwj9d",
+        "runId": "run_1781936742880_dbpfk2g",
         "runMode": "chapter",
-        "createdAt": "2026-06-19T09:32:28.959Z",
-        "updatedAt": "2026-06-19T09:32:28.959Z",
+        "createdAt": "2026-06-20T06:25:42.880Z",
+        "updatedAt": "2026-06-20T06:25:42.880Z",
         "lifeStage": "hs",
         "chapterIndex": 0,
         "realmTier": "mortal",
@@ -73,7 +73,8 @@
             ]
           }
         ],
-        "seed": 416488522,
+        "metaProgressId": "default",
+        "seed": 869363104,
         "econ": {
           "cash": 120,
           "collectionFee": 0,

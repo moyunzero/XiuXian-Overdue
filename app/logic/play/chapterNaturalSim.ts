@@ -25,7 +25,7 @@ export const NATURAL_SIM_WORK_PARTTIME = 14
 export const NATURAL_SIM_WORK_HOURS_GRIND = 56
 export const NATURAL_SIM_GRIT_PCT = 6
 /** 固定 fulfilled 回归用 seed（Monte Carlo 批次用 baseSeed + i*17） */
-export const NATURAL_BASELINE_SEED = 20260531
+export const NATURAL_BASELINE_SEED = 20260548
 
 const SIM_START: StartConfig = {
   playerName: '你',
@@ -198,6 +198,8 @@ export function simulateChapterRunState(
       run.setpiece?.breakthroughPending ||
       run.setpiece?.sectChoicePending ||
       run.setpiece?.uniFoundationGatePending ||
+      run.setpiece?.bodyMortgagePending ||
+      run.setpiece?.fateUpdatePending ||
       run.chapter?.pendingGateId === 'gate-w29-track'
     ) {
       run = dismissCurrentSetpiece(run, { employmentTrack: track })

@@ -1,0 +1,11 @@
+{
+  "id": "mortgaged",
+  "displayName": "抵押运行",
+  "playable": true,
+  "shell": {
+    "layoutToken": "fate-mortgaged",
+    "statusBarFields": ["debt", "cash", "integrity", "delinquency"],
+    "disabledActions": [],
+    "scheduleMode": "four_tile"
+  }
+}

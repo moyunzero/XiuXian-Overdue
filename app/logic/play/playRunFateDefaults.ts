@@ -7,7 +7,11 @@ import type {
   PrimaryFate,
   TagRecord
 } from '~/types/play'
-import { STAGE_M0_PRE, STAGE_M1_CONTRACT, STAGE_M2_HS } from '~/logic/play/stageDefs'
+import { getStageDef } from '~/logic/play/stageRegistry'
+
+const M0_STAGE_ID = 'stage-m0-pre'
+const M1_STAGE_ID = 'stage-m1-contract'
+const M2_STAGE_ID = 'stage-m2-hs'
 
 const M2_STAGE_LOG =
   '学籍段切换：四十周契约账期已满，制度将你编入下一学籍卷。'
@@ -23,24 +27,24 @@ export function isPlayableRunStatus(status: PlayRunStatus): boolean {
  */
 export function deriveStageIdFromRun(run: PlayRunState): string {
   if (run.lifeStage === 'pre' || !run.chapter) {
-    return STAGE_M0_PRE.id
+    return M0_STAGE_ID
   }
-  const m1End = STAGE_M1_CONTRACT.weekRange?.[1] ?? 40
+  const m1End = getStageDef(M1_STAGE_ID)?.weekRange?.[1] ?? 40
   if (run.chapter.chapterWeekIndex > m1End) {
-    return STAGE_M2_HS.id
+    return M2_STAGE_ID
   }
-  return STAGE_M1_CONTRACT.id
+  return M1_STAGE_ID
 }
 
 /** week 越过 M1 上界时切 stage + 制度 log（无 UI 阻断） */
 export function advanceStageIfNeeded(run: PlayRunState): PlayRunState {
   if (!run.chapter) return run
-  const m1End = STAGE_M1_CONTRACT.weekRange?.[1] ?? 40
+  const m1End = getStageDef(M1_STAGE_ID)?.weekRange?.[1] ?? 40
   if (run.chapter.chapterWeekIndex <= m1End) return run
-  if (run.stageId !== STAGE_M1_CONTRACT.id) return run
+  if (run.stageId !== M1_STAGE_ID) return run
   return {
     ...run,
-    stageId: STAGE_M2_HS.id,
+    stageId: M2_STAGE_ID,
     logs: [M2_STAGE_LOG, ...run.logs].slice(0, 80)
   }
 }
